@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -96,36 +96,57 @@ namespace TeknoParrotUi.UserControls
             if (!(sender is FieldInformation field))
                 return;
 
-            // The Rod checkbox and Override Default Outfit are intentionally inverse controls.
-            // Use the guard so programmatic changes do not bounce back through this handler.
+            // Golden Tee has three valid setup states:
+            //   Default = Rod OFF, Override Default Outfit OFF
+            //   Rod     = Rod ON,  Override Default Outfit OFF
+            //   Custom  = Rod OFF, Override Default Outfit ON
+            //
+            // Rod and Custom are mutually exclusive, but neither one is required.
             if (!_applyingRodPreferredSetup &&
                 e.PropertyName == nameof(FieldInformation.RodPreferredSetup) &&
                 field.ShowRodPreferredSetup)
             {
                 if (field.RodPreferredSetup)
-                    ApplyRodPreferredSetup();
-                else
-                    EnableCustomGoldenTeeSetup();
+                {
+                    if (HasCustomGoldenTeeSettings())
+                    {
+                        var result = MessageBox.Show(
+                            "You currently have custom Golden Tee settings.\n\n" +
+                            "Using Rod's Preferred Setup will reset those custom settings " +
+                            "back to their default values.\n\n" +
+                            "Do you want to continue?",
+                            "Use Rod's Preferred Setup?",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
 
-                UpdateConditionalVisibility();
+                        if (result != MessageBoxResult.Yes)
+                        {
+                            SetRodToggleState(false, "0");
+                            return;
+                        }
+                    }
+
+                    ApplyRodPreferredSetup();
+                }
+                else
+                {
+                    // Turning Rod off does NOT force Custom on. This leaves the normal/default
+                    // state when Override Default Outfit is also off.
+                    SetRodToggleState(false, "0");
+                    UpdateConditionalVisibility();
+                }
+
                 return;
             }
 
-            // If the user explicitly changes Override Default Outfit, keep the Rod checkbox
-            // in the opposite state. This does NOT infer Rod mode from arbitrary default values;
-            // it only reacts to this one explicit customization toggle.
+            // Selecting Custom turns Rod off. Turning Custom off does NOT turn Rod on;
+            // that intentionally leaves both boxes unchecked for the normal/default setup.
             if (!_applyingRodPreferredSetup &&
                 e.PropertyName == nameof(FieldInformation.FieldValue) &&
                 ReferenceEquals(field, _rodPreferredSetupAnchor))
             {
                 if (string.Equals(field.FieldValue, "1", StringComparison.OrdinalIgnoreCase))
-                {
                     SetRodToggleState(false, "0");
-                }
-                else if (string.Equals(field.FieldValue, "0", StringComparison.OrdinalIgnoreCase))
-                {
-                    ApplyRodPreferredSetup();
-                }
 
                 UpdateConditionalVisibility();
                 return;
@@ -165,24 +186,22 @@ namespace TeknoParrotUi.UserControls
 
             _rodPreferredSetupAnchor.ShowRodPreferredSetup = true;
 
-            // First-ever load for this user profile: there is no saved tribute preference yet.
-            // Default Rod mode ON once, and immediately apply the complete setup including 25/25.
+            // First-ever load for this user profile defaults to the normal Golden Tee setup:
+            // neither Rod's Preferred Setup nor Override Default Outfit is forced on.
             if (string.IsNullOrWhiteSpace(_rodPreferredSetupAnchor.RodPreferredSetupSaved))
             {
-                _rodPreferredSetupAnchor.RodPreferredSetupSaved = "1";
-                _rodPreferredSetupAnchor.RodPreferredSetup = true;
-                ApplyRodPreferredSetup();
+                _rodPreferredSetupAnchor.RodPreferredSetupSaved = "0";
+                _rodPreferredSetupAnchor.RodPreferredSetup = false;
+                UpdateConditionalVisibility();
                 return;
             }
 
-            // Every later load honors the user's previously saved checkbox choice instead of
-            // guessing based on whether their current customization happens to look stock.
+            // Honor a previously saved Rod choice. If Rod is selected, ApplyRodPreferredSetup()
+            // also guarantees that Override Default Outfit is off, so Rod and Custom can never
+            // both be active.
             _rodPreferredSetupAnchor.RodPreferredSetup =
                 string.Equals(_rodPreferredSetupAnchor.RodPreferredSetupSaved, "1", StringComparison.Ordinal);
 
-            // If the user previously left Rod mode selected, enforce its invariant again on load.
-            // This also repairs an old profile that somehow saved non-25 sensitivity while Rod
-            // mode was selected.
             if (_rodPreferredSetupAnchor.RodPreferredSetup)
                 ApplyRodPreferredSetup();
             else
@@ -219,27 +238,6 @@ namespace TeknoParrotUi.UserControls
                 Debug.WriteLine($"Could not load stock Golden Tee profile for Rod preferred setup: {ex.Message}");
                 return null;
             }
-        }
-
-        private void EnableCustomGoldenTeeSetup()
-        {
-            if (_rodPreferredSetupAnchor == null)
-                return;
-
-            try
-            {
-                _applyingRodPreferredSetup = true;
-
-                _rodPreferredSetupAnchor.FieldValue = "1";
-                _rodPreferredSetupAnchor.RodPreferredSetupSaved = "0";
-                _rodPreferredSetupAnchor.RodPreferredSetup = false;
-            }
-            finally
-            {
-                _applyingRodPreferredSetup = false;
-            }
-
-            UpdateConditionalVisibility();
         }
 
         private void ApplyRodPreferredSetup()
@@ -312,6 +310,34 @@ namespace TeknoParrotUi.UserControls
 
             if (field != null)
                 field.FieldValue = value;
+        }
+
+        private bool HasCustomGoldenTeeSettings()
+        {
+            if (_gameProfile?.ConfigValues == null ||
+                _stockGoldenTeeProfile?.ConfigValues == null)
+                return false;
+
+            foreach (var stockField in _stockGoldenTeeProfile.ConfigValues.Where(field =>
+                         string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase)))
+            {
+                var currentField = _gameProfile.ConfigValues.FirstOrDefault(field =>
+                    string.Equals(field.CategoryName, stockField.CategoryName, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(field.FieldName, stockField.FieldName, StringComparison.OrdinalIgnoreCase));
+
+                if (currentField == null)
+                    continue;
+
+                if (!string.Equals(
+                        currentField.FieldValue,
+                        stockField.FieldValue,
+                        StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsRodTrackballSensitivityField(FieldInformation field)
