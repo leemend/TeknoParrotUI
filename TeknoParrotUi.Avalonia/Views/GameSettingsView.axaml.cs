@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Avalonia.Controls;
@@ -39,6 +40,15 @@ public partial class GameSettingsView : UserControl
     private TextBlock? _androidDisplayModeInfoBlock;
     private string _baselineAndroidDisplayMode = "";
 
+    // Side-BETA Golden Tee / conditional-settings state.
+    private GameProfile? _stockGoldenTeeProfile;
+    private FieldInformation? _rodPreferredSetupAnchor;
+    private bool _applyingRodPreferredSetup;
+    private CheckBox? _rodPreferredSetupCheckBox;
+    private Control? _rodPreferredSetupRow;
+    private readonly Dictionary<FieldInformation, Control> _fieldEditors = new();
+    private readonly Dictionary<FieldInformation, Control> _fieldRows = new();
+
     public event Action? BackRequested;
     public event Action<string>? Saved;
 
@@ -71,9 +81,16 @@ public partial class GameSettingsView : UserControl
     public void LoadProfile(GameProfile profile)
     {
         _profile = profile;
-        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} — Settings";
+        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} ΓÇö Settings";
         _valueReaders.Clear();
+        _fieldEditors.Clear();
+        _fieldRows.Clear();
+        _rodPreferredSetupCheckBox = null;
+        _rodPreferredSetupRow = null;
         FieldsPanel.Children.Clear();
+
+        ConfigureRodPreferredSetup(profile);
+        UpdateConditionalVisibilityModel();
 
         _gamePathBox = null;
         _gamePath2Box = null;
@@ -554,7 +571,7 @@ public partial class GameSettingsView : UserControl
     }
 
     /// <summary>
-    /// "Game Executable (GameProject-Win64-Shipping.exe)" — shows the expected file
+    /// "Game Executable (GameProject-Win64-Shipping.exe)" ΓÇö shows the expected file
     /// name(s) from the profile, matching the classic UI (';'/'|' = alternatives).
     /// </summary>
     private static string BuildExecutableLabel(string key, string fallback, string? executableName)
@@ -581,7 +598,7 @@ public partial class GameSettingsView : UserControl
             if (top == null) return;
 
             var pickerTitle =
-                $"{Services.Loc.T("GameSettingsSelectGameExecutable", "Select Game Executable")} — {label}";
+                $"{Services.Loc.T("GameSettingsSelectGameExecutable", "Select Game Executable")} ΓÇö {label}";
             var pickerOptions = new FilePickerOpenOptions
             {
                 Title = pickerTitle,
@@ -723,31 +740,39 @@ public partial class GameSettingsView : UserControl
     private void AddFieldEditor(FieldInformation field)
     {
         Control editor;
+
         switch (field.FieldType)
         {
             case FieldType.Bool:
+            {
                 var cb = new CheckBox { IsChecked = field.FieldValue == "1" };
                 _valueReaders[field] = () => cb.IsChecked == true ? "1" : "0";
+                cb.IsCheckedChanged += (_, _) =>
+                {
+                    field.FieldValue = cb.IsChecked == true ? "1" : "0";
+                    HandleConfigFieldValueChanged(field);
+                };
                 editor = cb;
                 break;
+            }
 
             case FieldType.Dropdown:
             case FieldType.DropdownIndex:
+            {
                 var options = field.FieldOptions ?? new List<string>();
                 var selected = field.FieldValue;
                 if (field.FieldName == "Input API")
                 {
-                    // Input is always merged (SDL2 gamepads + RawInput keyboard/
-                    // mouse) — no input-system selection anymore. The dropdown
-                    // survives only as a gun-flavour picker for games offering
-                    // both RawInput and RawInputTrackball.
+                    // Input is always merged (SDL2 gamepads + RawInput keyboard/mouse).
+                    // The dropdown survives only as the gun-flavour picker.
                     var gunOptions = options.FindAll(o => o is "RawInput" or "RawInputTrackball");
                     if (gunOptions.Count < 2)
-                        return; // nothing to choose — hide the row entirely
+                        return;
                     options = gunOptions;
                     if (!options.Contains(selected ?? ""))
                         selected = options[0];
                 }
+
                 var combo = new ComboBox
                 {
                     ItemsSource = options,
@@ -756,11 +781,19 @@ public partial class GameSettingsView : UserControl
                 };
                 if (combo.SelectedItem == null && options.Count > 0)
                     combo.SelectedIndex = 0;
+
                 _valueReaders[field] = () => combo.SelectedItem as string ?? field.FieldValue;
+                combo.SelectionChanged += (_, _) =>
+                {
+                    field.FieldValue = combo.SelectedItem as string ?? field.FieldValue;
+                    HandleConfigFieldValueChanged(field);
+                };
                 editor = combo;
                 break;
+            }
 
             case FieldType.Slider:
+            {
                 var slider = new Slider
                 {
                     Minimum = field.FieldMin,
@@ -773,17 +806,36 @@ public partial class GameSettingsView : UserControl
                     slider.TickFrequency = field.FieldStep;
                     slider.IsSnapToTickEnabled = true;
                 }
-                var valueLabel = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Text = field.FieldValue };
+
+                var valueLabel = new TextBlock
+                {
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Text = field.FieldValue
+                };
+
                 slider.PropertyChanged += (_, e) =>
                 {
-                    if (e.Property == Slider.ValueProperty)
-                        valueLabel.Text = ((int)slider.Value).ToString();
+                    if (e.Property != Slider.ValueProperty)
+                        return;
+
+                    var value = ((int)slider.Value).ToString();
+                    valueLabel.Text = value;
+                    field.FieldValue = value;
+                    HandleConfigFieldValueChanged(field);
                 };
+
                 _valueReaders[field] = () => ((int)slider.Value).ToString();
-                editor = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { slider, valueLabel } };
+                editor = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 8,
+                    Children = { slider, valueLabel }
+                };
                 break;
+            }
 
             case FieldType.Numeric:
+            {
                 var num = new NumericUpDown
                 {
                     Minimum = field.FieldMin,
@@ -792,17 +844,30 @@ public partial class GameSettingsView : UserControl
                     MinWidth = 140
                 };
                 _valueReaders[field] = () => ((long)(num.Value ?? 0)).ToString();
+                num.ValueChanged += (_, _) =>
+                {
+                    field.FieldValue = ((long)(num.Value ?? 0)).ToString();
+                    HandleConfigFieldValueChanged(field);
+                };
                 editor = num;
                 break;
+            }
 
             case FieldType.KeyCapture:
-                var keyBox = new KeyCaptureBox { MinWidth = 220, HorizontalAlignment = HorizontalAlignment.Left };
+            {
+                var keyBox = new KeyCaptureBox
+                {
+                    MinWidth = 220,
+                    HorizontalAlignment = HorizontalAlignment.Left
+                };
                 keyBox.HexValue = field.FieldValue ?? "0x0";
                 _valueReaders[field] = () => keyBox.HexValue;
                 editor = keyBox;
                 break;
+            }
 
             case FieldType.MonitorSelection:
+            {
                 var monitorCombo = new ComboBox { MinWidth = 220 };
                 var screens = (TopLevel.GetTopLevel(this) as Window)?.Screens.All;
                 var items = new List<string>();
@@ -811,25 +876,389 @@ public partial class GameSettingsView : UserControl
                     for (int i = 0; i < screens.Count; i++)
                         items.Add($"Monitor {i + 1} ({screens[i].Bounds.Width}x{screens[i].Bounds.Height}{(screens[i].IsPrimary ? ", primary" : "")})");
                 }
+
                 if (items.Count == 0)
                     items.Add("Monitor 1");
+
                 monitorCombo.ItemsSource = items;
-                monitorCombo.SelectedIndex = int.TryParse(field.FieldValue, out var mi) && mi >= 0 && mi < items.Count ? mi : 0;
+                monitorCombo.SelectedIndex =
+                    int.TryParse(field.FieldValue, out var mi) && mi >= 0 && mi < items.Count ? mi : 0;
                 _valueReaders[field] = () => monitorCombo.SelectedIndex.ToString();
+                monitorCombo.SelectionChanged += (_, _) =>
+                {
+                    field.FieldValue = monitorCombo.SelectedIndex.ToString();
+                    HandleConfigFieldValueChanged(field);
+                };
                 editor = monitorCombo;
                 break;
+            }
+
+            case FieldType.Password:
+            {
+                // Avalonia has no separate WPF-style PasswordBox binding helper here.
+                // Keep the value editable while masking it visually.
+                var password = new TextBox
+                {
+                    Text = field.FieldValue ?? "",
+                    MinWidth = 220,
+                    PasswordChar = '●'
+                };
+                _valueReaders[field] = () => password.Text ?? "";
+                password.TextChanged += (_, _) =>
+                {
+                    field.FieldValue = password.Text ?? "";
+                    HandleConfigFieldValueChanged(field);
+                };
+                editor = password;
+                break;
+            }
 
             default:
+            {
                 var tb = new TextBox { Text = field.FieldValue ?? "", MinWidth = 220 };
                 _valueReaders[field] = () => tb.Text ?? "";
+                tb.TextChanged += (_, _) =>
+                {
+                    field.FieldValue = tb.Text ?? "";
+                    HandleConfigFieldValueChanged(field);
+                };
                 editor = tb;
                 break;
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(field.Hint))
             ToolTip.SetTip(editor, field.Hint);
 
-        FieldsPanel.Children.Add(Row(field.FieldName, editor));
+        _fieldEditors[field] = editor;
+
+        if (field.ShowRodPreferredSetup)
+        {
+            var rodCheck = new CheckBox
+            {
+                Content = "Use Rod's Preferred Setup",
+                IsChecked = field.RodPreferredSetup,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            ToolTip.SetTip(
+                rodCheck,
+                "In Memory of Rod\n\nUses the original Golden Tee defaults for outfit, clubs, putter, balls, " +
+                "and accessories. Trackball sensitivity is locked to 25/25 while enabled.");
+
+            rodCheck.IsCheckedChanged += async (_, _) =>
+            {
+                if (_applyingRodPreferredSetup)
+                    return;
+
+                if (rodCheck.IsChecked == true)
+                {
+                    if (HasCustomGoldenTeeSettings() &&
+                        TopLevel.GetTopLevel(this) is Window owner)
+                    {
+                        var confirmed = await Services.Dialogs.ConfirmAsync(
+                            owner,
+                            "Use Rod's Preferred Setup?",
+                            "You currently have custom Golden Tee settings.\n\n" +
+                            "Using Rod's Preferred Setup will reset those custom settings back to their default values.\n\n" +
+                            "Do you want to continue?");
+
+                        if (!confirmed)
+                        {
+                            SetRodToggleState(false, "0");
+                            rodCheck.IsChecked = false;
+                            return;
+                        }
+                    }
+
+                    ApplyRodPreferredSetup();
+                    SyncEditorsFromFields();
+                }
+                else
+                {
+                    SetRodToggleState(false, "0");
+                    UpdateConditionalVisibilityModel();
+                    ApplyConditionalVisibilityToControls();
+                }
+            };
+
+            _rodPreferredSetupCheckBox = rodCheck;
+            _rodPreferredSetupRow = Row("Customization", rodCheck);
+            FieldsPanel.Children.Add(_rodPreferredSetupRow);
+        }
+
+        var row = Row(field.FieldName, editor);
+        _fieldRows[field] = row;
+        FieldsPanel.Children.Add(row);
+
+        ApplyConditionalVisibilityToControl(field);
+    }
+
+    private void HandleConfigFieldValueChanged(FieldInformation field)
+    {
+        if (_applyingRodPreferredSetup)
+            return;
+
+        // Custom Golden Tee outfit and Rod mode are mutually exclusive.
+        if (ReferenceEquals(field, _rodPreferredSetupAnchor) &&
+            string.Equals(field.FieldValue, "1", StringComparison.OrdinalIgnoreCase))
+        {
+            SetRodToggleState(false, "0");
+            if (_rodPreferredSetupCheckBox != null)
+                _rodPreferredSetupCheckBox.IsChecked = false;
+        }
+
+        UpdateConditionalVisibilityModel();
+        ApplyConditionalVisibilityToControls();
+    }
+
+    private void ConfigureRodPreferredSetup(GameProfile profile)
+    {
+        _stockGoldenTeeProfile = null;
+        _rodPreferredSetupAnchor = null;
+
+        if (profile.ConfigValues == null || !IsGoldenTeeProfile(profile))
+            return;
+
+        _rodPreferredSetupAnchor = profile.ConfigValues.FirstOrDefault(field =>
+            string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(field.FieldName, "Override Default Outfit", StringComparison.OrdinalIgnoreCase));
+
+        if (_rodPreferredSetupAnchor == null)
+            return;
+
+        _stockGoldenTeeProfile = LoadStockGoldenTeeProfile(profile);
+        if (_stockGoldenTeeProfile == null)
+            return;
+
+        foreach (var field in profile.ConfigValues)
+        {
+            field.ShowRodPreferredSetup = false;
+            field.IsEditorVisible = true;
+            field.IsEditorEnabled = true;
+        }
+
+        _rodPreferredSetupAnchor.ShowRodPreferredSetup = true;
+
+        if (string.IsNullOrWhiteSpace(_rodPreferredSetupAnchor.RodPreferredSetupSaved))
+        {
+            _rodPreferredSetupAnchor.RodPreferredSetupSaved = "0";
+            _rodPreferredSetupAnchor.RodPreferredSetup = false;
+            return;
+        }
+
+        _rodPreferredSetupAnchor.RodPreferredSetup =
+            string.Equals(_rodPreferredSetupAnchor.RodPreferredSetupSaved, "1", StringComparison.Ordinal);
+
+        if (_rodPreferredSetupAnchor.RodPreferredSetup)
+            ApplyRodPreferredSetup();
+    }
+
+    private static bool IsGoldenTeeProfile(GameProfile profile)
+    {
+        var fileName = Path.GetFileName(profile.FileName ?? string.Empty);
+        return fileName.StartsWith("GoldenTeeLive20", StringComparison.OrdinalIgnoreCase) &&
+               fileName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static GameProfile? LoadStockGoldenTeeProfile(GameProfile currentProfile)
+    {
+        try
+        {
+            var profileFileName = Path.GetFileName(currentProfile.FileName);
+            if (string.IsNullOrWhiteSpace(profileFileName))
+                return null;
+
+            var stockPath = Path.Combine("GameProfiles", profileFileName);
+            if (!File.Exists(stockPath))
+                return null;
+
+            return JoystickHelper.DeSerializeGameProfile(stockPath, false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not load stock Golden Tee profile for Rod preferred setup: {ex.Message}");
+            return null;
+        }
+    }
+
+    private void ApplyRodPreferredSetup()
+    {
+        if (_profile?.ConfigValues == null || _rodPreferredSetupAnchor == null)
+            return;
+
+        try
+        {
+            _applyingRodPreferredSetup = true;
+
+            if (_stockGoldenTeeProfile?.ConfigValues != null)
+            {
+                foreach (var stockField in _stockGoldenTeeProfile.ConfigValues.Where(field =>
+                             string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var currentField = _profile.ConfigValues.FirstOrDefault(field =>
+                        string.Equals(field.CategoryName, stockField.CategoryName, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(field.FieldName, stockField.FieldName, StringComparison.OrdinalIgnoreCase));
+
+                    if (currentField != null)
+                        currentField.FieldValue = stockField.FieldValue;
+                }
+            }
+
+            // Rod and normal outfit customization are mutually exclusive.
+            _rodPreferredSetupAnchor.FieldValue = "0";
+
+            SetFieldValue("Trackball Sensitivity X", "25");
+            SetFieldValue("Trackball Sensitivity Y", "25");
+
+            _rodPreferredSetupAnchor.RodPreferredSetupSaved = "1";
+            _rodPreferredSetupAnchor.RodPreferredSetup = true;
+
+            if (_rodPreferredSetupCheckBox != null)
+                _rodPreferredSetupCheckBox.IsChecked = true;
+        }
+        finally
+        {
+            _applyingRodPreferredSetup = false;
+        }
+
+        UpdateConditionalVisibilityModel();
+        ApplyConditionalVisibilityToControls();
+    }
+
+    private void SetRodToggleState(bool enabled, string savedValue)
+    {
+        if (_rodPreferredSetupAnchor == null)
+            return;
+
+        try
+        {
+            _applyingRodPreferredSetup = true;
+            _rodPreferredSetupAnchor.RodPreferredSetupSaved = savedValue;
+            _rodPreferredSetupAnchor.RodPreferredSetup = enabled;
+        }
+        finally
+        {
+            _applyingRodPreferredSetup = false;
+        }
+    }
+
+    private void SetFieldValue(string fieldName, string value)
+    {
+        var field = _profile?.ConfigValues?.FirstOrDefault(item =>
+            string.Equals(item.FieldName?.Trim(), fieldName, StringComparison.OrdinalIgnoreCase));
+        if (field != null)
+            field.FieldValue = value;
+    }
+
+    private bool HasCustomGoldenTeeSettings()
+    {
+        if (_profile?.ConfigValues == null || _stockGoldenTeeProfile?.ConfigValues == null)
+            return false;
+
+        foreach (var stockField in _stockGoldenTeeProfile.ConfigValues.Where(field =>
+                     string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase)))
+        {
+            var currentField = _profile.ConfigValues.FirstOrDefault(field =>
+                string.Equals(field.CategoryName, stockField.CategoryName, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(field.FieldName, stockField.FieldName, StringComparison.OrdinalIgnoreCase));
+
+            if (currentField != null &&
+                !string.Equals(currentField.FieldValue, stockField.FieldValue, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsRodTrackballSensitivityField(FieldInformation field) =>
+        string.Equals(field.FieldName, "Trackball Sensitivity X", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(field.FieldName, "Trackball Sensitivity Y", StringComparison.OrdinalIgnoreCase);
+
+    private void UpdateConditionalVisibilityModel()
+    {
+        if (_profile?.ConfigValues == null)
+            return;
+
+        var useRodPreferredSetup = _rodPreferredSetupAnchor?.RodPreferredSetup == true;
+
+        foreach (var field in _profile.ConfigValues)
+        {
+            field.IsEditorVisible = true;
+            field.IsEditorEnabled = true;
+
+            if (string.IsNullOrEmpty(field.VisibleWhenField))
+            {
+                field.IsVisible = true;
+            }
+            else
+            {
+                var controller = _profile.ConfigValues.FirstOrDefault(f =>
+                    string.Equals(f.FieldName, field.VisibleWhenField, StringComparison.OrdinalIgnoreCase));
+
+                if (controller == null)
+                {
+                    field.IsVisible = true;
+                }
+                else
+                {
+                    var acceptedValues = (field.VisibleWhenValue ?? string.Empty)
+                        .Split(',')
+                        .Select(v => v.Trim());
+
+                    field.IsVisible = acceptedValues.Any(v =>
+                        string.Equals(controller.FieldValue, v, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            if (useRodPreferredSetup && IsRodTrackballSensitivityField(field))
+            {
+                field.FieldValue = "25";
+                field.IsEditorEnabled = false;
+            }
+
+            if (!useRodPreferredSetup ||
+                !string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (ReferenceEquals(field, _rodPreferredSetupAnchor))
+            {
+                field.IsVisible = true;
+                field.IsEditorVisible = false;
+            }
+            else
+            {
+                field.IsVisible = false;
+            }
+        }
+    }
+
+    private void ApplyConditionalVisibilityToControls()
+    {
+        if (_profile?.ConfigValues == null)
+            return;
+
+        foreach (var field in _profile.ConfigValues)
+            ApplyConditionalVisibilityToControl(field);
+
+        if (_rodPreferredSetupRow != null)
+            _rodPreferredSetupRow.IsVisible = _rodPreferredSetupAnchor?.ShowRodPreferredSetup == true;
+    }
+
+    private void ApplyConditionalVisibilityToControl(FieldInformation field)
+    {
+        if (_fieldRows.TryGetValue(field, out var row))
+            row.IsVisible = field.IsVisible && field.IsEditorVisible;
+
+        if (_fieldEditors.TryGetValue(field, out var editor))
+            editor.IsEnabled = field.IsEditorEnabled;
+    }
+
+    private void SyncEditorsFromFields()
+    {
+        // Rebuilding the page is the safest way to synchronize heterogeneous dynamic
+        // editors after Rod mode resets several fields at once.
+        if (_profile != null)
+            LoadProfile(_profile);
     }
 
     private static Control Row(string label, Control editor)
@@ -861,7 +1290,7 @@ public partial class GameSettingsView : UserControl
 
     private async void HandleBack()
     {
-        // Don't silently discard changes (e.g. a switched Input API) — losing an
+        // Don't silently discard changes (e.g. a switched Input API) ΓÇö losing an
         // unsaved API change makes freshly-bound controls dead in-game.
         if (HasUnsavedChanges() && TopLevel.GetTopLevel(this) is Window owner)
         {
@@ -914,6 +1343,10 @@ public partial class GameSettingsView : UserControl
     private void SaveProfile()
     {
         if (_profile == null) return;
+
+        // Rod mode is an invariant: save stock customization and 25/25 sensitivity.
+        if (_rodPreferredSetupAnchor?.RodPreferredSetup == true)
+            ApplyRodPreferredSetup();
 
         _profile.GamePath = _gamePathBox?.Text ?? _profile.GamePath;
         if (_gamePath2Box != null)
