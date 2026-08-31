@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
@@ -6,6 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using TeknoParrotUi.Avalonia.Services;
 using TeknoParrotUi.Common;
+using TeknoParrotUi.Common.InputListening;
 
 namespace TeknoParrotUi.Avalonia.Views;
 
@@ -25,6 +26,10 @@ public partial class JoystickSetupView : UserControl
     private bool _useDPadForGun2Stick;
     private bool _useAnalogAxisToAimGun1;
     private bool _useAnalogAxisToAimGun2;
+    private bool _isRemoteLocalPlayMode;
+    private bool _isRemoteLocalPlayHostMode;
+    private readonly List<(ComboBox Combo, JoystickButtons Binding)> _deviceCombos = new();
+    private bool _refreshingDeviceLists;
     private readonly InputCaptureService _capture = new();
     private readonly RawInputCaptureService _rawCapture = new();
     private Button? _armedButton;
@@ -41,7 +46,17 @@ public partial class JoystickSetupView : UserControl
         _capture.BindingCaptured += captured => Dispatcher.UIThread.Post(() => OnCaptured(captured));
         _rawCapture.BindingCaptured += (name, button, isEscape) =>
             Dispatcher.UIThread.Post(() => OnRawCaptured(name, button, isEscape));
-        Unloaded += (_, _) => StopCapture();
+
+        SunshinePlayerInput.InputReceived += OnSunshineInputReceived;
+        SunshinePlayerInput.Start();
+
+        Unloaded += (_, _) =>
+        {
+            SunshinePlayerInput.InputReceived -= OnSunshineInputReceived;
+            SunshinePlayerInput.Stop();
+            ActiveCaptureSource.AllowedPlayer = ActiveCaptureSource.Any;
+            StopCapture();
+        };
     }
 
     private void StopCapture()
@@ -83,21 +98,29 @@ public partial class JoystickSetupView : UserControl
                                profile.ConfigValues.FirstOrDefault(c => c.FieldName == "Right Stick Button Mode")?.FieldValue == "1";
         _useAnalogAxisToAimGun1 = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "GUN1AimingInputStyle")?.FieldValue == "UseAnalogAxisToAim";
         _useAnalogAxisToAimGun2 = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "GUN2AimingInputStyle")?.FieldValue == "UseAnalogAxisToAim";
+        _isRemoteLocalPlayMode = profile.ConfigValues.Any(c => c.FieldName == "Remote Local Play" && c.FieldValue != "Off");
+        _isRemoteLocalPlayHostMode = profile.ConfigValues.Any(c => c.FieldName == "Remote Local Play" && c.FieldValue == "Host Only");
 
-        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} — Controls";
+        ActiveCaptureSourceRow.IsVisible = _isRemoteLocalPlayMode;
+        if (!_isRemoteLocalPlayMode)
+            ActiveCaptureSource.AllowedPlayer = ActiveCaptureSource.Any;
+        PopulateActiveCaptureSourceSelector();
+
+        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} ΓÇö Controls";
         ApiText.Text = "Click a binding, then press a controller button/axis, keyboard key or mouse button. Escape cancels." +
                        (_mergedIncludesRawInput || _mergedIncludesRawInputTrackball
                            ? " Lightgun/trackball devices are picked from the dropdown."
                            : "");
 
         // Linux: keyboards are often unreadable while mice work (vendor udev
-        // ACLs vs missing 'input' group membership) — tell the user here, where
+        // ACLs vs missing 'input' group membership) ΓÇö tell the user here, where
         // they would otherwise just see keys not binding.
         var accessWarnings = _rawCapture.GetAccessWarnings();
         if (accessWarnings.Count > 0)
-            ApiText.Text = "⚠ " + string.Join(" ", accessWarnings) + "\n" + ApiText.Text;
+            ApiText.Text = "ΓÜá " + string.Join(" ", accessWarnings) + "\n" + ApiText.Text;
 
         RowsPanel.Children.Clear();
+        _deviceCombos.Clear();
         foreach (var button in profile.JoystickButtons.Where(IsVisibleForApi))
         {
             var row = BuildRow(button);
@@ -129,6 +152,9 @@ public partial class JoystickSetupView : UserControl
         if (!_useAnalogAxisToAimGun1 && b.HideWithoutUseAnalogAxisToAimGUN1) return false;
         if (_useAnalogAxisToAimGun2 && b.HideWithUseAnalogAxisToAimGUN2) return false;
         if (!_useAnalogAxisToAimGun2 && b.HideWithoutUseAnalogAxisToAimGUN2) return false;
+        if (_isRemoteLocalPlayMode && b.HideWithRemoteLocalPlayMode) return false;
+        if (!_isRemoteLocalPlayMode && b.HideWithoutRemoteLocalPlayMode) return false;
+        if (!_isRemoteLocalPlayHostMode && b.HideWithoutRemoteLocalPlayHost) return false;
 
         // Merged view: a row is hidden only if every active input method hides it
         // (classic ShouldHideForMergedInput). DirectInput visibility counts too:
@@ -154,7 +180,8 @@ public partial class JoystickSetupView : UserControl
         // Lightgun / trackball rows are a device dropdown, not a key capture (classic UI)
         if (binding.InputMapping is InputMapping.P1LightGun or InputMapping.P2LightGun
             or InputMapping.P3LightGun or InputMapping.P4LightGun
-            or InputMapping.P1Trackball or InputMapping.P2Trackball)
+            or InputMapping.HostTrackball or InputMapping.P1Trackball or InputMapping.P2Trackball
+            or InputMapping.P3Trackball or InputMapping.P4Trackball)
         {
             if (_api is InputApi.RawInput or InputApi.RawInputTrackball ||
                 (_api == InputApi.MergedInput && (_mergedIncludesRawInput || _mergedIncludesRawInputTrackball)))
@@ -176,7 +203,7 @@ public partial class JoystickSetupView : UserControl
         };
         bindButton.Click += (_, _) => Arm(bindButton, binding);
 
-        var clearButton = new Button { Content = "✕", Margin = new global::Avalonia.Thickness(6, 0, 0, 0) };
+        var clearButton = new Button { Content = "Γ£ò", Margin = new global::Avalonia.Thickness(6, 0, 0, 0) };
         ToolTip.SetTip(clearButton, "Clear binding");
         clearButton.Click += (_, _) =>
         {
@@ -196,7 +223,7 @@ public partial class JoystickSetupView : UserControl
 
     /// <summary>
     /// Device dropdown for lightgun/trackball position mappings: pick any RawInput
-    /// mouse device (lightguns enumerate as mice), the Windows cursor, or none —
+    /// mouse device (lightguns enumerate as mice), the Windows cursor, or none ΓÇö
     /// same list and save semantics as the classic UI.
     /// </summary>
     private Control BuildDeviceRow(JoystickButtons binding)
@@ -207,25 +234,17 @@ public partial class JoystickSetupView : UserControl
         if (!string.IsNullOrWhiteSpace(binding.Hint))
             ToolTip.SetTip(label, binding.Hint);
 
-        // Keep these strings hardcoded — they get saved to the configuration
-        var deviceList = new List<string> { "None", "Windows Mouse Cursor", "Unknown Device" };
-        // Platform-aware device list: Win32 RawInput mice or Linux evdev mice
-        deviceList.AddRange(_rawCapture.GetMouseDeviceList());
-
-        // Add the current selection even if that device is not currently plugged in
-        if (!string.IsNullOrEmpty(binding.BindNameRi) && !deviceList.Contains(binding.BindNameRi))
-            deviceList.Add(binding.BindNameRi);
-
         var combo = new ComboBox
         {
-            ItemsSource = deviceList,
-            SelectedItem = string.IsNullOrEmpty(binding.BindNameRi) ? "None" : binding.BindNameRi,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
+        _deviceCombos.Add((combo, binding));
+        PopulateDeviceCombo(combo, binding);
+
         combo.SelectionChanged += (_, _) =>
         {
-            if (combo.SelectedItem is not string selectedDeviceName)
+            if (_refreshingDeviceLists || combo.SelectedItem is not string selectedDeviceName)
                 return;
 
             string path;
@@ -245,9 +264,13 @@ public partial class JoystickSetupView : UserControl
                 path = "null";
                 type = RawDeviceType.Mouse;
             }
+            else if (SunshinePlayerInput.TryParsePlayerFromDisplayName(selectedDeviceName, out int sunshinePlayer))
+            {
+                path = SunshinePlayerInput.DevicePathForPlayer(sunshinePlayer);
+                type = RawDeviceType.Mouse;
+            }
             else
             {
-                // Platform-aware lookup: Win32 RawInput device path or evdev by-id path
                 var devicePath = _rawCapture.GetMouseDevicePathByName(selectedDeviceName);
                 if (devicePath == null)
                 {
@@ -275,6 +298,109 @@ public partial class JoystickSetupView : UserControl
         grid.Children.Add(combo);
 
         return grid;
+    }
+
+    private void PopulateDeviceCombo(ComboBox combo, JoystickButtons binding)
+    {
+        var deviceList = new List<string> { "None", "Windows Mouse Cursor", "Unknown Device" };
+
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var player in SunshinePlayerInput.GetConnectedPlayers())
+                deviceList.Add(SunshinePlayerInput.DisplayNameForPlayer(player));
+        }
+
+        deviceList.AddRange(_rawCapture.GetMouseDeviceList());
+
+        if (!string.IsNullOrEmpty(binding.BindNameRi) && !deviceList.Contains(binding.BindNameRi))
+            deviceList.Add(binding.BindNameRi);
+
+        _refreshingDeviceLists = true;
+        combo.ItemsSource = deviceList;
+        combo.SelectedItem = string.IsNullOrEmpty(binding.BindNameRi) ? "None" : binding.BindNameRi;
+        _refreshingDeviceLists = false;
+    }
+
+    private void PopulateActiveCaptureSourceSelector()
+    {
+        int previous = ActiveCaptureSource.AllowedPlayer;
+        var items = new List<CaptureSourceItem>
+        {
+            new("Any", ActiveCaptureSource.Any),
+            new("Host", ActiveCaptureSource.Host)
+        };
+
+        foreach (var player in SunshinePlayerInput.GetConnectedPlayers())
+            items.Add(new CaptureSourceItem(SunshinePlayerInput.DisplayNameForPlayer(player), player));
+
+        ActiveCaptureSourceSelector.ItemsSource = items;
+        ActiveCaptureSourceSelector.SelectedItem =
+            items.FirstOrDefault(x => x.Player == previous) ?? items[0];
+
+        if (items.All(x => x.Player != previous))
+            ActiveCaptureSource.AllowedPlayer = ActiveCaptureSource.Any;
+    }
+
+    private sealed record CaptureSourceItem(string Name, int Player)
+    {
+        public override string ToString() => Name;
+    }
+
+    private void ActiveCaptureSourceSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (ActiveCaptureSourceSelector.SelectedItem is CaptureSourceItem item)
+            ActiveCaptureSource.AllowedPlayer = item.Player;
+    }
+
+    private void OnSunshineInputReceived(object? sender, SunshineInputEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (e.EventType == SunshineInputEventType.Roster)
+            {
+                PopulateActiveCaptureSourceSelector();
+                foreach (var (combo, binding) in _deviceCombos.ToList())
+                    PopulateDeviceCombo(combo, binding);
+                return;
+            }
+
+            if (_armedButton == null || _armedBinding == null ||
+                !ActiveCaptureSource.IsAllowed(e.Player))
+                return;
+
+            RawInputButton? button = null;
+            string? name = null;
+
+            if (e.EventType == SunshineInputEventType.KeyDown)
+            {
+                button = new RawInputButton
+                {
+                    DevicePath = SunshinePlayerInput.DevicePathForPlayer(e.Player),
+                    DeviceType = RawDeviceType.Keyboard,
+                    KeyboardKey = (Keys)e.KeyCode,
+                    MouseButton = RawMouseButton.None
+                };
+                name = $"{SunshinePlayerInput.DisplayNameForPlayer(e.Player)} Key {(Keys)e.KeyCode}";
+            }
+            else if (e.EventType == SunshineInputEventType.MouseButtonDown)
+            {
+                var mouseButton = SunshinePlayerInput.MapMouseButton(e.MouseButton);
+                if (mouseButton == RawMouseButton.None)
+                    return;
+
+                button = new RawInputButton
+                {
+                    DevicePath = SunshinePlayerInput.DevicePathForPlayer(e.Player),
+                    DeviceType = RawDeviceType.Mouse,
+                    KeyboardKey = Keys.None,
+                    MouseButton = mouseButton
+                };
+                name = $"{SunshinePlayerInput.DisplayNameForPlayer(e.Player)} {mouseButton}";
+            }
+
+            if (button != null && name != null)
+                OnRawCaptured(name, button, false);
+        });
     }
 
     private void Arm(Button button, JoystickButtons binding)
@@ -321,6 +447,10 @@ public partial class JoystickSetupView : UserControl
     private void OnRawCaptured(string name, RawInputButton button, bool isEscape)
     {
         if (_armedButton == null || _armedBinding == null)
+            return;
+
+        bool isSunshine = button.DevicePath?.StartsWith("SUNSHINE#PLAYER", StringComparison.Ordinal) == true;
+        if (!isSunshine && !ActiveCaptureSource.IsAllowed(ActiveCaptureSource.Host))
             return;
 
         if (isEscape)

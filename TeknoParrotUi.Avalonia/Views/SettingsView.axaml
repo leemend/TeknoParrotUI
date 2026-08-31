@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:TeknoParrotUi.Avalonia.Controls"
              x:Class="TeknoParrotUi.Avalonia.Views.SettingsView">
@@ -37,6 +37,11 @@
 
                 <TextBlock FontSize="15" FontWeight="Bold" Text="Input" Margin="0,12,0,4" />
                 <Button Name="BtnMultiButton" Content="Multi-Game Button Config..." Click="BtnMultiButton_Click" />
+                <TextBlock Name="HdrRemotePlay" FontSize="15" FontWeight="Bold" Text="Remote Play" Margin="0,12,0,4" />
+                <TextBlock Name="RemotePlayDescription" Opacity="0.7" TextWrapping="Wrap"
+                           Text="Manage the Sunshine host and Moonlight client portable packages placed in the TeknoParrot root." />
+                <Button Name="BtnRemotePlay" Content="Remote Play Management..." Click="BtnRemotePlay_Click"
+                        HorizontalAlignment="Left" Margin="0,4,0,2" />
                 <CheckBox Name="ChkUseSto0Z" Content="Use StoOz driving zone hack" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Slider Name="StoozSlider" Width="220" Minimum="0" Maximum="100" TickFrequency="2" IsSnapToTickEnabled="True" />

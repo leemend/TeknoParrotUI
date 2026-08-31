@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -14,10 +14,10 @@ public partial class SettingsView : UserControl
 {
     private static readonly (string Name, string Tag)[] Languages =
     {
-        ("English", "en-US"), ("Suomi", "fi-FI"), ("العربية", "ar-SA"), ("Deutsch", "de-DE"),
-        ("Español", "es-ES"), ("Français", "fr-FR"), ("Italiano", "it-IT"), ("日本語", "ja-JP"),
-        ("한국어", "ko-KR"), ("Nederlands", "nl-NL"), ("Polski", "pl-PL"), ("Português", "pt-PT"),
-        ("Русский", "ru-RU"), ("中文", "zh-CN"),
+        ("English", "en-US"), ("Suomi", "fi-FI"), ("╪º┘ä╪╣╪▒╪¿┘è╪⌐", "ar-SA"), ("Deutsch", "de-DE"),
+        ("Espa├▒ol", "es-ES"), ("Fran├ºais", "fr-FR"), ("Italiano", "it-IT"), ("µùÑµ£¼Φ¬₧", "ja-JP"),
+        ("φò£Ω╡¡∞û┤", "ko-KR"), ("Nederlands", "nl-NL"), ("Polski", "pl-PL"), ("Portugu├¬s", "pt-PT"),
+        ("╨á╤â╤ü╤ü╨║╨╕╨╣", "ru-RU"), ("Σ╕¡µûç", "zh-CN"),
     };
 
     public event Action? SavedNotification;
@@ -34,7 +34,7 @@ public partial class SettingsView : UserControl
         };
 
         LanguageSelector.ItemsSource = Languages.Select(l => l.Name).ToList();
-        // Live language switching — no restart required
+        // Live language switching ΓÇö no restart required
         LanguageSelector.SelectionChanged += (_, _) =>
         {
             if (_loadingSettings || LanguageSelector.SelectedIndex < 0)
@@ -50,6 +50,13 @@ public partial class SettingsView : UserControl
             .ToList();
         NetworkAdapterBox.ItemsSource = adapters;
 
+        if (!OperatingSystem.IsWindows())
+        {
+            HdrRemotePlay.IsVisible = false;
+            RemotePlayDescription.IsVisible = false;
+            BtnRemotePlay.IsVisible = false;
+        }
+
         Loaded += (_, _) => LoadFromParrotData();
     }
 
@@ -63,6 +70,9 @@ public partial class SettingsView : UserControl
         // Android controls are edited through the companion's tested per-game
         // touch/gamepad layouts, not the desktop multi-profile binding tool.
         BtnMultiButton.IsVisible = false;
+        HdrRemotePlay.IsVisible = false;
+        RemotePlayDescription.IsVisible = false;
+        BtnRemotePlay.IsVisible = false;
         foreach (var grid in SettingsContent.Children.OfType<Grid>())
         {
             // Desktop settings use label/editor columns as wide as 460 DIPs.
@@ -181,6 +191,31 @@ public partial class SettingsView : UserControl
         await Services.ExternalUrlLauncher.OpenAsync(
             this,
             "https://github.com/Boomslangnz/FFBArcadePlugin/releases");
+
+    private void BtnRemotePlay_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        var view = new RemotePlayManagementView();
+        var window = new Window
+        {
+            Title = "TeknoParrot — Remote Play Management",
+            Width = 900,
+            Height = 720,
+            MinWidth = 680,
+            MinHeight = 520,
+            Content = view,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        view.CloseRequested += window.Close;
+
+        if (TopLevel.GetTopLevel(this) is Window owner)
+            window.Show(owner);
+        else
+            window.Show();
+    }
 
     private void BtnMultiButton_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e) =>
         MultiButtonConfigRequested?.Invoke();
