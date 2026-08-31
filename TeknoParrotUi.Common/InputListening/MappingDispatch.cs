@@ -5,7 +5,7 @@ namespace TeknoParrotUi.Common.InputListening
     /// <summary>
     /// Shared InputMapping ΓåÆ InputCode dispatch for mouse/keyboard gun-game
     /// listeners (evdev and the X11 fallback). Full parity with
-    /// InputListenerRawInput.HandleRawInputButton's switch ΓÇö including the
+    /// InputListenerRawInput.HandleRawInputButton's switch - including the
     /// JVS board 2, extension, card, TPSystem and relative mappings plus the
     /// per-game special cases (PlayInput Test toggle, EADP coin mirror, GSEVO
     /// Button2 mirror, BattleGear key sensor, Haunted Museum inversion).
@@ -190,7 +190,7 @@ namespace TeknoParrotUi.Common.InputListening
                     break;
 
                 // ---------- JVS board 2 ----------
-                // (JvsTwoP2 directions intentionally write to buttons[2] ΓÇö same
+                // (JvsTwoP2 directions intentionally write to buttons[2] - same
                 // as the Windows RawInput listener; kept identical on purpose.)
                 case InputMapping.JvsTwoService1:
                     InputCode.PlayerDigitalButtons[2].Service = pressed;

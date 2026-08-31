@@ -81,7 +81,7 @@ public partial class GameSettingsView : UserControl
     public void LoadProfile(GameProfile profile)
     {
         _profile = profile;
-        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} ΓÇö Settings";
+        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} - Settings";
         _valueReaders.Clear();
         _fieldEditors.Clear();
         _fieldRows.Clear();
@@ -571,7 +571,7 @@ public partial class GameSettingsView : UserControl
     }
 
     /// <summary>
-    /// "Game Executable (GameProject-Win64-Shipping.exe)" ΓÇö shows the expected file
+    /// "Game Executable (GameProject-Win64-Shipping.exe)" - shows the expected file
     /// name(s) from the profile, matching the classic UI (';'/'|' = alternatives).
     /// </summary>
     private static string BuildExecutableLabel(string key, string fallback, string? executableName)
@@ -598,7 +598,7 @@ public partial class GameSettingsView : UserControl
             if (top == null) return;
 
             var pickerTitle =
-                $"{Services.Loc.T("GameSettingsSelectGameExecutable", "Select Game Executable")} ΓÇö {label}";
+                $"{Services.Loc.T("GameSettingsSelectGameExecutable", "Select Game Executable")} - {label}";
             var pickerOptions = new FilePickerOpenOptions
             {
                 Title = pickerTitle,
@@ -936,7 +936,6 @@ public partial class GameSettingsView : UserControl
         {
             var rodCheck = new CheckBox
             {
-                Content = "Use Rod's Preferred Setup",
                 IsChecked = field.RodPreferredSetup,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -982,7 +981,7 @@ public partial class GameSettingsView : UserControl
             };
 
             _rodPreferredSetupCheckBox = rodCheck;
-            _rodPreferredSetupRow = Row("Customization", rodCheck);
+            _rodPreferredSetupRow = Row("Use Rod's Preferred Setup", rodCheck);
             FieldsPanel.Children.Add(_rodPreferredSetupRow);
         }
 
@@ -1290,7 +1289,7 @@ public partial class GameSettingsView : UserControl
 
     private async void HandleBack()
     {
-        // Don't silently discard changes (e.g. a switched Input API) ΓÇö losing an
+        // Don't silently discard changes (e.g. a switched Input API) - losing an
         // unsaved API change makes freshly-bound controls dead in-game.
         if (HasUnsavedChanges() && TopLevel.GetTopLevel(this) is Window owner)
         {

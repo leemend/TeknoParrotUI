@@ -106,14 +106,14 @@ public partial class JoystickSetupView : UserControl
             ActiveCaptureSource.AllowedPlayer = ActiveCaptureSource.Any;
         PopulateActiveCaptureSourceSelector();
 
-        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} ΓÇö Controls";
+        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} - Controls";
         ApiText.Text = "Click a binding, then press a controller button/axis, keyboard key or mouse button. Escape cancels." +
                        (_mergedIncludesRawInput || _mergedIncludesRawInputTrackball
                            ? " Lightgun/trackball devices are picked from the dropdown."
                            : "");
 
         // Linux: keyboards are often unreadable while mice work (vendor udev
-        // ACLs vs missing 'input' group membership) ΓÇö tell the user here, where
+        // ACLs vs missing 'input' group membership) - tell the user here, where
         // they would otherwise just see keys not binding.
         var accessWarnings = _rawCapture.GetAccessWarnings();
         if (accessWarnings.Count > 0)
@@ -203,7 +203,7 @@ public partial class JoystickSetupView : UserControl
         };
         bindButton.Click += (_, _) => Arm(bindButton, binding);
 
-        var clearButton = new Button { Content = "Γ£ò", Margin = new global::Avalonia.Thickness(6, 0, 0, 0) };
+        var clearButton = new Button { Content = "✕", Margin = new global::Avalonia.Thickness(6, 0, 0, 0) };
         ToolTip.SetTip(clearButton, "Clear binding");
         clearButton.Click += (_, _) =>
         {
@@ -223,7 +223,7 @@ public partial class JoystickSetupView : UserControl
 
     /// <summary>
     /// Device dropdown for lightgun/trackball position mappings: pick any RawInput
-    /// mouse device (lightguns enumerate as mice), the Windows cursor, or none ΓÇö
+    /// mouse device (lightguns enumerate as mice), the Windows cursor, or none -
     /// same list and save semantics as the classic UI.
     /// </summary>
     private Control BuildDeviceRow(JoystickButtons binding)
