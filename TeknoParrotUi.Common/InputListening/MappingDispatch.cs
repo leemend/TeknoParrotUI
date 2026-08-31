@@ -3,7 +3,7 @@
 namespace TeknoParrotUi.Common.InputListening
 {
     /// <summary>
-    /// Shared InputMapping ΓåÆ InputCode dispatch for mouse/keyboard gun-game
+    /// Shared InputMapping → InputCode dispatch for mouse/keyboard gun-game
     /// listeners (evdev and the X11 fallback). Full parity with
     /// InputListenerRawInput.HandleRawInputButton's switch - including the
     /// JVS board 2, extension, card, TPSystem and relative mappings plus the

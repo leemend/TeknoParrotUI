@@ -117,7 +117,7 @@ public partial class JoystickSetupView : UserControl
         // they would otherwise just see keys not binding.
         var accessWarnings = _rawCapture.GetAccessWarnings();
         if (accessWarnings.Count > 0)
-            ApiText.Text = "ΓÜá " + string.Join(" ", accessWarnings) + "\n" + ApiText.Text;
+            ApiText.Text = "⚠ " + string.Join(" ", accessWarnings) + "\n" + ApiText.Text;
 
         RowsPanel.Children.Clear();
         _deviceCombos.Clear();
