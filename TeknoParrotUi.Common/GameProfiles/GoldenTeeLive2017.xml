@@ -1,13 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <GameProfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<GamePath></GamePath>
-	<TestMenuParameter></TestMenuParameter>
+	<GamePath/>
+	<TestMenuParameter/>
 	<TestMenuIsExecutable>false</TestMenuIsExecutable>
-	<ExtraParameters></ExtraParameters>
-	<TestMenuExtraParameters></TestMenuExtraParameters>
+	<ExtraParameters/>
+	<TestMenuExtraParameters/>
 	<ResetHint>false</ResetHint>
 	<EmulationProfile>IncredibleTechnologies</EmulationProfile>
-	<GameProfileRevision>8</GameProfileRevision>
+	<GameProfileRevision>9</GameProfileRevision>
 	<HasSeparateTestMode>false</HasSeparateTestMode>
 	<Is64Bit>false</Is64Bit>
 	<DevOnly>false</DevOnly>
@@ -30,7 +30,6 @@
 			<FieldOptions>
 				<string>Off</string>
 				<string>On</string>
-				<string>Host Only</string>
 			</FieldOptions>
 		</FieldInformation>
 		<FieldInformation>
@@ -39,8 +38,6 @@
 			<FieldValue>RawInput</FieldValue>
 			<FieldType>Dropdown</FieldType>
 			<FieldOptions>
-				<string>DirectInput</string>
-				<string>XInput</string>
 				<string>RawInput</string>
 				<string>RawInputTrackball</string>
 			</FieldOptions>
@@ -130,7 +127,7 @@
 			<FieldType>Slider</FieldType>
 			<FieldMin>1</FieldMin>
 			<FieldMax>200</FieldMax>
-			<FieldOptions></FieldOptions>
+			<FieldOptions/>
 			<Hint>Scales the trackballs X input. Percent, so 100 = 100%, 25 = 25%</Hint>
 		</FieldInformation>
 		<FieldInformation>
@@ -140,8 +137,80 @@
 			<FieldType>Slider</FieldType>
 			<FieldMin>1</FieldMin>
 			<FieldMax>200</FieldMax>
-			<FieldOptions></FieldOptions>
+			<FieldOptions/>
 			<Hint>Scales the trackballs Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Controls</CategoryName>
+			<FieldName>P2 Trackball Sensitivity X</FieldName>
+			<FieldValue>100</FieldValue>
+			<FieldType>Slider</FieldType>
+			<FieldMin>1</FieldMin>
+			<FieldMax>200</FieldMax>
+			<FieldOptions/>
+			<Hint>Scales Player 2 trackball X input. Percent, so 100 = 100%, 25 = 25%</Hint>
+			<VisibleWhenField>Remote Local Play</VisibleWhenField>
+			<VisibleWhenValue>On</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Controls</CategoryName>
+			<FieldName>P2 Trackball Sensitivity Y</FieldName>
+			<FieldValue>100</FieldValue>
+			<FieldType>Slider</FieldType>
+			<FieldMin>1</FieldMin>
+			<FieldMax>200</FieldMax>
+			<FieldOptions/>
+			<Hint>Scales Player 2 trackball Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+			<VisibleWhenField>Remote Local Play</VisibleWhenField>
+			<VisibleWhenValue>On</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Controls</CategoryName>
+			<FieldName>P3 Trackball Sensitivity X</FieldName>
+			<FieldValue>100</FieldValue>
+			<FieldType>Slider</FieldType>
+			<FieldMin>1</FieldMin>
+			<FieldMax>200</FieldMax>
+			<FieldOptions/>
+			<Hint>Scales Player 3 trackball X input. Percent, so 100 = 100%, 25 = 25%</Hint>
+			<VisibleWhenField>Remote Local Play</VisibleWhenField>
+			<VisibleWhenValue>On</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Controls</CategoryName>
+			<FieldName>P3 Trackball Sensitivity Y</FieldName>
+			<FieldValue>100</FieldValue>
+			<FieldType>Slider</FieldType>
+			<FieldMin>1</FieldMin>
+			<FieldMax>200</FieldMax>
+			<FieldOptions/>
+			<Hint>Scales Player 3 trackball Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+			<VisibleWhenField>Remote Local Play</VisibleWhenField>
+			<VisibleWhenValue>On</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Controls</CategoryName>
+			<FieldName>P4 Trackball Sensitivity X</FieldName>
+			<FieldValue>100</FieldValue>
+			<FieldType>Slider</FieldType>
+			<FieldMin>1</FieldMin>
+			<FieldMax>200</FieldMax>
+			<FieldOptions/>
+			<Hint>Scales Player 4 trackball X input. Percent, so 100 = 100%, 25 = 25%</Hint>
+			<VisibleWhenField>Remote Local Play</VisibleWhenField>
+			<VisibleWhenValue>On</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Controls</CategoryName>
+			<FieldName>P4 Trackball Sensitivity Y</FieldName>
+			<FieldValue>100</FieldValue>
+			<FieldType>Slider</FieldType>
+			<FieldMin>1</FieldMin>
+			<FieldMax>200</FieldMax>
+			<FieldOptions/>
+			<Hint>Scales Player 4 trackball Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+			<VisibleWhenField>Remote Local Play</VisibleWhenField>
+			<VisibleWhenValue>On</VisibleWhenValue>
 		</FieldInformation>
 		<FieldInformation>
 			<CategoryName>General</CategoryName>
@@ -321,7 +390,7 @@
 		<FieldInformation>
 			<CategoryName>Postgres</CategoryName>
 			<FieldName>Pass</FieldName>
-			<FieldValue></FieldValue>
+			<FieldValue/>
 			<FieldType>Text</FieldType>
 			<Hint>The chosen postgres password</Hint>
 		</FieldInformation>
@@ -330,28 +399,28 @@
 			<FieldName>Enable Submission</FieldName>
 			<FieldValue>0</FieldValue>
 			<FieldType>Bool</FieldType>
-			<FieldOptions></FieldOptions>
+			<FieldOptions/>
 		</FieldInformation>
 		<FieldInformation>
 			<CategoryName>Score</CategoryName>
 			<FieldName>Enable GUI</FieldName>
 			<FieldValue>0</FieldValue>
 			<FieldType>Bool</FieldType>
-			<FieldOptions></FieldOptions>
+			<FieldOptions/>
 		</FieldInformation>
 		<FieldInformation>
 			<CategoryName>Score</CategoryName>
 			<FieldName>Enable Capture</FieldName>
 			<FieldValue>0</FieldValue>
 			<FieldType>Bool</FieldType>
-			<FieldOptions></FieldOptions>
+			<FieldOptions/>
 		</FieldInformation>
 		<FieldInformation>
 			<CategoryName>Score</CategoryName>
 			<FieldName>Enable YouTube Upload</FieldName>
 			<FieldValue>0</FieldValue>
 			<FieldType>Bool</FieldType>
-			<FieldOptions></FieldOptions>
+			<FieldOptions/>
 		</FieldInformation>
 		<FieldInformation>
 			<CategoryName>Score</CategoryName>
@@ -388,6 +457,76 @@
 			</FieldOptions>
 		</FieldInformation>
 	</ConfigValues>
+	<JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Start</ButtonName>
+			<InputMapping>StreamHostP1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Test</ButtonName>
+			<InputMapping>Test</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Service</ButtonName>
+			<InputMapping>Service1</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Coin</ButtonName>
+			<InputMapping>Coin1</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Coin2</ButtonName>
+			<InputMapping>Coin2</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Money Bill In</ButtonName>
+			<InputMapping>P1Button5</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Volume Up</ButtonName>
+			<InputMapping>P1ButtonUp</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Volume Down</ButtonName>
+			<InputMapping>P1ButtonDown</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Start Button</ButtonName>
+			<InputMapping>P1ButtonStart</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Left</ButtonName>
+			<InputMapping>P2Button1</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Right</ButtonName>
+			<InputMapping>P2Button2</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 FlyBy</ButtonName>
+			<InputMapping>P1Button1</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Spin</ButtonName>
+			<InputMapping>P1Button2</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Option</ButtonName>
+			<InputMapping>P1Button3</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Help</ButtonName>
+			<InputMapping>P1Button4</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Switch Club Left</ButtonName>
+			<InputMapping>P1Button6</InputMapping>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P1 Switch Club Right</ButtonName>
+			<InputMapping>P2ButtonStart</InputMapping>
+		</JoystickButtons>
 		<JoystickButtons>
 			<ButtonName>P2 Start</ButtonName>
 			<InputMapping>Stream2P1ButtonStart</InputMapping>
@@ -431,6 +570,13 @@
 		<JoystickButtons>
 			<ButtonName>P2 Switch Club Right</ButtonName>
 			<InputMapping>Stream2P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 TrackBall</ButtonName>
+			<InputMapping>P2Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
 			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 		<JoystickButtons>
@@ -479,6 +625,13 @@
 			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 		<JoystickButtons>
+			<ButtonName>P3 TrackBall</ButtonName>
+			<InputMapping>P3Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
 			<ButtonName>P4 Start</ButtonName>
 			<InputMapping>Stream4P1ButtonStart</InputMapping>
 			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
@@ -524,74 +677,11 @@
 			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 		<JoystickButtons>
-			<ButtonName>Host Start</ButtonName>
-			<InputMapping>StreamHostP1ButtonStart</InputMapping>
-			<HideWithoutRemoteLocalPlayHost>true</HideWithoutRemoteLocalPlayHost>
-		</JoystickButtons>
-	<JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Test</ButtonName>
-			<InputMapping>Test</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Service</ButtonName>
-			<InputMapping>Service1</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Coin</ButtonName>
-			<InputMapping>Coin1</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Coin2</ButtonName>
-			<InputMapping>Coin2</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Money Bill In</ButtonName>
-			<InputMapping>P1Button5</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Volume Up</ButtonName>
-			<InputMapping>P1ButtonUp</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Volume Down</ButtonName>
-			<InputMapping>P1ButtonDown</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Start</ButtonName>
-			<InputMapping>P1ButtonStart</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Left</ButtonName>
-			<InputMapping>P2Button1</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Right</ButtonName>
-			<InputMapping>P2Button2</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>FlyBy</ButtonName>
-			<InputMapping>P1Button1</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Spin</ButtonName>
-			<InputMapping>P1Button2</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Option</ButtonName>
-			<InputMapping>P1Button3</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Help</ButtonName>
-			<InputMapping>P1Button4</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Switch Club Left</ButtonName>
-			<InputMapping>P1Button6</InputMapping>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Switch Club Right</ButtonName>
-			<InputMapping>P2ButtonStart</InputMapping>
+			<ButtonName>P4 TrackBall</ButtonName>
+			<InputMapping>P4Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 		<JoystickButtons>
 			<ButtonName>TrackBall</ButtonName>
@@ -600,32 +690,11 @@
 			<HideWithXInput>true</HideWithXInput>
 		</JoystickButtons>
 		<JoystickButtons>
-			<ButtonName>P2 TrackBall</ButtonName>
-			<InputMapping>P2Trackball</InputMapping>
-			<HideWithDirectInput>true</HideWithDirectInput>
-			<HideWithXInput>true</HideWithXInput>
-			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>P3 TrackBall</ButtonName>
-			<InputMapping>P3Trackball</InputMapping>
-			<HideWithDirectInput>true</HideWithDirectInput>
-			<HideWithXInput>true</HideWithXInput>
-			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>P4 TrackBall</ButtonName>
-			<InputMapping>P4Trackball</InputMapping>
-			<HideWithDirectInput>true</HideWithDirectInput>
-			<HideWithXInput>true</HideWithXInput>
-			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
-		</JoystickButtons>
-		<JoystickButtons>
-			<ButtonName>Host TrackBall</ButtonName>
+			<ButtonName>P1 TrackBall</ButtonName>
 			<InputMapping>HostTrackball</InputMapping>
 			<HideWithDirectInput>true</HideWithDirectInput>
 			<HideWithXInput>true</HideWithXInput>
-			<HideWithoutRemoteLocalPlayHost>true</HideWithoutRemoteLocalPlayHost>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 	</JoystickButtons>
 </GameProfile>

@@ -27,7 +27,6 @@ public partial class JoystickSetupView : UserControl
     private bool _useAnalogAxisToAimGun1;
     private bool _useAnalogAxisToAimGun2;
     private bool _isRemoteLocalPlayMode;
-    private bool _isRemoteLocalPlayHostMode;
     private readonly List<(ComboBox Combo, JoystickButtons Binding)> _deviceCombos = new();
     private bool _refreshingDeviceLists;
     private readonly InputCaptureService _capture = new();
@@ -99,7 +98,6 @@ public partial class JoystickSetupView : UserControl
         _useAnalogAxisToAimGun1 = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "GUN1AimingInputStyle")?.FieldValue == "UseAnalogAxisToAim";
         _useAnalogAxisToAimGun2 = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "GUN2AimingInputStyle")?.FieldValue == "UseAnalogAxisToAim";
         _isRemoteLocalPlayMode = profile.ConfigValues.Any(c => c.FieldName == "Remote Local Play" && c.FieldValue != "Off");
-        _isRemoteLocalPlayHostMode = profile.ConfigValues.Any(c => c.FieldName == "Remote Local Play" && c.FieldValue == "Host Only");
 
         ActiveCaptureSourceRow.IsVisible = _isRemoteLocalPlayMode;
         if (!_isRemoteLocalPlayMode)
@@ -154,7 +152,6 @@ public partial class JoystickSetupView : UserControl
         if (!_useAnalogAxisToAimGun2 && b.HideWithoutUseAnalogAxisToAimGUN2) return false;
         if (_isRemoteLocalPlayMode && b.HideWithRemoteLocalPlayMode) return false;
         if (!_isRemoteLocalPlayMode && b.HideWithoutRemoteLocalPlayMode) return false;
-        if (!_isRemoteLocalPlayHostMode && b.HideWithoutRemoteLocalPlayHost) return false;
 
         // Merged view: a row is hidden only if every active input method hides it
         // (classic ShouldHideForMergedInput). DirectInput visibility counts too:

@@ -151,16 +151,9 @@ namespace TeknoParrotUi.Common.InputListening
                                   x.FieldName == "Remote Local Play" &&
                                   x.FieldValue != "Off");
 
-            bool hostOnly = _gameProfile?.ConfigValues != null &&
-                            _gameProfile.ConfigValues.Any(x =>
-                                x.FieldName == "Remote Local Play" &&
-                                x.FieldValue == "Host Only");
-
             if (remoteMode && binding.HideWithRemoteLocalPlayMode)
                 return false;
             if (!remoteMode && binding.HideWithoutRemoteLocalPlayMode)
-                return false;
-            if (!hostOnly && binding.HideWithoutRemoteLocalPlayHost)
                 return false;
 
             return true;

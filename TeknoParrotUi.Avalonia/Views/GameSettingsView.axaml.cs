@@ -48,6 +48,7 @@ public partial class GameSettingsView : UserControl
     private Control? _rodPreferredSetupRow;
     private readonly Dictionary<FieldInformation, Control> _fieldEditors = new();
     private readonly Dictionary<FieldInformation, Control> _fieldRows = new();
+    private bool _syncingRemoteLocalPlayInputApi;
 
     public event Action? BackRequested;
     public event Action<string>? Saved;
@@ -216,6 +217,8 @@ public partial class GameSettingsView : UserControl
             foreach (var field in profile.ConfigValues.Where(c => c.CategoryName == category))
                 AddFieldEditor(field);
         }
+
+        SyncRemoteLocalPlayInputApi();
 
         // Baseline for unsaved-change detection (editor values normalize e.g. "" -> "0",
         // so compare against the editors' initial output rather than raw FieldValues)
@@ -744,187 +747,203 @@ public partial class GameSettingsView : UserControl
         switch (field.FieldType)
         {
             case FieldType.Bool:
-            {
-                var cb = new CheckBox { IsChecked = field.FieldValue == "1" };
-                _valueReaders[field] = () => cb.IsChecked == true ? "1" : "0";
-                cb.IsCheckedChanged += (_, _) =>
                 {
-                    field.FieldValue = cb.IsChecked == true ? "1" : "0";
-                    HandleConfigFieldValueChanged(field);
-                };
-                editor = cb;
-                break;
-            }
+                    var cb = new CheckBox { IsChecked = field.FieldValue == "1" };
+                    _valueReaders[field] = () => cb.IsChecked == true ? "1" : "0";
+                    cb.IsCheckedChanged += (_, _) =>
+                    {
+                        field.FieldValue = cb.IsChecked == true ? "1" : "0";
+                        HandleConfigFieldValueChanged(field);
+                    };
+                    editor = cb;
+                    break;
+                }
 
             case FieldType.Dropdown:
             case FieldType.DropdownIndex:
-            {
-                var options = field.FieldOptions ?? new List<string>();
-                var selected = field.FieldValue;
-                if (field.FieldName == "Input API")
                 {
-                    // Input is always merged (SDL2 gamepads + RawInput keyboard/mouse).
-                    // The dropdown survives only as the gun-flavour picker.
-                    var gunOptions = options.FindAll(o => o is "RawInput" or "RawInputTrackball");
-                    if (gunOptions.Count < 2)
-                        return;
-                    options = gunOptions;
-                    if (!options.Contains(selected ?? ""))
-                        selected = options[0];
+                    var options = field.FieldOptions ?? new List<string>();
+                    var selected = field.FieldValue;
+                    if (field.FieldName == "Input API")
+                    {
+                        var remoteLocalPlayOn = _profile?.ConfigValues?.Any(c =>
+                            string.Equals(c.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase) &&
+                            string.Equals(c.FieldValue, "On", StringComparison.OrdinalIgnoreCase)) == true;
+
+                        if (remoteLocalPlayOn)
+                        {
+                            options = new List<string> { "MergedInput" };
+                            selected = "MergedInput";
+                            field.FieldValue = "MergedInput";
+                        }
+                        else
+                        {
+                            options = options.FindAll(o => o is "RawInput" or "RawInputTrackball");
+
+                            if (options.Count == 0)
+                                return;
+
+                            if (!options.Contains(selected ?? ""))
+                                selected = options.Contains("RawInputTrackball")
+                                    ? "RawInputTrackball"
+                                    : options[0];
+
+                            field.FieldValue = selected;
+                        }
+                    }
+
+                    var combo = new ComboBox
+                    {
+                        ItemsSource = options,
+                        SelectedItem = selected,
+                        MinWidth = 220
+                    };
+                    if (combo.SelectedItem == null && options.Count > 0)
+                        combo.SelectedIndex = 0;
+
+                    _valueReaders[field] = () => combo.SelectedItem as string ?? field.FieldValue;
+                    combo.SelectionChanged += (_, _) =>
+                    {
+                        field.FieldValue = combo.SelectedItem as string ?? field.FieldValue;
+                        HandleConfigFieldValueChanged(field);
+                    };
+                    editor = combo;
+                    break;
                 }
-
-                var combo = new ComboBox
-                {
-                    ItemsSource = options,
-                    SelectedItem = selected,
-                    MinWidth = 220
-                };
-                if (combo.SelectedItem == null && options.Count > 0)
-                    combo.SelectedIndex = 0;
-
-                _valueReaders[field] = () => combo.SelectedItem as string ?? field.FieldValue;
-                combo.SelectionChanged += (_, _) =>
-                {
-                    field.FieldValue = combo.SelectedItem as string ?? field.FieldValue;
-                    HandleConfigFieldValueChanged(field);
-                };
-                editor = combo;
-                break;
-            }
 
             case FieldType.Slider:
-            {
-                var slider = new Slider
                 {
-                    Minimum = field.FieldMin,
-                    Maximum = field.FieldMax,
-                    Width = 220,
-                    Value = double.TryParse(field.FieldValue, out var v) ? v : field.FieldMin
-                };
-                if (field.FieldStep > 0)
-                {
-                    slider.TickFrequency = field.FieldStep;
-                    slider.IsSnapToTickEnabled = true;
+                    var slider = new Slider
+                    {
+                        Minimum = field.FieldMin,
+                        Maximum = field.FieldMax,
+                        Width = 220,
+                        Value = double.TryParse(field.FieldValue, out var v) ? v : field.FieldMin
+                    };
+                    if (field.FieldStep > 0)
+                    {
+                        slider.TickFrequency = field.FieldStep;
+                        slider.IsSnapToTickEnabled = true;
+                    }
+
+                    var valueLabel = new TextBlock
+                    {
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Text = field.FieldValue
+                    };
+
+                    slider.PropertyChanged += (_, e) =>
+                    {
+                        if (e.Property != Slider.ValueProperty)
+                            return;
+
+                        var value = ((int)slider.Value).ToString();
+                        valueLabel.Text = value;
+                        field.FieldValue = value;
+                        HandleConfigFieldValueChanged(field);
+                    };
+
+                    _valueReaders[field] = () => ((int)slider.Value).ToString();
+                    editor = new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Spacing = 8,
+                        Children = { slider, valueLabel }
+                    };
+                    break;
                 }
-
-                var valueLabel = new TextBlock
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Text = field.FieldValue
-                };
-
-                slider.PropertyChanged += (_, e) =>
-                {
-                    if (e.Property != Slider.ValueProperty)
-                        return;
-
-                    var value = ((int)slider.Value).ToString();
-                    valueLabel.Text = value;
-                    field.FieldValue = value;
-                    HandleConfigFieldValueChanged(field);
-                };
-
-                _valueReaders[field] = () => ((int)slider.Value).ToString();
-                editor = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    Spacing = 8,
-                    Children = { slider, valueLabel }
-                };
-                break;
-            }
 
             case FieldType.Numeric:
-            {
-                var num = new NumericUpDown
                 {
-                    Minimum = field.FieldMin,
-                    Maximum = field.FieldMax == 0 ? decimal.MaxValue : field.FieldMax,
-                    Value = decimal.TryParse(field.FieldValue, out var nv) ? nv : 0,
-                    MinWidth = 140
-                };
-                _valueReaders[field] = () => ((long)(num.Value ?? 0)).ToString();
-                num.ValueChanged += (_, _) =>
-                {
-                    field.FieldValue = ((long)(num.Value ?? 0)).ToString();
-                    HandleConfigFieldValueChanged(field);
-                };
-                editor = num;
-                break;
-            }
-
-            case FieldType.KeyCapture:
-            {
-                var keyBox = new KeyCaptureBox
-                {
-                    MinWidth = 220,
-                    HorizontalAlignment = HorizontalAlignment.Left
-                };
-                keyBox.HexValue = field.FieldValue ?? "0x0";
-                _valueReaders[field] = () => keyBox.HexValue;
-                editor = keyBox;
-                break;
-            }
-
-            case FieldType.MonitorSelection:
-            {
-                var monitorCombo = new ComboBox { MinWidth = 220 };
-                var screens = (TopLevel.GetTopLevel(this) as Window)?.Screens.All;
-                var items = new List<string>();
-                if (screens != null)
-                {
-                    for (int i = 0; i < screens.Count; i++)
-                        items.Add($"Monitor {i + 1} ({screens[i].Bounds.Width}x{screens[i].Bounds.Height}{(screens[i].IsPrimary ? ", primary" : "")})");
+                    var num = new NumericUpDown
+                    {
+                        Minimum = field.FieldMin,
+                        Maximum = field.FieldMax == 0 ? decimal.MaxValue : field.FieldMax,
+                        Value = decimal.TryParse(field.FieldValue, out var nv) ? nv : 0,
+                        MinWidth = 140
+                    };
+                    _valueReaders[field] = () => ((long)(num.Value ?? 0)).ToString();
+                    num.ValueChanged += (_, _) =>
+                    {
+                        field.FieldValue = ((long)(num.Value ?? 0)).ToString();
+                        HandleConfigFieldValueChanged(field);
+                    };
+                    editor = num;
+                    break;
                 }
 
-                if (items.Count == 0)
-                    items.Add("Monitor 1");
-
-                monitorCombo.ItemsSource = items;
-                monitorCombo.SelectedIndex =
-                    int.TryParse(field.FieldValue, out var mi) && mi >= 0 && mi < items.Count ? mi : 0;
-                _valueReaders[field] = () => monitorCombo.SelectedIndex.ToString();
-                monitorCombo.SelectionChanged += (_, _) =>
+            case FieldType.KeyCapture:
                 {
-                    field.FieldValue = monitorCombo.SelectedIndex.ToString();
-                    HandleConfigFieldValueChanged(field);
-                };
-                editor = monitorCombo;
-                break;
-            }
+                    var keyBox = new KeyCaptureBox
+                    {
+                        MinWidth = 220,
+                        HorizontalAlignment = HorizontalAlignment.Left
+                    };
+                    keyBox.HexValue = field.FieldValue ?? "0x0";
+                    _valueReaders[field] = () => keyBox.HexValue;
+                    editor = keyBox;
+                    break;
+                }
+
+            case FieldType.MonitorSelection:
+                {
+                    var monitorCombo = new ComboBox { MinWidth = 220 };
+                    var screens = (TopLevel.GetTopLevel(this) as Window)?.Screens.All;
+                    var items = new List<string>();
+                    if (screens != null)
+                    {
+                        for (int i = 0; i < screens.Count; i++)
+                            items.Add($"Monitor {i + 1} ({screens[i].Bounds.Width}x{screens[i].Bounds.Height}{(screens[i].IsPrimary ? ", primary" : "")})");
+                    }
+
+                    if (items.Count == 0)
+                        items.Add("Monitor 1");
+
+                    monitorCombo.ItemsSource = items;
+                    monitorCombo.SelectedIndex =
+                        int.TryParse(field.FieldValue, out var mi) && mi >= 0 && mi < items.Count ? mi : 0;
+                    _valueReaders[field] = () => monitorCombo.SelectedIndex.ToString();
+                    monitorCombo.SelectionChanged += (_, _) =>
+                    {
+                        field.FieldValue = monitorCombo.SelectedIndex.ToString();
+                        HandleConfigFieldValueChanged(field);
+                    };
+                    editor = monitorCombo;
+                    break;
+                }
 
             case FieldType.Password:
-            {
-                // Avalonia has no separate WPF-style PasswordBox binding helper here.
-                // Keep the value editable while masking it visually.
-                var password = new TextBox
                 {
-                    Text = field.FieldValue ?? "",
-                    MinWidth = 220,
-                    PasswordChar = '●'
-                };
-                _valueReaders[field] = () => password.Text ?? "";
-                password.TextChanged += (_, _) =>
-                {
-                    field.FieldValue = password.Text ?? "";
-                    HandleConfigFieldValueChanged(field);
-                };
-                editor = password;
-                break;
-            }
+                    // Avalonia has no separate WPF-style PasswordBox binding helper here.
+                    // Keep the value editable while masking it visually.
+                    var password = new TextBox
+                    {
+                        Text = field.FieldValue ?? "",
+                        MinWidth = 220,
+                        PasswordChar = '●'
+                    };
+                    _valueReaders[field] = () => password.Text ?? "";
+                    password.TextChanged += (_, _) =>
+                    {
+                        field.FieldValue = password.Text ?? "";
+                        HandleConfigFieldValueChanged(field);
+                    };
+                    editor = password;
+                    break;
+                }
 
             default:
-            {
-                var tb = new TextBox { Text = field.FieldValue ?? "", MinWidth = 220 };
-                _valueReaders[field] = () => tb.Text ?? "";
-                tb.TextChanged += (_, _) =>
                 {
-                    field.FieldValue = tb.Text ?? "";
-                    HandleConfigFieldValueChanged(field);
-                };
-                editor = tb;
-                break;
-            }
+                    var tb = new TextBox { Text = field.FieldValue ?? "", MinWidth = 220 };
+                    _valueReaders[field] = () => tb.Text ?? "";
+                    tb.TextChanged += (_, _) =>
+                    {
+                        field.FieldValue = tb.Text ?? "";
+                        HandleConfigFieldValueChanged(field);
+                    };
+                    editor = tb;
+                    break;
+                }
         }
 
         if (!string.IsNullOrWhiteSpace(field.Hint))
@@ -994,7 +1013,7 @@ public partial class GameSettingsView : UserControl
 
     private void HandleConfigFieldValueChanged(FieldInformation field)
     {
-        if (_applyingRodPreferredSetup)
+        if (_applyingRodPreferredSetup || _syncingRemoteLocalPlayInputApi)
             return;
 
         // Custom Golden Tee outfit and Rod mode are mutually exclusive.
@@ -1006,8 +1025,69 @@ public partial class GameSettingsView : UserControl
                 _rodPreferredSetupCheckBox.IsChecked = false;
         }
 
+        if (string.Equals(field.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase))
+            SyncRemoteLocalPlayInputApi();
+
         UpdateConditionalVisibilityModel();
         ApplyConditionalVisibilityToControls();
+    }
+
+    private void SyncRemoteLocalPlayInputApi()
+    {
+        if (_syncingRemoteLocalPlayInputApi || _profile?.ConfigValues == null)
+            return;
+
+        var remoteField = _profile.ConfigValues.FirstOrDefault(c =>
+            string.Equals(c.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase));
+        var inputApiField = _profile.ConfigValues.FirstOrDefault(c =>
+            string.Equals(c.FieldName, "Input API", StringComparison.OrdinalIgnoreCase));
+
+        if (remoteField == null || inputApiField == null ||
+            !_fieldEditors.TryGetValue(inputApiField, out var editor) ||
+            editor is not ComboBox combo)
+            return;
+
+        var remoteOn = string.Equals(remoteField.FieldValue, "On", StringComparison.OrdinalIgnoreCase);
+
+        _syncingRemoteLocalPlayInputApi = true;
+        try
+        {
+            if (remoteOn)
+            {
+                inputApiField.FieldValue = "MergedInput";
+                combo.ItemsSource = new List<string> { "MergedInput" };
+                combo.SelectedItem = "MergedInput";
+                inputApiField.IsEditorEnabled = false;
+                combo.IsEnabled = false;
+            }
+            else
+            {
+                var localOptions = (inputApiField.FieldOptions ?? new List<string>())
+                    .Where(o => o is "RawInput" or "RawInputTrackball")
+                    .ToList();
+
+                if (localOptions.Count == 0)
+                    localOptions.AddRange(new[] { "RawInput", "RawInputTrackball" });
+
+                combo.ItemsSource = localOptions;
+
+                if (string.Equals(inputApiField.FieldValue, "MergedInput", StringComparison.OrdinalIgnoreCase) ||
+                    !localOptions.Contains(inputApiField.FieldValue ?? ""))
+                {
+                    inputApiField.FieldValue = localOptions.Contains("RawInputTrackball")
+                        ? "RawInputTrackball"
+                        : localOptions[0];
+                }
+
+                combo.SelectedItem = inputApiField.FieldValue;
+                inputApiField.IsEditorEnabled = true;
+                combo.IsEnabled = true;
+            }
+        }
+        finally
+        {
+            _syncingRemoteLocalPlayInputApi = false;
+        }
     }
 
     private void ConfigureRodPreferredSetup(GameProfile profile)
