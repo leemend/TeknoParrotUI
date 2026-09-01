@@ -213,8 +213,15 @@ public partial class GameSettingsView : UserControl
 
         foreach (var category in profile.ConfigValues.Select(c => c.CategoryName).Distinct())
         {
+            var categoryFields = profile.ConfigValues.Where(c => c.CategoryName == category).ToList();
+            if (IsAdditionalGoldenTeePlayerCustomizationCategory(category))
+            {
+                AddExpandablePlayerCustomizationCategory(category, categoryFields);
+                continue;
+            }
+
             AddCategoryHeader(category);
-            foreach (var field in profile.ConfigValues.Where(c => c.CategoryName == category))
+            foreach (var field in categoryFields)
                 AddFieldEditor(field);
         }
 
@@ -573,6 +580,51 @@ public partial class GameSettingsView : UserControl
         });
     }
 
+    private static bool IsAdditionalGoldenTeePlayerCustomizationCategory(string? category) =>
+        category is "Player 2 Customization" or "Player 3 Customization" or "Player 4 Customization";
+
+    private void AddExpandablePlayerCustomizationCategory(
+        string category,
+        IReadOnlyList<FieldInformation> fields)
+    {
+        var panel = new StackPanel
+        {
+            Spacing = 4,
+            Margin = new global::Avalonia.Thickness(12, 4, 0, 4)
+        };
+
+        foreach (var field in fields)
+            AddFieldEditor(field, panel);
+
+        FieldsPanel.Children.Add(new Expander
+        {
+            Header = category,
+            IsExpanded = false,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new global::Avalonia.Thickness(0, 10, 0, 0),
+            Content = panel
+        });
+    }
+
+    private static string GetFieldDisplayName(FieldInformation field)
+    {
+        if (!IsAdditionalGoldenTeePlayerCustomizationCategory(field.CategoryName))
+            return field.FieldName;
+
+        var playerNumber = field.CategoryName.Substring("Player ".Length, 1);
+        var prefix = $"P{playerNumber} ";
+        var name = field.FieldName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            ? field.FieldName.Substring(prefix.Length)
+            : field.FieldName;
+
+        if (string.Equals(name, "Override Default Outfit", StringComparison.OrdinalIgnoreCase))
+            return "Enable customization";
+
+        return name.StartsWith("Default ", StringComparison.OrdinalIgnoreCase)
+            ? name.Substring("Default ".Length)
+            : name;
+    }
+
     /// <summary>
     /// "Game Executable (GameProject-Win64-Shipping.exe)" - shows the expected file
     /// name(s) from the profile, matching the classic UI (';'/'|' = alternatives).
@@ -740,8 +792,9 @@ public partial class GameSettingsView : UserControl
         return box;
     }
 
-    private void AddFieldEditor(FieldInformation field)
+    private void AddFieldEditor(FieldInformation field, Panel? targetPanel = null)
     {
+        targetPanel ??= FieldsPanel;
         Control editor;
 
         switch (field.FieldType)
@@ -1001,12 +1054,12 @@ public partial class GameSettingsView : UserControl
 
             _rodPreferredSetupCheckBox = rodCheck;
             _rodPreferredSetupRow = Row("Use Rod's Preferred Setup", rodCheck);
-            FieldsPanel.Children.Add(_rodPreferredSetupRow);
+            targetPanel.Children.Add(_rodPreferredSetupRow);
         }
 
-        var row = Row(field.FieldName, editor);
+        var row = Row(GetFieldDisplayName(field), editor);
         _fieldRows[field] = row;
-        FieldsPanel.Children.Add(row);
+        targetPanel.Children.Add(row);
 
         ApplyConditionalVisibilityToControl(field);
     }

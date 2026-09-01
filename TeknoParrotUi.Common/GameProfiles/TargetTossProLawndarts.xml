@@ -367,7 +367,6 @@
 			<InputMapping>HostTrackball</InputMapping>
 			<HideWithDirectInput>true</HideWithDirectInput>
 			<HideWithXInput>true</HideWithXInput>
-			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 	</JoystickButtons>
 </GameProfile>

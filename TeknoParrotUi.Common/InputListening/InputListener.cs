@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using TeknoParrotUi.Common.InputListening;
@@ -107,6 +107,11 @@ namespace TeknoParrotUi.Common
             KillMe = true;
             InputListenerRawInput.KillMe = true;
             InputListenerRawInputTrackball.KillMe = true;
+
+            // Stop new WM_INPUT dispatch immediately while the listeners tear down.
+            _mergedIncludesRawInput = false;
+            _mergedIncludesRawInputTrackball = false;
+
             _stopSignal.Set();
             if (_gameprofile != null && (_gameprofile.EmulationProfile == EmulationProfile.NamcoWmmt5 || _gameprofile.EmulationProfile == EmulationProfile.NamcoWmmt6RR))
             {
@@ -144,10 +149,6 @@ namespace TeknoParrotUi.Common
                 // state while a worker is alive. Detach/reset them only after
                 // every RawInput worker has actually stopped.
                 InputListenerRawInput.StopTimers();
-                // Prevent the hidden WM_INPUT window from routing into state
-                // while its MMF/view handles are being released.
-                _mergedIncludesRawInput = false;
-                _mergedIncludesRawInputTrackball = false;
                 _inputListenerRawInput.Dispose();
                 _inputListenerRawInputTrackball.Dispose();
                 _gameprofile = null;

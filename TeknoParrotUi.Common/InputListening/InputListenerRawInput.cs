@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -757,6 +757,9 @@ namespace TeknoParrotUi.Common.InputListening
 
         public void WndProcReceived(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
+            if (KillMe || _joystickButtons == null)
+                return;
+
             const int WM_INPUT = 0x00FF;
 
             if (msg == WM_INPUT)
