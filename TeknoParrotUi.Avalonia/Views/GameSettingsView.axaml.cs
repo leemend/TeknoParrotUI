@@ -171,11 +171,11 @@ public partial class GameSettingsView : UserControl
         else
         {
             AddCategoryHeader(Services.Loc.T(
-                "GameSettingsGameExecutableLabel", "Game Executable"));
+                "GameSettingsGameHeader", "Game"));
             _gamePathBox = AddPathRow(
                 BuildExecutableLabel(
-                    "GameSettingsGameExecutableLabel",
-                    "Game Executable",
+                    "GameSettingsExecutableLabelShort",
+                    "Executable",
                     profile.ExecutableName),
                 profile.GamePath,
                 profile.ExecutableName);
@@ -214,9 +214,25 @@ public partial class GameSettingsView : UserControl
         foreach (var category in profile.ConfigValues.Select(c => c.CategoryName).Distinct())
         {
             var categoryFields = profile.ConfigValues.Where(c => c.CategoryName == category).ToList();
-            if (IsAdditionalGoldenTeePlayerCustomizationCategory(category))
+
+            if (string.Equals(category, "Customization", StringComparison.OrdinalIgnoreCase) &&
+                categoryFields.Any(f => string.Equals(
+                    f.FieldName, "Override Default Outfit", StringComparison.OrdinalIgnoreCase)))
             {
-                AddExpandablePlayerCustomizationCategory(category, categoryFields);
+                AddCategoryHeader("Appearance & Equipment");
+
+                AddExpandablePlayerAppearanceCategory(
+                    "Player 1 Customization",
+                    categoryFields,
+                    includeRodPreferredSetup: true);
+                continue;
+            }
+
+            if (TryGetAdditionalGoldenTeePlayerNumber(category, out var playerNumber))
+            {
+                AddExpandablePlayerAppearanceCategory(
+                    $"Player {playerNumber} Customization",
+                    categoryFields);
                 continue;
             }
 
@@ -580,12 +596,25 @@ public partial class GameSettingsView : UserControl
         });
     }
 
-    private static bool IsAdditionalGoldenTeePlayerCustomizationCategory(string? category) =>
-        category is "Player 2 Customization" or "Player 3 Customization" or "Player 4 Customization";
+    private static bool TryGetAdditionalGoldenTeePlayerNumber(string? category, out int playerNumber)
+    {
+        playerNumber = 0;
+        if (string.IsNullOrWhiteSpace(category))
+            return false;
 
-    private void AddExpandablePlayerCustomizationCategory(
-        string category,
-        IReadOnlyList<FieldInformation> fields)
+        return category switch
+        {
+            "Player 2 Customization" => (playerNumber = 2) == 2,
+            "Player 3 Customization" => (playerNumber = 3) == 3,
+            "Player 4 Customization" => (playerNumber = 4) == 4,
+            _ => false
+        };
+    }
+
+    private void AddExpandablePlayerAppearanceCategory(
+        string header,
+        IReadOnlyList<FieldInformation> fields,
+        bool includeRodPreferredSetup = false)
     {
         var panel = new StackPanel
         {
@@ -593,12 +622,19 @@ public partial class GameSettingsView : UserControl
             Margin = new global::Avalonia.Thickness(12, 4, 0, 4)
         };
 
+        if (includeRodPreferredSetup)
+        {
+            var rodAnchor = fields.FirstOrDefault(field => field.ShowRodPreferredSetup);
+            if (rodAnchor != null)
+                AddRodPreferredSetupEditor(rodAnchor, panel);
+        }
+
         foreach (var field in fields)
-            AddFieldEditor(field, panel);
+            AddFieldEditor(field, panel, includeRodPreferredSetupRow: false);
 
         FieldsPanel.Children.Add(new Expander
         {
-            Header = category,
+            Header = header,
             IsExpanded = false,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Margin = new global::Avalonia.Thickness(0, 10, 0, 0),
@@ -608,17 +644,24 @@ public partial class GameSettingsView : UserControl
 
     private static string GetFieldDisplayName(FieldInformation field)
     {
-        if (!IsAdditionalGoldenTeePlayerCustomizationCategory(field.CategoryName))
-            return field.FieldName;
+        var name = field.FieldName;
 
-        var playerNumber = field.CategoryName.Substring("Player ".Length, 1);
-        var prefix = $"P{playerNumber} ";
-        var name = field.FieldName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
-            ? field.FieldName.Substring(prefix.Length)
-            : field.FieldName;
+        if (TryGetAdditionalGoldenTeePlayerNumber(field.CategoryName, out var playerNumber))
+        {
+            var prefix = $"P{playerNumber} ";
+            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                name = name.Substring(prefix.Length);
+        }
+
+        var isPlayerAppearanceField =
+            string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase) ||
+            TryGetAdditionalGoldenTeePlayerNumber(field.CategoryName, out _);
+
+        if (!isPlayerAppearanceField)
+            return name;
 
         if (string.Equals(name, "Override Default Outfit", StringComparison.OrdinalIgnoreCase))
-            return "Enable customization";
+            return "Edit Player Defaults";
 
         return name.StartsWith("Default ", StringComparison.OrdinalIgnoreCase)
             ? name.Substring("Default ".Length)
@@ -792,7 +835,7 @@ public partial class GameSettingsView : UserControl
         return box;
     }
 
-    private void AddFieldEditor(FieldInformation field, Panel? targetPanel = null)
+    private void AddFieldEditor(FieldInformation field, Panel? targetPanel = null, bool includeRodPreferredSetupRow = true)
     {
         targetPanel ??= FieldsPanel;
         Control editor;
@@ -1004,64 +1047,67 @@ public partial class GameSettingsView : UserControl
 
         _fieldEditors[field] = editor;
 
-        if (field.ShowRodPreferredSetup)
-        {
-            var rodCheck = new CheckBox
-            {
-                IsChecked = field.RodPreferredSetup,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ToolTip.SetTip(
-                rodCheck,
-                "In Memory of Rod\n\nUses the original Golden Tee defaults for outfit, clubs, putter, balls, " +
-                "and accessories. Trackball sensitivity is locked to 25/25 while enabled.");
-
-            rodCheck.IsCheckedChanged += async (_, _) =>
-            {
-                if (_applyingRodPreferredSetup)
-                    return;
-
-                if (rodCheck.IsChecked == true)
-                {
-                    if (HasCustomGoldenTeeSettings() &&
-                        TopLevel.GetTopLevel(this) is Window owner)
-                    {
-                        var confirmed = await Services.Dialogs.ConfirmAsync(
-                            owner,
-                            "Use Rod's Preferred Setup?",
-                            "You currently have custom Golden Tee settings.\n\n" +
-                            "Using Rod's Preferred Setup will reset those custom settings back to their default values.\n\n" +
-                            "Do you want to continue?");
-
-                        if (!confirmed)
-                        {
-                            SetRodToggleState(false, "0");
-                            rodCheck.IsChecked = false;
-                            return;
-                        }
-                    }
-
-                    ApplyRodPreferredSetup();
-                    SyncEditorsFromFields();
-                }
-                else
-                {
-                    SetRodToggleState(false, "0");
-                    UpdateConditionalVisibilityModel();
-                    ApplyConditionalVisibilityToControls();
-                }
-            };
-
-            _rodPreferredSetupCheckBox = rodCheck;
-            _rodPreferredSetupRow = Row("Use Rod's Preferred Setup", rodCheck);
-            targetPanel.Children.Add(_rodPreferredSetupRow);
-        }
+        if (field.ShowRodPreferredSetup && includeRodPreferredSetupRow)
+            AddRodPreferredSetupEditor(field, targetPanel);
 
         var row = Row(GetFieldDisplayName(field), editor);
         _fieldRows[field] = row;
         targetPanel.Children.Add(row);
 
         ApplyConditionalVisibilityToControl(field);
+    }
+
+    private void AddRodPreferredSetupEditor(FieldInformation field, Panel targetPanel)
+    {
+        var rodCheck = new CheckBox
+        {
+            IsChecked = field.RodPreferredSetup,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ToolTip.SetTip(
+            rodCheck,
+            "In Memory of Rod\n\nUses the original Golden Tee defaults for outfit, clubs, putter, balls, " +
+            "and accessories. Trackball sensitivity is locked to 25/25 while enabled.");
+
+        rodCheck.IsCheckedChanged += async (_, _) =>
+        {
+            if (_applyingRodPreferredSetup)
+                return;
+
+            if (rodCheck.IsChecked == true)
+            {
+                if (HasCustomGoldenTeeSettings() &&
+                    TopLevel.GetTopLevel(this) is Window owner)
+                {
+                    var confirmed = await Services.Dialogs.ConfirmAsync(
+                        owner,
+                        "Use Rod's Preferred Setup?",
+                        "You currently have custom Golden Tee settings.\n\n" +
+                        "Using Rod's Preferred Setup will reset those custom settings back to their default values.\n\n" +
+                        "Do you want to continue?");
+
+                    if (!confirmed)
+                    {
+                        SetRodToggleState(false, "0");
+                        rodCheck.IsChecked = false;
+                        return;
+                    }
+                }
+
+                ApplyRodPreferredSetup();
+                SyncEditorsFromFields();
+            }
+            else
+            {
+                SetRodToggleState(false, "0");
+                UpdateConditionalVisibilityModel();
+                ApplyConditionalVisibilityToControls();
+            }
+        };
+
+        _rodPreferredSetupCheckBox = rodCheck;
+        _rodPreferredSetupRow = Row("Use Rod's Preferred Setup", rodCheck);
+        targetPanel.Children.Add(_rodPreferredSetupRow);
     }
 
     private void HandleConfigFieldValueChanged(FieldInformation field)
@@ -1346,6 +1392,17 @@ public partial class GameSettingsView : UserControl
             {
                 field.FieldValue = "25";
                 field.IsEditorEnabled = false;
+            }
+
+            // Player 1 mirrors the additional-player UI: only the Rod toggle and
+            // Edit Player Defaults are shown until customization is enabled.
+            if (!useRodPreferredSetup &&
+                _rodPreferredSetupAnchor != null &&
+                string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase) &&
+                !ReferenceEquals(field, _rodPreferredSetupAnchor) &&
+                !string.Equals(_rodPreferredSetupAnchor.FieldValue, "1", StringComparison.OrdinalIgnoreCase))
+            {
+                field.IsVisible = false;
             }
 
             if (!useRodPreferredSetup ||
