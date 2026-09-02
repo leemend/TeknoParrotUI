@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Text;
 using System.Threading;
 using TeknoParrotUi.Common;
 
@@ -20,7 +21,8 @@ namespace TeknoParrotUi.Common.InputListening
         MouseButtonUp,
         MouseWheel,
         AbsPosition,
-        GamepadSlot
+        GamepadSlot,
+        ClientIdentity
     }
 
     public class SunshineInputEventArgs : EventArgs
@@ -47,6 +49,9 @@ namespace TeknoParrotUi.Common.InputListening
         /// <summary>The real Windows XInput user index (0-3) ViGEmBus assigned this player's
         /// virtual controller. Only valid for GamepadSlot.</summary>
         public int XInputIndex { get; set; }
+
+        /// <summary>Sunshine's persistent paired-client UUID. Only valid for ClientIdentity.</summary>
+        public string ClientUuid { get; set; }
     }
 
     /// <summary>
@@ -69,6 +74,7 @@ namespace TeknoParrotUi.Common.InputListening
     ///   0x05 MouseWheel   [type][player][delta0..3]              6 bytes
     ///   0x06 AbsPosition  [type][player][x0..3][y0..3]           10 bytes
     ///   0x07 GamepadSlot  [type][player][xinputIndex]            3 bytes
+    ///   0x08 ClientIdentity [type][player][uuidLenLo][uuidLenHi][uuid UTF-8...]
     /// </summary>
     public static class SunshinePlayerInput
     {
@@ -100,6 +106,9 @@ namespace TeknoParrotUi.Common.InputListening
         /// </summary>
         private static readonly Dictionary<int, int> PlayerByXInputIndex = new Dictionary<int, int>();
         private static readonly object GamepadSlotLock = new object();
+
+        private static readonly Dictionary<int, string> ClientUuidByPlayer = new Dictionary<int, string>();
+        private static readonly object ClientIdentityLock = new object();
 
         /// <summary>
         /// Raised on a background thread whenever a player-tagged event arrives. Subscribers
@@ -169,6 +178,24 @@ namespace TeknoParrotUi.Common.InputListening
                 var players = new List<int>(ConnectedPlayers);
                 players.Sort();
                 return players;
+            }
+        }
+
+        public static string GetClientUuid(int player)
+        {
+            lock (ClientIdentityLock)
+            {
+                return ClientUuidByPlayer.TryGetValue(player, out var clientUuid)
+                    ? clientUuid
+                    : null;
+            }
+        }
+
+        public static IReadOnlyDictionary<int, string> GetClientIdentities()
+        {
+            lock (ClientIdentityLock)
+            {
+                return new Dictionary<int, string>(ClientUuidByPlayer);
             }
         }
 
@@ -288,6 +315,10 @@ namespace TeknoParrotUi.Common.InputListening
                     {
                         PlayerByXInputIndex.Clear();
                     }
+                    lock (ClientIdentityLock)
+                    {
+                        ClientUuidByPlayer.Clear();
+                    }
                 }
 
                 if (_running)
@@ -321,6 +352,14 @@ namespace TeknoParrotUi.Common.InputListening
                             ConnectedPlayers.Add(player);
                         else
                             ConnectedPlayers.Remove(player);
+                    }
+
+                    if (!connected)
+                    {
+                        lock (ClientIdentityLock)
+                        {
+                            ClientUuidByPlayer.Remove(player);
+                        }
                     }
 
                     Raise(new SunshineInputEventArgs
@@ -430,6 +469,38 @@ namespace TeknoParrotUi.Common.InputListening
                         Player = player,
                         EventType = SunshineInputEventType.GamepadSlot,
                         XInputIndex = xinputIndex
+                    });
+                    return true;
+                }
+                case 0x08: // ClientIdentity: player, uuidLength(2), uuid UTF-8
+                {
+                    var header = ReadExact(pipe, 3);
+                    if (header == null) return false;
+
+                    int player = header[0];
+                    int uuidLength = header[1] | (header[2] << 8);
+
+                    var uuidBytes = ReadExact(pipe, uuidLength);
+                    if (uuidBytes == null) return false;
+
+                    string clientUuid = Encoding.UTF8.GetString(uuidBytes);
+
+                    lock (ClientIdentityLock)
+                    {
+                        if (string.IsNullOrWhiteSpace(clientUuid))
+                            ClientUuidByPlayer.Remove(player);
+                        else
+                            ClientUuidByPlayer[player] = clientUuid;
+                    }
+
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[SunshineDebug] ClientIdentity received: player={player} uuid=[{clientUuid}]");
+
+                    Raise(new SunshineInputEventArgs
+                    {
+                        Player = player,
+                        EventType = SunshineInputEventType.ClientIdentity,
+                        ClientUuid = clientUuid
                     });
                     return true;
                 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace TeknoParrotUi.Common.GameLaunch
     /// GameRunning/GameProcessManager pipeline.
     ///
     /// Emulator types with heavy external-emulator configuration (Dolphin, Play,
-    /// RPCS3, cxbxr, pcsx2x6, SegaTools) are not yet supported natively —
+    /// RPCS3, cxbxr, pcsx2x6, SegaTools) are not yet supported natively â€”
     /// see <see cref="SupportsNativeLaunch"/>.
     /// </summary>
     public sealed class GameSession : IGameSession
@@ -101,7 +101,7 @@ namespace TeknoParrotUi.Common.GameLaunch
             catch (Exception ex)
             {
                 // A launch-time crash here used to take the whole app down
-                // (unhandled exception on the UI thread) — e.g. the game folder
+                // (unhandled exception on the UI thread) â€” e.g. the game folder
                 // being unwritable by the current user (permission denied writing
                 // teknoparrot.ini). Report it and unwind any partially-started
                 // pipes/listeners instead of throwing.
@@ -127,7 +127,7 @@ namespace TeknoParrotUi.Common.GameLaunch
             {
                 // File.WriteAllText wraps the path in its message on most runtimes.
                 return $"Cannot write game files ({ex.GetType().Name}: {ex.Message}). " +
-                       "The game folder is not writable by the current user — check its " +
+                       "The game folder is not writable by the current user â€” check its " +
                        "ownership/permissions (e.g. a folder shared via FTP/Samba owned by another account).";
             }
             return $"Launch failed: {ex.Message}";
@@ -186,7 +186,7 @@ namespace TeknoParrotUi.Common.GameLaunch
 
             // --emuonly developer mode: run only the emulation layer (JVS, pipes,
             // input listeners) without resolving loaders or starting the game
-            // process — the developer attaches/starts the game themselves.
+            // process â€” the developer attaches/starts the game themselves.
             var loaderExe = string.Empty;
             var loaderDll = string.Empty;
             if (!_emuOnly && !ResolveLoader(out loaderExe, out loaderDll))
@@ -237,7 +237,18 @@ namespace TeknoParrotUi.Common.GameLaunch
             StartControlHandlerThreads();
 
             if (!_isTest && !_emuOnly)
-                TeknoParrotIniWriter.WriteConfigIni(_profile, _gameLocation, _gameLocation2, _twoExes);
+            {
+                // Golden Tee remote appearance is launch-only. The normal local cabinet
+                // P2/P3/P4 values stay untouched in UserProfiles.
+                using var goldenTeeRemoteAppearance =
+                    TeknoParrotUi.Common.GoldenTeeRemotePlayerProfiles.ApplyLaunchOverlay(_profile);
+
+                TeknoParrotIniWriter.WriteConfigIni(
+                    _profile,
+                    _gameLocation,
+                    _gameLocation2,
+                    _twoExes);
+            }
 
             if (JvsSetup.UsesJvsPipe(_profile))
             {
@@ -265,7 +276,7 @@ namespace TeknoParrotUi.Common.GameLaunch
             // --- process ---
             if (_emuOnly)
             {
-                // No game process: the developer starts the game themselves —
+                // No game process: the developer starts the game themselves â€”
                 // register the expected executables so the RawInput listeners
                 // still find its window.
                 GameWindowTracker.Reset();
@@ -276,7 +287,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 // Keep the emulation layer alive until force quit.
                 var emuOnlyThread = new Thread(() =>
                 {
-                    StateChanged?.Invoke("Emulator running (emu only) — start the game process yourself.");
+                    StateChanged?.Invoke("Emulator running (emu only) â€” start the game process yourself.");
                     while (!_forceQuit)
                         Thread.Sleep(500);
                     Cleanup();
@@ -297,7 +308,7 @@ namespace TeknoParrotUi.Common.GameLaunch
 
         /// <summary>
         /// Logs the input setup and warns when the game has no bindings the
-        /// active listeners can read — the #1 cause of "controls don't work".
+        /// active listeners can read â€” the #1 cause of "controls don't work".
         /// Input is always merged: gamepads via SDL2 (XInputButton bindings),
         /// keyboard/mouse/guns via RawInput; the saved Input API only selects
         /// the gun flavour (RawInput vs Trackball).
@@ -307,7 +318,7 @@ namespace TeknoParrotUi.Common.GameLaunch
             bool trackball = _inputApi == InputApi.RawInputTrackball;
             OutputReceived?.Invoke($"Input: SDL2 gamepads + RawInput keyboard/mouse{(trackball ? " + trackball" : "")} (merged)");
 
-            // Linux: /dev/input readability is per-device — vendor udev ACLs can
+            // Linux: /dev/input readability is per-device â€” vendor udev ACLs can
             // make mice work while keyboards silently don't. Say so loudly,
             // state which fallback took over, and give the exact fix.
             if (OperatingSystem.IsLinux())
@@ -333,7 +344,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                     }
                     else
                     {
-                        OutputReceived?.Invoke("No X display found — affected devices will NOT work until access is fixed.");
+                        OutputReceived?.Invoke("No X display found â€” affected devices will NOT work until access is fixed.");
                     }
                     OutputReceived?.Invoke("Fix (one-time, from the TeknoParrot folder):  sudo ./setup/install-udev-rules.sh");
                     OutputReceived?.Invoke("  (grants your desktop session read access via logind ACLs; nothing runs as root afterwards.");
@@ -347,7 +358,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 (b.RawInputButton != null && b.RawInputButton.DeviceType != RawDeviceType.None);
 
             // Wheel games: steering/pedal rows bound to keyboard/mouse only work
-            // when the keyboard-axis engine is on — a classic silent-failure trap.
+            // when the keyboard-axis engine is on â€” a classic silent-failure trap.
             bool axisEngineOn = _profile.ConfigValues?.Any(cv =>
                 cv.FieldName == "Use Keyboard/Button For Axis" && cv.FieldValue == "1") == true;
             bool hasKbAxisRows = _profile.JoystickButtons.Any(b =>
@@ -356,13 +367,13 @@ namespace TeknoParrotUi.Common.GameLaunch
             if (hasKbAxisRows && !axisEngineOn)
             {
                 OutputReceived?.Invoke("WARNING: wheel/gas/brake are bound to keyboard or mouse buttons but " +
-                                       "'Use Keyboard/Button For Axis' is OFF in Game Settings — steering and pedals will NOT respond. Enable it.");
+                                       "'Use Keyboard/Button For Axis' is OFF in Game Settings â€” steering and pedals will NOT respond. Enable it.");
             }
 
             int usable = _profile.JoystickButtons.Count(CountsFor);
             if (usable == 0 && _profile.JoystickButtons.Count > 0)
             {
-                OutputReceived?.Invoke("WARNING: this game has NO bindings the input system can read — controls will not work.");
+                OutputReceived?.Invoke("WARNING: this game has NO bindings the input system can read â€” controls will not work.");
                 if (_profile.JoystickButtons.Any(b => b.DirectInputButton != null))
                     OutputReceived?.Invoke("This game only has old DirectInput bindings; DirectInput was removed. Rebind your controls in Controller Setup (controllers, keyboard and mouse all work there).");
                 else
@@ -419,12 +430,12 @@ namespace TeknoParrotUi.Common.GameLaunch
                     loaderDll = loaderDll.Replace('\\', '/');
             }
 
-            // External emulators launch their own exe — the loader is not used.
+            // External emulators launch their own exe â€” the loader is not used.
             if (ExternalEmulatorLauncher.IsExternalEmulator(_profile))
             {
                 if (string.IsNullOrEmpty(_gameLocation) || !File.Exists(_gameLocation))
                 {
-                    StateChanged?.Invoke("Game executable not found — set the game path first.");
+                    StateChanged?.Invoke("Game executable not found â€” set the game path first.");
                     return false;
                 }
                 return true;
@@ -443,7 +454,7 @@ namespace TeknoParrotUi.Common.GameLaunch
             }
             if (string.IsNullOrEmpty(_gameLocation) || !File.Exists(_gameLocation))
             {
-                StateChanged?.Invoke("Game executable not found — set the game path first.");
+                StateChanged?.Invoke("Game executable not found â€” set the game path first.");
                 return false;
             }
             return true;

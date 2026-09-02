@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using TeknoParrotUi.Common.InputListening;
@@ -67,11 +67,15 @@ namespace TeknoParrotUi.Common
                     // input all through the RawInput listener. Gamepads run in
                     // the SDL2 listener alongside (started by the manager).
                     _mergedIncludesRawInput = true;
-                    _mergedIncludesRawInputTrackball = false;
+                    _mergedIncludesRawInputTrackball = true;
 
                     StartWorker(
                         () => _inputListenerRawInput.ListenRawInput(joystickButtons, gameProfile),
                         "RawInput");
+
+                    StartWorker(
+                        () => _inputListenerRawInputTrackball.ListenRawInputTrackball(joystickButtons, gameProfile),
+                        "RawInputTrackball");
                 }
             }
             catch (Exception)

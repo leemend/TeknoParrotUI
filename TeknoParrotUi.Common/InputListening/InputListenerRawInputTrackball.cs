@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -32,7 +32,11 @@ namespace TeknoParrotUi.Common.InputListening
         private const int MinShortValue = -32768;
         private MemoryMappedFile _mmf;
         private MemoryMappedViewAccessor _accessor;
-        internal bool HasOpenSharedMemory => _mmf != null || _accessor != null;
+        private MemoryMappedFile _mmfHost;
+        private MemoryMappedViewAccessor _accessorHost;
+        private static short _currentDeltaXHost;
+        private static short _currentDeltaYHost;
+        internal bool HasOpenSharedMemory => _mmf != null || _accessor != null || _mmfHost != null || _accessorHost != null;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
@@ -83,6 +87,12 @@ namespace TeknoParrotUi.Common.InputListening
             _accessor.Write(0, 0); // deltaX
             _accessor.Write(4, 0); // deltaY
             _accessor.Write(8, 0); // reset flag
+
+            _mmfHost = MemoryMappedFile.CreateOrOpen("RawInputTrackballSharedMemoryHost", 12);
+            _accessorHost = _mmfHost.CreateViewAccessor();
+            _accessorHost.Write(0, 0);
+            _accessorHost.Write(4, 0);
+            _accessorHost.Write(8, 0);
         }
 
         private bool isHookableWindow(string windowTitle)
@@ -273,7 +283,18 @@ namespace TeknoParrotUi.Common.InputListening
 
                             if (!mouse.Mouse.Flags.HasFlag(RawMouseFlags.MoveAbsolute))
                             {
-                                foreach (var trackball in _joystickButtons.Where(btn => btn.RawInputButton.DevicePath == path && btn.RawInputButton.DeviceType == RawDeviceType.Mouse && (btn.InputMapping == InputMapping.P1Trackball || btn.InputMapping == InputMapping.P2Trackball)))
+                                // Remote-local-play profiles introduced HostTrackball/P3Trackball/P4Trackball.
+                                // Local physical RawInput must recognize the same trackball mappings as the
+                                // Sunshine path. Outside Remote Local Play they still fall through to the
+                                // original trackball buffer, preserving legacy behavior.
+                                foreach (var trackball in _joystickButtons.Where(btn =>
+                                    btn.RawInputButton.DevicePath == path &&
+                                    btn.RawInputButton.DeviceType == RawDeviceType.Mouse &&
+                                    (btn.InputMapping == InputMapping.HostTrackball ||
+                                     btn.InputMapping == InputMapping.P1Trackball ||
+                                     btn.InputMapping == InputMapping.P2Trackball ||
+                                     btn.InputMapping == InputMapping.P3Trackball ||
+                                     btn.InputMapping == InputMapping.P4Trackball)))
                                 {
                                     HandleRawInputTrackball(trackball, mouse.Mouse.LastX, mouse.Mouse.LastY);
                                 }
@@ -570,6 +591,37 @@ namespace TeknoParrotUi.Common.InputListening
                 //Trace.WriteLine($"DeltaX: {_currentDeltaX}, DeltaY: {_currentDeltaY}");
                 _accessor.Write(0, _currentDeltaX);
                 _accessor.Write(4, _currentDeltaY);
+
+                if ((joystickButton.InputMapping == InputMapping.P1Trackball ||
+                     joystickButton.InputMapping == InputMapping.HostTrackball) &&
+                    GoldenTeeOptionsControl.ShouldMirrorTrackball(_gameProfile, 1))
+                {
+                    GoldenTeeOptionsTrackballBroadcast.BroadcastToOtherPlayers(
+                        1,
+                        signedDeltaX,
+                        signedDeltaY);
+                }
+
+                // Golden Tee Remote Local Play: when local P1 owns the Options menu,
+                // mirror this same physical P1 delta into the dedicated Host MMF.
+                // The normal P1 buffer remains untouched and no other player's buffer
+                // is read or rewritten, preserving per-player sensitivity isolation.
+                if (joystickButton.InputMapping == InputMapping.P1Trackball &&
+                    GoldenTeeOptionsControl.ShouldMirrorTrackball(_gameProfile, 1))
+                {
+                    int hostResetFlag = _accessorHost.ReadInt32(8);
+                    if (hostResetFlag == 1)
+                    {
+                        _currentDeltaXHost = 0;
+                        _currentDeltaYHost = 0;
+                        _accessorHost.Write(8, 0);
+                    }
+
+                    _currentDeltaXHost += (short)Math.Max(MinShortValue, Math.Min(MaxShortValue, signedDeltaX));
+                    _currentDeltaYHost += (short)Math.Max(MinShortValue, Math.Min(MaxShortValue, signedDeltaY));
+                    _accessorHost.Write(0, _currentDeltaXHost);
+                    _accessorHost.Write(4, _currentDeltaYHost);
+                }
             }
         }
 
@@ -577,8 +629,12 @@ namespace TeknoParrotUi.Common.InputListening
         {
             _accessor?.Dispose();
             _mmf?.Dispose();
+            _accessorHost?.Dispose();
+            _mmfHost?.Dispose();
             _accessor = null;
             _mmf = null;
+            _accessorHost = null;
+            _mmfHost = null;
             _gameProfile = null;
             _joystickButtons = null;
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,9 +6,11 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using TeknoParrotUi.Avalonia.Controls;
 using TeknoParrotUi.Common;
 using TeknoParrotUi.Common.Android;
+using TeknoParrotUi.Common.InputListening;
 using TeknoParrotUi.Common.Proton;
 
 namespace TeknoParrotUi.Avalonia.Views;
@@ -50,12 +52,40 @@ public partial class GameSettingsView : UserControl
     private readonly Dictionary<FieldInformation, Control> _fieldRows = new();
     private bool _syncingRemoteLocalPlayInputApi;
 
+    // Golden Tee local P2/P3/P4 values are kept separately while a connected
+    // Sunshine client's UUID-specific appearance is being edited in the same UI.
+    private readonly Dictionary<string, string> _goldenTeeLocalAppearanceValues =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    // Tracks which Sunshine UUID, if any, the visible P2/P3/P4 appearance
+    // editors currently represent. This is intentionally separate from the
+    // live Sunshine roster so a disconnect can never make stale remote editor
+    // values look like local cabinet values during Save.
+    private readonly Dictionary<int, string> _goldenTeeRemoteEditorClientUuidByPlayer = new();
+
+    private bool _loadingGoldenTeeRemoteAppearance;
+    private bool _sunshineInputSubscribed;
+
+    // Golden Tee named LOCAL player profiles. P1-P4 are seats; these initials
+    // identify the person currently using an unclaimed local seat.
+    private const string GoldenTeeCustomLocalProfileLabel = "Custom / Unsaved";
+    private readonly Dictionary<int, string> _goldenTeeLocalProfileAssignmentByPlayer = new();
+    private readonly Dictionary<int, string> _goldenTeeLocalProfileBaselineByPlayer = new();
+    private readonly Dictionary<int, ComboBox> _goldenTeeLocalProfileComboByPlayer = new();
+    private readonly Dictionary<int, TextBox> _goldenTeeLocalProfileInitialsByPlayer = new();
+    private readonly Dictionary<int, TextBlock> _goldenTeeLocalProfileStatusByPlayer = new();
+    private bool _applyingGoldenTeeLocalProfile;
+
     public event Action? BackRequested;
     public event Action<string>? Saved;
 
     public GameSettingsView()
     {
         InitializeComponent();
+
+        AttachedToVisualTree += (_, _) => SubscribeSunshineInput();
+        DetachedFromVisualTree += (_, _) => UnsubscribeSunshineInput();
+
         if (OperatingSystem.IsAndroid())
         {
             FieldsPanel.MaxWidth = double.PositiveInfinity;
@@ -82,12 +112,31 @@ public partial class GameSettingsView : UserControl
     public void LoadProfile(GameProfile profile)
     {
         _profile = profile;
+
+        if (GoldenTeeRemotePlayerProfiles.IsGoldenTee(profile) &&
+            !_loadingGoldenTeeRemoteAppearance)
+        {
+            CaptureGoldenTeeLocalAppearanceValues(profile);
+            LoadGoldenTeeLocalProfileAssignments();
+            ApplyAssignedGoldenTeeLocalProfiles(profile);
+
+            // Golden Tee RLP is derived from Sunshine's live roster. Set the
+            // backing field before resolving UUID-specific appearance so a
+            // client that connected before this page opened is active
+            // immediately.
+            SetGoldenTeeRemoteLocalPlayFromSunshine(profile);
+            ApplyActiveGoldenTeeRemoteAppearanceToFields(profile);
+        }
+
         Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} - Settings";
         _valueReaders.Clear();
         _fieldEditors.Clear();
         _fieldRows.Clear();
         _rodPreferredSetupCheckBox = null;
         _rodPreferredSetupRow = null;
+        _goldenTeeLocalProfileComboByPlayer.Clear();
+        _goldenTeeLocalProfileInitialsByPlayer.Clear();
+        _goldenTeeLocalProfileStatusByPlayer.Clear();
         FieldsPanel.Children.Clear();
 
         ConfigureRodPreferredSetup(profile);
@@ -224,6 +273,7 @@ public partial class GameSettingsView : UserControl
                 AddExpandablePlayerAppearanceCategory(
                     "Player 1 Customization",
                     categoryFields,
+                    playerNumber: 1,
                     includeRodPreferredSetup: true);
                 continue;
             }
@@ -232,7 +282,8 @@ public partial class GameSettingsView : UserControl
             {
                 AddExpandablePlayerAppearanceCategory(
                     $"Player {playerNumber} Customization",
-                    categoryFields);
+                    categoryFields,
+                    playerNumber);
                 continue;
             }
 
@@ -614,6 +665,7 @@ public partial class GameSettingsView : UserControl
     private void AddExpandablePlayerAppearanceCategory(
         string header,
         IReadOnlyList<FieldInformation> fields,
+        int playerNumber,
         bool includeRodPreferredSetup = false)
     {
         var panel = new StackPanel
@@ -621,6 +673,12 @@ public partial class GameSettingsView : UserControl
             Spacing = 4,
             Margin = new global::Avalonia.Thickness(12, 4, 0, 4)
         };
+
+        if (_profile != null &&
+            GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile))
+        {
+            AddGoldenTeeLocalProfileControls(playerNumber, panel);
+        }
 
         if (includeRodPreferredSetup)
         {
@@ -640,6 +698,363 @@ public partial class GameSettingsView : UserControl
             Margin = new global::Avalonia.Thickness(0, 10, 0, 0),
             Content = panel
         });
+    }
+
+    private void AddGoldenTeeLocalProfileControls(int player, Panel targetPanel)
+    {
+        if (_profile == null)
+            return;
+
+        var remoteOwned =
+            player >= SunshinePlayerInput.MinPlayer &&
+            player <= SunshinePlayerInput.MaxPlayer &&
+            SunshinePlayerInput.GetConnectedPlayers().Contains(player);
+
+        var assigned = _goldenTeeLocalProfileAssignmentByPlayer.TryGetValue(player, out var assignedInitials)
+            ? assignedInitials
+            : string.Empty;
+
+        if (remoteOwned)
+        {
+            var remoteUuid = SunshinePlayerInput.GetClientUuid(player);
+            var preserved = string.IsNullOrWhiteSpace(assigned)
+                ? "Custom / Unsaved"
+                : assigned;
+
+            var remoteStatus = new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(remoteUuid)
+                    ? $"Remote client owns P{player}. Local profile preserved: {preserved}"
+                    : $"Remote client owns P{player}. Local profile preserved: {preserved}",
+                TextWrapping = global::Avalonia.Media.TextWrapping.Wrap,
+                Opacity = 0.8,
+                Margin = new global::Avalonia.Thickness(0, 0, 0, 6)
+            };
+
+            targetPanel.Children.Add(remoteStatus);
+            return;
+        }
+
+        var profileNames = GoldenTeeLocalPlayerProfiles.ListProfileInitials().ToList();
+        var options = new List<string> { GoldenTeeCustomLocalProfileLabel };
+        options.AddRange(profileNames);
+
+        var combo = new ComboBox
+        {
+            ItemsSource = options,
+            SelectedItem = !string.IsNullOrWhiteSpace(assigned) && options.Contains(assigned)
+                ? assigned
+                : GoldenTeeCustomLocalProfileLabel,
+            MinWidth = 220
+        };
+
+        var initials = new TextBox
+        {
+            Text = !string.IsNullOrWhiteSpace(assigned)
+                ? assigned
+                : GetGoldenTeeSuggestedInitials(player),
+            MaxLength = 3,
+            Width = 80
+        };
+
+        var saveProfile = new Button
+        {
+            Content = "Save Profile"
+        };
+
+        var status = new TextBlock
+        {
+            TextWrapping = global::Avalonia.Media.TextWrapping.Wrap,
+            Opacity = 0.75
+        };
+
+        _goldenTeeLocalProfileComboByPlayer[player] = combo;
+        _goldenTeeLocalProfileInitialsByPlayer[player] = initials;
+        _goldenTeeLocalProfileStatusByPlayer[player] = status;
+
+        combo.SelectionChanged += (_, _) =>
+        {
+            if (_applyingGoldenTeeLocalProfile)
+                return;
+
+            var selected = combo.SelectedItem as string ?? GoldenTeeCustomLocalProfileLabel;
+
+            if (string.Equals(selected, GoldenTeeCustomLocalProfileLabel, StringComparison.Ordinal))
+            {
+                _goldenTeeLocalProfileAssignmentByPlayer.Remove(player);
+                status.Text = "Using this seat's custom settings.";
+                return;
+            }
+
+            var localProfile = GoldenTeeLocalPlayerProfiles.Load(selected);
+            if (localProfile == null)
+            {
+                status.Text = $"Profile {selected} could not be loaded.";
+                return;
+            }
+
+            _goldenTeeLocalProfileAssignmentByPlayer[player] = localProfile.Initials;
+            initials.Text = localProfile.Initials;
+            ApplyGoldenTeeLocalProfileToPlayer(player, localProfile);
+            status.Text = $"Loaded {localProfile.Initials}.";
+        };
+
+        saveProfile.Click += (_, _) =>
+        {
+            var normalized = GoldenTeeLocalPlayerProfiles.NormalizeInitials(initials.Text);
+            if (normalized == null)
+            {
+                status.Text = "Initials must be exactly 3 letters (A-Z).";
+                return;
+            }
+
+            var localProfile = CaptureGoldenTeeLocalProfileFromEditors(player, normalized);
+            if (localProfile == null)
+            {
+                status.Text = "This player slot is currently remote-owned.";
+                return;
+            }
+
+            GoldenTeeLocalPlayerProfiles.Save(localProfile);
+            _goldenTeeLocalProfileAssignmentByPlayer[player] = normalized;
+
+            _applyingGoldenTeeLocalProfile = true;
+            try
+            {
+                var refreshed = new List<string> { GoldenTeeCustomLocalProfileLabel };
+                refreshed.AddRange(GoldenTeeLocalPlayerProfiles.ListProfileInitials());
+                combo.ItemsSource = refreshed;
+                combo.SelectedItem = normalized;
+                initials.Text = normalized;
+            }
+            finally
+            {
+                _applyingGoldenTeeLocalProfile = false;
+            }
+
+            ApplyGoldenTeeInitialsToGameFields(player, normalized);
+            status.Text = $"Saved local player profile {normalized}.";
+        };
+
+        targetPanel.Children.Add(Row("Local Profile", combo));
+
+        var initialsRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Children = { initials, saveProfile }
+        };
+        targetPanel.Children.Add(Row("Profile Initials", initialsRow));
+        targetPanel.Children.Add(status);
+    }
+
+    private string GetGoldenTeeSuggestedInitials(int player)
+    {
+        if (player == 1 && _profile?.ConfigValues != null)
+        {
+            var initials = _profile.ConfigValues.FirstOrDefault(field =>
+                string.Equals(field.FieldName, "Default Initials", StringComparison.OrdinalIgnoreCase))
+                ?.FieldValue;
+
+            return GoldenTeeLocalPlayerProfiles.NormalizeInitials(initials) ?? string.Empty;
+        }
+
+        return string.Empty;
+    }
+
+    private void LoadGoldenTeeLocalProfileAssignments()
+    {
+        if (_goldenTeeLocalProfileAssignmentByPlayer.Count > 0 ||
+            _goldenTeeLocalProfileBaselineByPlayer.Count > 0)
+        {
+            return;
+        }
+
+        var assignments = GoldenTeeLocalPlayerProfiles.LoadAssignments();
+
+        foreach (var (player, initials) in assignments)
+        {
+            if (player is >= 1 and <= 4 &&
+                GoldenTeeLocalPlayerProfiles.NormalizeInitials(initials) is { } normalized)
+            {
+                _goldenTeeLocalProfileAssignmentByPlayer[player] = normalized;
+                _goldenTeeLocalProfileBaselineByPlayer[player] = normalized;
+            }
+        }
+    }
+
+    private void ApplyAssignedGoldenTeeLocalProfiles(GameProfile profile)
+    {
+        foreach (var (player, initials) in _goldenTeeLocalProfileAssignmentByPlayer.ToList())
+        {
+            var localProfile = GoldenTeeLocalPlayerProfiles.Load(initials);
+            if (localProfile == null)
+                continue;
+
+            ApplyGoldenTeeLocalProfileToPlayer(player, localProfile, reloadEditors: false);
+        }
+    }
+
+    private void ApplyGoldenTeeLocalProfileToPlayer(
+        int player,
+        GoldenTeeLocalPlayerProfiles.LocalPlayerProfile localProfile,
+        bool reloadEditors = true)
+    {
+        if (_profile?.ConfigValues == null)
+            return;
+
+        _applyingGoldenTeeLocalProfile = true;
+        try
+        {
+            foreach (var field in _profile.ConfigValues)
+            {
+                if (!GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                        field,
+                        out var fieldPlayer,
+                        out var valueName) ||
+                    fieldPlayer != player ||
+                    !localProfile.Values.TryGetValue(valueName, out var value))
+                {
+                    continue;
+                }
+
+                field.FieldValue = value;
+                _goldenTeeLocalAppearanceValues[field.FieldName] = value;
+            }
+
+            ApplyGoldenTeeInitialsToGameFields(player, localProfile.Initials);
+
+            if (reloadEditors)
+                ReloadGoldenTeePlayerEditors(player);
+        }
+        finally
+        {
+            _applyingGoldenTeeLocalProfile = false;
+        }
+    }
+
+    private GoldenTeeLocalPlayerProfiles.LocalPlayerProfile? CaptureGoldenTeeLocalProfileFromEditors(
+        int player,
+        string initials)
+    {
+        if (_profile?.ConfigValues == null)
+            return null;
+
+        if (player >= SunshinePlayerInput.MinPlayer &&
+            player <= SunshinePlayerInput.MaxPlayer &&
+            SunshinePlayerInput.GetConnectedPlayers().Contains(player))
+        {
+            return null;
+        }
+
+        var localProfile = new GoldenTeeLocalPlayerProfiles.LocalPlayerProfile
+        {
+            Initials = initials
+        };
+
+        foreach (var field in _profile.ConfigValues)
+        {
+            if (!GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                    field,
+                    out var fieldPlayer,
+                    out var valueName) ||
+                fieldPlayer != player)
+            {
+                continue;
+            }
+
+            var value = _valueReaders.TryGetValue(field, out var read)
+                ? read() ?? string.Empty
+                : field.FieldValue ?? string.Empty;
+
+            localProfile.Values[valueName] = value;
+        }
+
+        return localProfile;
+    }
+
+    private void ApplyGoldenTeeInitialsToGameFields(int player, string initials)
+    {
+        if (_profile?.ConfigValues == null || player != 1)
+            return;
+
+        // The current Golden Tee/OpenParrot config exposes initials override for
+        // Player 1 only. P2-P4 initials remain stored in the named profile so the
+        // native multi-player initials hook can consume them when added.
+        var overrideField = _profile.ConfigValues.FirstOrDefault(field =>
+            string.Equals(field.FieldName, "Override Default Initials", StringComparison.OrdinalIgnoreCase));
+        var initialsField = _profile.ConfigValues.FirstOrDefault(field =>
+            string.Equals(field.FieldName, "Default Initials", StringComparison.OrdinalIgnoreCase));
+
+        if (overrideField != null)
+            overrideField.FieldValue = "1";
+        if (initialsField != null)
+            initialsField.FieldValue = initials;
+    }
+
+    private void ReloadGoldenTeePlayerEditors(int player)
+    {
+        if (_profile?.ConfigValues == null)
+            return;
+
+        foreach (var field in _profile.ConfigValues)
+        {
+            if (!GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                    field,
+                    out var fieldPlayer,
+                    out _) ||
+                fieldPlayer != player ||
+                !_fieldEditors.TryGetValue(field, out var editor))
+            {
+                continue;
+            }
+
+            switch (editor)
+            {
+                case ComboBox combo:
+                    combo.SelectedItem = field.FieldValue;
+                    break;
+                case CheckBox check:
+                    check.IsChecked =
+                        string.Equals(field.FieldValue, "1", StringComparison.OrdinalIgnoreCase);
+                    break;
+                case NumericUpDown numeric:
+                    numeric.Value = decimal.TryParse(field.FieldValue, out var number)
+                        ? number
+                        : 0;
+                    break;
+                case TextBox text:
+                    text.Text = field.FieldValue ?? string.Empty;
+                    break;
+            }
+        }
+    }
+
+    private void MarkGoldenTeeLocalProfileModified(int player)
+    {
+        if (_applyingGoldenTeeLocalProfile ||
+            !_goldenTeeLocalProfileAssignmentByPlayer.ContainsKey(player))
+        {
+            return;
+        }
+
+        _goldenTeeLocalProfileAssignmentByPlayer.Remove(player);
+
+        if (_goldenTeeLocalProfileComboByPlayer.TryGetValue(player, out var combo))
+        {
+            _applyingGoldenTeeLocalProfile = true;
+            try
+            {
+                combo.SelectedItem = GoldenTeeCustomLocalProfileLabel;
+            }
+            finally
+            {
+                _applyingGoldenTeeLocalProfile = false;
+            }
+        }
+
+        if (_goldenTeeLocalProfileStatusByPlayer.TryGetValue(player, out var status))
+            status.Text = "Modified — currently Custom / Unsaved.";
     }
 
     private static string GetFieldDisplayName(FieldInformation field)
@@ -840,8 +1255,32 @@ public partial class GameSettingsView : UserControl
         targetPanel ??= FieldsPanel;
         Control editor;
 
-        switch (field.FieldType)
+        if (_profile != null &&
+            GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile) &&
+            string.Equals(field.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase))
         {
+            var connectedPlayers = SunshinePlayerInput.GetConnectedPlayers();
+            var statusText = connectedPlayers.Count > 0
+                ? $"On — Connected remote players: {string.Join(", ", connectedPlayers.Select(player => $"P{player}"))}"
+                : "Off — No remote clients connected";
+
+            var status = new TextBlock
+            {
+                Text = statusText,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = global::Avalonia.Media.TextWrapping.Wrap,
+                Opacity = 0.85
+            };
+
+            // RLP is derived from Sunshine's live roster. Keep it in the reader
+            // map for normal baseline/save plumbing, but expose no editable control.
+            _valueReaders[field] = () => field.FieldValue ?? "Off";
+            editor = status;
+        }
+        else
+        {
+            switch (field.FieldType)
+            {
             case FieldType.Bool:
                 {
                     var cb = new CheckBox { IsChecked = field.FieldValue == "1" };
@@ -1016,7 +1455,7 @@ public partial class GameSettingsView : UserControl
                     {
                         Text = field.FieldValue ?? "",
                         MinWidth = 220,
-                        PasswordChar = '?'
+                        PasswordChar = '●'
                     };
                     _valueReaders[field] = () => password.Text ?? "";
                     password.TextChanged += (_, _) =>
@@ -1040,6 +1479,7 @@ public partial class GameSettingsView : UserControl
                     editor = tb;
                     break;
                 }
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(field.Hint))
@@ -1112,7 +1552,9 @@ public partial class GameSettingsView : UserControl
 
     private void HandleConfigFieldValueChanged(FieldInformation field)
     {
-        if (_applyingRodPreferredSetup || _syncingRemoteLocalPlayInputApi)
+        if (_applyingRodPreferredSetup ||
+            _syncingRemoteLocalPlayInputApi ||
+            _loadingGoldenTeeRemoteAppearance)
             return;
 
         // Custom Golden Tee outfit and Rod mode are mutually exclusive.
@@ -1125,10 +1567,65 @@ public partial class GameSettingsView : UserControl
         }
 
         if (string.Equals(field.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase))
+        {
             SyncRemoteLocalPlayInputApi();
+
+            if (_profile != null && GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile))
+            {
+                // State-based activation: it does not matter whether Sunshine connected
+                // before or after RLP was enabled. Re-evaluate the current roster/UUIDs.
+                ApplyActiveGoldenTeeRemoteAppearanceToFields(_profile);
+                ReloadGoldenTeeEditors();
+                return;
+            }
+        }
+
+        if (_profile != null &&
+            GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                field,
+                out var changedPlayer,
+                out _) &&
+            !GoldenTeeRemotePlayerProfiles.TryGetActiveRemoteClient(
+                _profile,
+                changedPlayer,
+                out _) &&
+            !_goldenTeeRemoteEditorClientUuidByPlayer.ContainsKey(changedPlayer))
+        {
+            // This editor truly belongs to a local seat.
+            _goldenTeeLocalAppearanceValues[field.FieldName] =
+                field.FieldValue ?? string.Empty;
+
+            // Editing a named profile does not silently mutate that person's
+            // saved JSON. The seat becomes Custom / Unsaved until Save Profile
+            // is explicitly clicked.
+            MarkGoldenTeeLocalProfileModified(changedPlayer);
+        }
 
         UpdateConditionalVisibilityModel();
         ApplyConditionalVisibilityToControls();
+    }
+
+    private void SetGoldenTeeRemoteLocalPlayFromSunshine(GameProfile profile)
+    {
+        if (profile.ConfigValues == null ||
+            !GoldenTeeRemotePlayerProfiles.IsGoldenTee(profile))
+        {
+            return;
+        }
+
+        var remoteField = profile.ConfigValues.FirstOrDefault(c =>
+            string.Equals(c.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase));
+
+        if (remoteField == null)
+            return;
+
+        remoteField.FieldValue =
+            SunshinePlayerInput.GetConnectedPlayers().Count > 0
+                ? "On"
+                : "Off";
+
+        // This is now runtime state, not a user preference.
+        remoteField.IsEditorEnabled = false;
     }
 
     private void SyncRemoteLocalPlayInputApi()
@@ -1141,16 +1638,38 @@ public partial class GameSettingsView : UserControl
         var inputApiField = _profile.ConfigValues.FirstOrDefault(c =>
             string.Equals(c.FieldName, "Input API", StringComparison.OrdinalIgnoreCase));
 
-        if (remoteField == null || inputApiField == null ||
-            !_fieldEditors.TryGetValue(inputApiField, out var editor) ||
-            editor is not ComboBox combo)
+        if (remoteField == null || inputApiField == null)
             return;
 
-        var remoteOn = string.Equals(remoteField.FieldValue, "On", StringComparison.OrdinalIgnoreCase);
+        var isGoldenTee = GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile);
 
         _syncingRemoteLocalPlayInputApi = true;
         try
         {
+            if (isGoldenTee)
+            {
+                SetGoldenTeeRemoteLocalPlayFromSunshine(_profile);
+
+                // Keep the visible RLP switch informational only. Sunshine's
+                // live roster is authoritative.
+                if (_fieldEditors.TryGetValue(remoteField, out var remoteEditor) &&
+                    remoteEditor is CheckBox remoteCheck)
+                {
+                    remoteCheck.IsChecked =
+                        string.Equals(remoteField.FieldValue, "On", StringComparison.OrdinalIgnoreCase);
+                    remoteCheck.IsEnabled = false;
+                }
+            }
+
+            var remoteOn =
+                string.Equals(remoteField.FieldValue, "On", StringComparison.OrdinalIgnoreCase);
+
+            if (!_fieldEditors.TryGetValue(inputApiField, out var editor) ||
+                editor is not ComboBox combo)
+            {
+                return;
+            }
+
             if (remoteOn)
             {
                 inputApiField.FieldValue = "MergedInput";
@@ -1186,6 +1705,231 @@ public partial class GameSettingsView : UserControl
         finally
         {
             _syncingRemoteLocalPlayInputApi = false;
+        }
+    }
+
+    private void SubscribeSunshineInput()
+    {
+        if (_sunshineInputSubscribed)
+            return;
+
+        SunshinePlayerInput.InputReceived += SunshinePlayerInput_InputReceived;
+        _sunshineInputSubscribed = true;
+    }
+
+    private void UnsubscribeSunshineInput()
+    {
+        if (!_sunshineInputSubscribed)
+            return;
+
+        SunshinePlayerInput.InputReceived -= SunshinePlayerInput_InputReceived;
+        _sunshineInputSubscribed = false;
+    }
+
+    private void SunshinePlayerInput_InputReceived(
+        object? sender,
+        SunshineInputEventArgs e)
+    {
+        if (e.EventType is not SunshineInputEventType.Roster and
+            not SunshineInputEventType.ClientIdentity)
+        {
+            return;
+        }
+
+        // Sunshine raises from its pipe thread.
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_profile == null ||
+                !GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile))
+            {
+                return;
+            }
+
+            SyncRemoteLocalPlayInputApi();
+            ApplyActiveGoldenTeeRemoteAppearanceToFields(_profile);
+            ReloadGoldenTeeEditors();
+        });
+    }
+
+    private void CaptureGoldenTeeLocalAppearanceValues(GameProfile profile)
+    {
+        if (profile?.ConfigValues == null)
+            return;
+
+        foreach (var field in profile.ConfigValues)
+        {
+            if (!GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                    field,
+                    out _,
+                    out _))
+            {
+                continue;
+            }
+
+            // Do not overwrite the local snapshot during a remote-editor reload.
+            if (!_goldenTeeLocalAppearanceValues.ContainsKey(field.FieldName))
+            {
+                _goldenTeeLocalAppearanceValues[field.FieldName] =
+                    field.FieldValue ?? string.Empty;
+            }
+        }
+    }
+
+    private void RestoreGoldenTeeLocalAppearanceValues(GameProfile profile)
+    {
+        if (profile?.ConfigValues == null)
+            return;
+
+        foreach (var field in profile.ConfigValues)
+        {
+            if (_goldenTeeLocalAppearanceValues.TryGetValue(
+                    field.FieldName,
+                    out var localValue))
+            {
+                field.FieldValue = localValue;
+            }
+        }
+    }
+
+    private void ApplyActiveGoldenTeeRemoteAppearanceToFields(GameProfile profile)
+    {
+        if (profile?.ConfigValues == null ||
+            !GoldenTeeRemotePlayerProfiles.IsGoldenTee(profile))
+        {
+            return;
+        }
+
+        // Always begin from the preserved local cabinet state. Then overlay only
+        // slots currently owned by a connected Sunshine UUID while RLP is On.
+        RestoreGoldenTeeLocalAppearanceValues(profile);
+        _goldenTeeRemoteEditorClientUuidByPlayer.Clear();
+
+        for (var player = SunshinePlayerInput.MinPlayer;
+             player <= SunshinePlayerInput.MaxPlayer;
+             player++)
+        {
+            if (!GoldenTeeRemotePlayerProfiles.TryGetActiveRemoteClient(
+                    profile,
+                    player,
+                    out var clientUuid))
+            {
+                continue;
+            }
+
+            var remote = GoldenTeeRemotePlayerProfiles.LoadOrCreate(
+                profile,
+                player,
+                clientUuid);
+
+            _goldenTeeRemoteEditorClientUuidByPlayer[player] = clientUuid;
+
+            foreach (var field in profile.ConfigValues)
+            {
+                if (!GoldenTeeRemotePlayerProfiles.IsAppearanceField(
+                        field,
+                        out var fieldPlayer,
+                        out var appearanceName) ||
+                    fieldPlayer != player)
+                {
+                    continue;
+                }
+
+                if (remote.Values.TryGetValue(appearanceName, out var remoteValue))
+                    field.FieldValue = remoteValue;
+            }
+        }
+    }
+
+    private void ReloadGoldenTeeEditors()
+    {
+        if (_profile?.ConfigValues == null || _loadingGoldenTeeRemoteAppearance)
+            return;
+
+        _loadingGoldenTeeRemoteAppearance = true;
+        try
+        {
+            foreach (var field in _profile.ConfigValues)
+            {
+                if (!GoldenTeeRemotePlayerProfiles.IsAppearanceField(
+                        field,
+                        out _,
+                        out _) ||
+                    !_fieldEditors.TryGetValue(field, out var editor))
+                {
+                    continue;
+                }
+
+                switch (editor)
+                {
+                    case ComboBox combo:
+                        combo.SelectedItem = field.FieldValue;
+                        break;
+
+                    case CheckBox check:
+                        check.IsChecked =
+                            string.Equals(field.FieldValue, "1", StringComparison.OrdinalIgnoreCase);
+                        break;
+
+                    case NumericUpDown numeric:
+                        numeric.Value =
+                            decimal.TryParse(field.FieldValue, out var number)
+                                ? number
+                                : 0;
+                        break;
+
+                    case TextBox text:
+                        text.Text = field.FieldValue ?? string.Empty;
+                        break;
+                }
+            }
+        }
+        finally
+        {
+            _loadingGoldenTeeRemoteAppearance = false;
+        }
+    }
+
+    private void SaveGoldenTeeRemoteAppearanceEditors()
+    {
+        if (_profile?.ConfigValues == null ||
+            !GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile))
+        {
+            return;
+        }
+
+        for (var player = SunshinePlayerInput.MinPlayer;
+             player <= SunshinePlayerInput.MaxPlayer;
+             player++)
+        {
+            if (!GoldenTeeRemotePlayerProfiles.TryGetActiveRemoteClient(
+                    _profile,
+                    player,
+                    out var clientUuid))
+            {
+                continue;
+            }
+
+            var remote = GoldenTeeRemotePlayerProfiles.LoadOrCreate(
+                _profile,
+                player,
+                clientUuid);
+
+            foreach (var field in _profile.ConfigValues)
+            {
+                if (!GoldenTeeRemotePlayerProfiles.IsAppearanceField(
+                        field,
+                        out var fieldPlayer,
+                        out var appearanceName) ||
+                    fieldPlayer != player ||
+                    !_valueReaders.TryGetValue(field, out var read))
+                {
+                    continue;
+                }
+
+                remote.Values[appearanceName] = read() ?? string.Empty;
+            }
+
+            GoldenTeeRemotePlayerProfiles.Save(remote);
         }
     }
 
@@ -1519,11 +2263,33 @@ public partial class GameSettingsView : UserControl
         if (_androidDisplayModeCombo != null &&
             (_androidDisplayModeCombo.SelectedItem as string ?? "") != _baselineAndroidDisplayMode)
             return true;
+
+        if (GoldenTeeLocalProfileAssignmentsChanged())
+            return true;
+
         foreach (var (field, read) in _valueReaders)
         {
             if (_baseline.TryGetValue(field, out var original) && (read() ?? "") != original)
                 return true;
         }
+        return false;
+    }
+
+    private bool GoldenTeeLocalProfileAssignmentsChanged()
+    {
+        for (var player = 1; player <= 4; player++)
+        {
+            var current = _goldenTeeLocalProfileAssignmentByPlayer.TryGetValue(player, out var currentValue)
+                ? currentValue
+                : string.Empty;
+            var baseline = _goldenTeeLocalProfileBaselineByPlayer.TryGetValue(player, out var baselineValue)
+                ? baselineValue
+                : string.Empty;
+
+            if (!string.Equals(current, baseline, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
         return false;
     }
 
@@ -1598,8 +2364,58 @@ public partial class GameSettingsView : UserControl
             };
         }
 
+        // Refresh the Sunshine-derived state at the last possible moment. This
+        // makes Save safe even if a roster event and the UI dispatcher race.
+        if (GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile))
+            SyncRemoteLocalPlayInputApi();
+
+        // Persist connected Sunshine clients to their UUID-specific remote files first.
+        SaveGoldenTeeRemoteAppearanceEditors();
+
         foreach (var (field, read) in _valueReaders)
+        {
+            if (GoldenTeeRemotePlayerProfiles.IsAppearanceField(
+                    field,
+                    out var player,
+                    out _))
+            {
+                var activeRemote =
+                    GoldenTeeRemotePlayerProfiles.TryGetActiveRemoteClient(
+                        _profile,
+                        player,
+                        out _);
+
+                var staleRemoteEditor =
+                    _goldenTeeRemoteEditorClientUuidByPlayer.ContainsKey(player);
+
+                if (activeRemote || staleRemoteEditor)
+                {
+                    // Active remote editors belong only to UUID JSON. If the
+                    // client disconnected before the UI transition completed,
+                    // stale remote editor values are discarded rather than
+                    // ever being promoted into the local cabinet profile.
+                    continue;
+                }
+            }
+
             field.FieldValue = read();
+
+            if (GoldenTeeRemotePlayerProfiles.IsAppearanceField(
+                    field,
+                    out _,
+                    out _))
+            {
+                _goldenTeeLocalAppearanceValues[field.FieldName] =
+                    field.FieldValue ?? string.Empty;
+            }
+        }
+
+        // Remote editors mutate FieldInformation live while being edited. Restore
+        // the protected local cabinet values before serializing the normal profile.
+        RestoreGoldenTeeLocalAppearanceValues(_profile);
+
+        if (GoldenTeeRemotePlayerProfiles.IsGoldenTee(_profile))
+            GoldenTeeLocalPlayerProfiles.SaveAssignments(_goldenTeeLocalProfileAssignmentByPlayer);
 
         Directory.CreateDirectory("UserProfiles");
         JoystickHelper.SerializeGameProfile(_profile);
@@ -1607,5 +2423,6 @@ public partial class GameSettingsView : UserControl
         BackRequested?.Invoke();
     }
 }
+
 
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Xml.Serialization;
 
 namespace TeknoParrotUi.Common
@@ -230,11 +230,8 @@ namespace TeknoParrotUi.Common
         FnfGearChange4,
         FnfGearChangeUp,
         FnfGearChangeDown,
-        HostTrackball,
         P1Trackball,
         P2Trackball,
-        P3Trackball,
-        P4Trackball,
         Analog0Positive,
         Analog0Negative,
         Analog2Positive,
@@ -262,6 +259,13 @@ namespace TeknoParrotUi.Common
         TPSystem1,
         TPSystem2,
         TPSystem3,
+
+        // New mappings must remain after the legacy enum values because
+        // InputMapping is persisted numerically in inputBindings.json.
+        HostTrackball,
+        P3Trackball,
+        P4Trackball,
+
         StreamHostP1ButtonStart,
         Stream2P1ButtonStart,
         Stream2P2Button1,

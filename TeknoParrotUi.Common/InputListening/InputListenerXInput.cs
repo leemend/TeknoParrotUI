@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -41,7 +41,7 @@ namespace TeknoParrotUi.Common.InputListening
         private static bool TestButtonInitialD = false;
         private static bool RelativeInput = false;
         private static bool RelativeTimer = false;
-        
+
         // Rotary encoder input mode flag
         private static bool UseButtonModeRotary = false;
         private static bool KeyboardOrButtonAxis = false;
@@ -115,7 +115,7 @@ namespace TeknoParrotUi.Common.InputListening
                 ReverseYAxis = gameProfile.ConfigValues.Any(x => x.FieldName == "Reverse Y Axis" && x.FieldValue == "1");
                 ReverseSWThrottleAxis = gameProfile.ConfigValues.Any(x => x.FieldName == "Reverse Throttle Axis" && x.FieldValue == "1");
                 RelativeInput = gameProfile.ConfigValues.Any(x => x.FieldName == "Use Relative Input" && x.FieldValue == "1");
-                
+
                 // Initialize rotary encoder mode flag
                 UseButtonModeRotary = gameProfile.ConfigValues.Any(x => x.FieldName == "Use Buttons For Rotary Encoders" && x.FieldValue == "1");
 
@@ -123,7 +123,7 @@ namespace TeknoParrotUi.Common.InputListening
                 // keyboard-axis engine in the RawInput listener — the gamepad must
                 // yield those bytes (classic DirectInput skipped them the same way)
                 KeyboardOrButtonAxis = gameProfile.ConfigValues.Any(x => x.FieldName == "Use Keyboard/Button For Axis" && x.FieldValue == "1");
-                
+
                 // Load rotary encoder sensitivity and increment values from config
                 var wheelSensitivity = gameProfile.ConfigValues.FirstOrDefault(x => x.FieldName == "Wheel Sensitivity");
                 if (wheelSensitivity != null && float.TryParse(wheelSensitivity.FieldValue, out float sensitivity))
@@ -142,7 +142,7 @@ namespace TeknoParrotUi.Common.InputListening
                     _gameProfile.Rotary3Increment = increment;
                     _gameProfile.Rotary4Increment = increment;
                 }
-                
+
                 GunGame = gameProfile.GunGame;
 
                 //Center values upon startup
@@ -679,9 +679,69 @@ namespace TeknoParrotUi.Common.InputListening
             }
         }
 
+        private static bool IsSunshineStreamMappingForPlayer(InputMapping mapping, int player)
+        {
+            string name = mapping.ToString();
+
+            return player switch
+            {
+                2 => name.StartsWith("Stream2", StringComparison.Ordinal),
+                3 => name.StartsWith("Stream3", StringComparison.Ordinal),
+                4 => name.StartsWith("Stream4", StringComparison.Ordinal),
+                _ => false
+            };
+        }
+
+        private static bool? GetSunshineButtonPress(XInputButton button, State state, int currentIndex)
+        {
+            if (button == null)
+                return null;
+
+            // The binding may have been saved when Sunshine's virtual controller occupied
+            // a different XInput slot. GamepadSlot is authoritative for the live session,
+            // so evaluate the same physical button against the controller slot being polled.
+            var routedButton = new XInputButton
+            {
+                IsLeftThumbX = button.IsLeftThumbX,
+                IsRightThumbX = button.IsRightThumbX,
+                IsLeftThumbY = button.IsLeftThumbY,
+                IsRightThumbY = button.IsRightThumbY,
+                IsAxisMinus = button.IsAxisMinus,
+                IsLeftTrigger = button.IsLeftTrigger,
+                IsRightTrigger = button.IsRightTrigger,
+                ButtonCode = button.ButtonCode,
+                IsButton = button.IsButton,
+                ButtonIndex = button.ButtonIndex,
+                XInputIndex = currentIndex
+            };
+
+            return DigitalHelper.GetButtonPressXinput(routedButton, state, currentIndex);
+        }
+
         private void HandleXinput(JoystickButtons joystickButtons, State state, State previousState, int index)
         {
             var button = joystickButtons.XInputButton;
+
+            // Moonlight gamepads arrive through Sunshine as virtual XInput devices and
+            // are polled here by SDL2 just like local controllers. Sunshine's GamepadSlot
+            // message tells us which Remote Local Play player currently owns this slot.
+            // Route only that player's StreamX mappings into the dedicated streaming
+            // button buffers and do not let the remote pad fall through into local P1-P4
+            // mappings. This keeps the normal local control/sensitivity paths isolated.
+            int sunshinePlayer = SunshinePlayerInput.PlayerForXInputIndex(index);
+            if (sunshinePlayer >= SunshinePlayerInput.MinPlayer &&
+                sunshinePlayer <= SunshinePlayerInput.MaxPlayer)
+            {
+                if (IsSunshineStreamMappingForPlayer(joystickButtons.InputMapping, sunshinePlayer))
+                {
+                    bool? pressed = GetSunshineButtonPress(button, state, index);
+                    if (pressed.HasValue)
+                        MappingDispatch.Apply(joystickButtons.InputMapping, pressed.Value, _gameProfile);
+                }
+
+                return;
+            }
+
             switch (joystickButtons.InputMapping)
             {
                 case InputMapping.Test:

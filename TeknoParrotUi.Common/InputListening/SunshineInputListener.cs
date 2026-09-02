@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
@@ -50,6 +50,7 @@ namespace TeknoParrotUi.Common.InputListening
                 .ToList() ?? new List<JoystickButtons>();
 
             EnsureTrackballBuffers();
+            GoldenTeeOptionsControl.Reset(_gameProfile);
 
             SunshinePlayerInput.InputReceived -= OnSunshineInputReceived;
             SunshinePlayerInput.InputReceived += OnSunshineInputReceived;
@@ -65,6 +66,7 @@ namespace TeknoParrotUi.Common.InputListening
         {
             SunshinePlayerInput.InputReceived -= OnSunshineInputReceived;
             SunshinePlayerInput.Stop();
+            GoldenTeeOptionsControl.Reset();
 
             DisposeTrackballBuffers();
             _bindings.Clear();
@@ -83,21 +85,24 @@ namespace TeknoParrotUi.Common.InputListening
                 switch (e.EventType)
                 {
                     case SunshineInputEventType.KeyDown:
-                        ProcessKeyboard(path, (Keys)e.KeyCode, true);
+                        ProcessKeyboard(e.Player, path, (Keys)e.KeyCode, true);
                         break;
                     case SunshineInputEventType.KeyUp:
-                        ProcessKeyboard(path, (Keys)e.KeyCode, false);
+                        ProcessKeyboard(e.Player, path, (Keys)e.KeyCode, false);
                         break;
                     case SunshineInputEventType.MouseButtonDown:
-                        ProcessMouseButton(path, SunshinePlayerInput.MapMouseButton(e.MouseButton), true);
+                        ProcessMouseButton(e.Player, path, SunshinePlayerInput.MapMouseButton(e.MouseButton), true);
                         break;
                     case SunshineInputEventType.MouseButtonUp:
-                        ProcessMouseButton(path, SunshinePlayerInput.MapMouseButton(e.MouseButton), false);
+                        ProcessMouseButton(e.Player, path, SunshinePlayerInput.MapMouseButton(e.MouseButton), false);
                         break;
                     case SunshineInputEventType.MouseMove:
-                        ProcessTrackball(path, e.DeltaX, e.DeltaY);
+                        ProcessTrackball(e.Player, path, e.DeltaX, e.DeltaY);
                         break;
                     case SunshineInputEventType.Roster:
+                        if (!e.Connected)
+                            GoldenTeeOptionsControl.HandlePlayerDisconnected(e.Player);
+                        break;
                     case SunshineInputEventType.MouseWheel:
                     case SunshineInputEventType.AbsPosition:
                     case SunshineInputEventType.GamepadSlot:
@@ -114,33 +119,34 @@ namespace TeknoParrotUi.Common.InputListening
             }
         }
 
-        private void ProcessKeyboard(string path, Keys key, bool pressed)
+        private void ProcessKeyboard(int player, string path, Keys key, bool pressed)
         {
             foreach (var binding in _bindings.Where(x =>
                          x.RawInputButton.DevicePath == path &&
                          x.RawInputButton.DeviceType == RawDeviceType.Keyboard &&
                          x.RawInputButton.KeyboardKey == key))
             {
-                Dispatch(binding, pressed);
+                Dispatch(binding, pressed, player);
             }
         }
 
-        private void ProcessMouseButton(string path, RawMouseButton button, bool pressed)
+        private void ProcessMouseButton(int player, string path, RawMouseButton button, bool pressed)
         {
             foreach (var binding in _bindings.Where(x =>
                          x.RawInputButton.DevicePath == path &&
                          x.RawInputButton.DeviceType == RawDeviceType.Mouse &&
                          x.RawInputButton.MouseButton == button))
             {
-                Dispatch(binding, pressed);
+                Dispatch(binding, pressed, player);
             }
         }
 
-        private void Dispatch(JoystickButtons binding, bool pressed)
+        private void Dispatch(JoystickButtons binding, bool pressed, int player)
         {
             if (!IsBindingActive(binding))
                 return;
 
+            GoldenTeeOptionsControl.HandleDigitalInput(_gameProfile, player, binding.InputMapping, pressed);
             MappingDispatch.Apply(binding.InputMapping, pressed, _gameProfile);
         }
 
@@ -159,7 +165,7 @@ namespace TeknoParrotUi.Common.InputListening
             return true;
         }
 
-        private void ProcessTrackball(string path, int deltaX, int deltaY)
+        private void ProcessTrackball(int player, string path, int deltaX, int deltaY)
         {
             foreach (var binding in _bindings.Where(x =>
                          x.RawInputButton.DevicePath == path &&
@@ -170,6 +176,26 @@ namespace TeknoParrotUi.Common.InputListening
                     continue;
 
                 WriteTrackball(binding.InputMapping, deltaX, deltaY);
+
+                if (GoldenTeeOptionsControl.ShouldMirrorTrackball(_gameProfile, player))
+                {
+                    GoldenTeeOptionsTrackballBroadcast.BroadcastToOtherPlayers(
+                        player,
+                        deltaX,
+                        deltaY);
+                }
+
+                // Preserve the player's normal isolated trackball path, then mirror the same
+                // already-tagged delta into the dedicated Host MMF only while that player owns
+                // Golden Tee's Options menu. No P1/P2/P3/P4 buffer is ever read or rewritten.
+                if (binding.InputMapping != InputMapping.HostTrackball &&
+                    GoldenTeeOptionsControl.ShouldMirrorTrackball(_gameProfile, player))
+                {
+                    lock (_trackballLock)
+                    {
+                        Accumulate(_trackballHostView, ref _dxHost, ref _dyHost, deltaX, deltaY);
+                    }
+                }
             }
         }
 
