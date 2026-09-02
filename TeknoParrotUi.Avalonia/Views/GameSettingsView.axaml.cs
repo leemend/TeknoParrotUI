@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -897,10 +897,10 @@ public partial class GameSettingsView : UserControl
                     if (combo.SelectedItem == null && options.Count > 0)
                         combo.SelectedIndex = 0;
 
-                    _valueReaders[field] = () => combo.SelectedItem as string ?? field.FieldValue;
+                    _valueReaders[field] = () => combo.SelectedItem as string ?? field.FieldValue ?? string.Empty;
                     combo.SelectionChanged += (_, _) =>
                     {
-                        field.FieldValue = combo.SelectedItem as string ?? field.FieldValue;
+                        field.FieldValue = combo.SelectedItem as string ?? field.FieldValue ?? string.Empty;
                         HandleConfigFieldValueChanged(field);
                     };
                     editor = combo;
@@ -1016,7 +1016,7 @@ public partial class GameSettingsView : UserControl
                     {
                         Text = field.FieldValue ?? "",
                         MinWidth = 220,
-                        PasswordChar = '●'
+                        PasswordChar = '?'
                     };
                     _valueReaders[field] = () => password.Text ?? "";
                     password.TextChanged += (_, _) =>
@@ -1607,3 +1607,5 @@ public partial class GameSettingsView : UserControl
         BackRequested?.Invoke();
     }
 }
+
+

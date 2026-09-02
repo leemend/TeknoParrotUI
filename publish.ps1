@@ -73,6 +73,27 @@ if (Test-Path (Join-Path $OutputDir 'runtimes')) {
 }
 
 Write-Host "Moved $($moved.Count) dependency file(s) into libs\" -ForegroundColor Green
+# Golden Tee Live 2019 local-player defaults native helper.
+$gtNativeSource = Join-Path $PSScriptRoot 'TeknoParrotUi.Common\Native\GoldenTee'
+$gtNativeOutput = Join-Path $OutputDir 'Native\GoldenTee'
+
+if (!(Test-Path $gtNativeSource)) {
+    throw "Golden Tee native helper directory not found: $gtNativeSource"
+}
+
+New-Item -ItemType Directory -Force -Path $gtNativeOutput | Out-Null
+
+Copy-Item `
+    (Join-Path $gtNativeSource 'GoldenTeePlayerDefaults.dll') `
+    $gtNativeOutput `
+    -Force
+
+Copy-Item `
+    (Join-Path $gtNativeSource 'GoldenTeePlayerDefaultsBootstrap.dll') `
+    $gtNativeOutput `
+    -Force
+
+Write-Host "Packaged Golden Tee player-defaults native helper." -ForegroundColor Green
 
 $exe = Join-Path $OutputDir 'TeknoParrotUi.exe'
 $version = (Get-Item $exe).VersionInfo.FileVersion
@@ -86,3 +107,4 @@ if ($Zip) {
     Compress-Archive -Path (Join-Path $OutputDir '*') -DestinationPath $zipPath
     Write-Host "Created $zipPath ($('{0:N1} MB' -f ((Get-Item $zipPath).Length / 1MB)))" -ForegroundColor Green
 }
+
