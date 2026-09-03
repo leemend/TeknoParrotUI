@@ -38,6 +38,7 @@ public partial class GameSettingsView : UserControl
     private ComboBox? _androidDisplayModeCombo;
     private TextBlock? _androidDisplayModeInfoBlock;
     private string _baselineAndroidDisplayMode = "";
+    private GoldenTeePlayerProfileEditor? _goldenTeePlayerProfileEditor;
 
     public event Action? BackRequested;
     public event Action<string>? Saved;
@@ -193,12 +194,59 @@ public partial class GameSettingsView : UserControl
             AddAndroidDiagnosticsSection(profile);
         }
 
-        foreach (var category in profile.ConfigValues.Select(c => c.CategoryName).Distinct())
+        _goldenTeePlayerProfileEditor = null;
+        if (GoldenTeePlayerProfileEditor.Supports(profile))
         {
+            _goldenTeePlayerProfileEditor = new GoldenTeePlayerProfileEditor(
+                profile,
+                FieldsPanel);
+        }
+
+        var categories = profile.ConfigValues
+            .Select(c => c.CategoryName)
+            .Distinct()
+            .ToList();
+
+        var controlsCategory = categories.FirstOrDefault(category =>
+            string.Equals(category, "Controls", StringComparison.OrdinalIgnoreCase));
+
+        foreach (var category in categories.Where(category =>
+                     !string.Equals(category, controlsCategory, StringComparison.Ordinal)))
+        {
+            var fields = profile.ConfigValues
+                .Where(c => c.CategoryName == category)
+                .Where(field =>
+                    _goldenTeePlayerProfileEditor == null ||
+                    !IsGoldenTeePlayerProfileOwnedField(field))
+                .ToList();
+
+            if (fields.Count == 0)
+                continue;
+
             AddCategoryHeader(category);
-            foreach (var field in profile.ConfigValues.Where(c => c.CategoryName == category))
+            foreach (var field in fields)
                 AddFieldEditor(field);
         }
+
+        // Keep the familiar Controls section immediately above Player Profiles.
+        if (!string.IsNullOrWhiteSpace(controlsCategory))
+        {
+            var controlFields = profile.ConfigValues
+                .Where(c => c.CategoryName == controlsCategory)
+                .Where(field =>
+                    _goldenTeePlayerProfileEditor == null ||
+                    !IsGoldenTeePlayerProfileOwnedField(field))
+                .ToList();
+
+            if (controlFields.Count > 0)
+            {
+                AddCategoryHeader(controlsCategory);
+                foreach (var field in controlFields)
+                    AddFieldEditor(field);
+            }
+        }
+
+        _goldenTeePlayerProfileEditor?.Build();
 
         // Baseline for unsaved-change detection (editor values normalize e.g. "" -> "0",
         // so compare against the editors' initial output rather than raw FieldValues)
@@ -213,6 +261,20 @@ public partial class GameSettingsView : UserControl
         _baselineFullscreenScaling = _fullscreenScalingCombo?.SelectedItem as string ?? "";
         _baselineAndroidDebugLogging = _androidDebugLoggingCheck?.IsChecked == true;
         _baselineAndroidDisplayMode = _androidDisplayModeCombo?.SelectedItem as string ?? "";
+    }
+
+    private static bool IsGoldenTeePlayerProfileOwnedField(FieldInformation field)
+    {
+        if (string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(field.CategoryName, "Player 2 Customization", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(field.CategoryName, "Player 3 Customization", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(field.CategoryName, "Player 4 Customization", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return string.Equals(field.FieldName, "Override Default Initials", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(field.FieldName, "Default Initials", StringComparison.OrdinalIgnoreCase);
     }
 
     private void AddAndroidDiagnosticsSection(GameProfile profile)
@@ -906,6 +968,8 @@ public partial class GameSettingsView : UserControl
             if (_baseline.TryGetValue(field, out var original) && (read() ?? "") != original)
                 return true;
         }
+        if (_goldenTeePlayerProfileEditor?.HasUnsavedChanges() == true)
+            return true;
         return false;
     }
 
@@ -975,6 +1039,8 @@ public partial class GameSettingsView : UserControl
                 _ => null
             };
         }
+
+        _goldenTeePlayerProfileEditor?.SaveIntoProfile();
 
         foreach (var (field, read) in _valueReaders)
             field.FieldValue = read();

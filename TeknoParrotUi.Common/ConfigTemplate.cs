@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace TeknoParrotUi.Common
 {
@@ -25,5 +26,16 @@ namespace TeknoParrotUi.Common
         public List<string> FieldOptions { get; set; }
         public string Hint { get; set; }
         public bool UseUnitySorting { get; set; } = false;
+
+        // Golden Tee-specific UI state. Runtime-only flags stay out of profile XML;
+        // RodPreferredSetupSaved is persisted in UserProfiles so the user's choice
+        // survives restarts without changing the stock game profile.
+        [XmlIgnore]
+        public bool ShowRodPreferredSetup { get; set; }
+
+        [XmlIgnore]
+        public bool RodPreferredSetup { get; set; }
+
+        public string RodPreferredSetupSaved { get; set; }
     }
 }

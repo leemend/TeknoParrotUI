@@ -596,6 +596,15 @@ namespace TeknoParrotUi.Common.GameLaunch
 
                 var launchResult = GameProcessLauncher.LaunchWithResult(launchPlan, _processStarter, line => OutputReceived?.Invoke(line));
                 _process = launchResult.Process;
+
+                if (!_isTest)
+                {
+                    GoldenTeePlayerDefaultsLoader.TryLoad(
+                        _profile,
+                        _process,
+                        line => OutputReceived?.Invoke(line));
+                }
+
                 _process.OutputDataReceived += (_, e) =>
                 {
                     if (!string.IsNullOrEmpty(e.Data))
