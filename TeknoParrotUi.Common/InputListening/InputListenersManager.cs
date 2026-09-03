@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -14,7 +14,7 @@ namespace TeknoParrotUi.Common.InputListening
     /// - Keyboard/mouse/gun input: Win32 RawInput on Windows, always; evdev on
     ///   Linux and touch on Android for gun games.
     ///
-    /// The game's "Input API" value no longer switches input systems — it only
+    /// The game's "Input API" value no longer switches input systems - it only
     /// selects the gun flavour (RawInput vs RawInputTrackball) for the games
     /// that offer both.
     /// </summary>
@@ -50,7 +50,11 @@ namespace TeknoParrotUi.Common.InputListening
 
             if (OperatingSystem.IsWindows())
             {
-                // Keyboard/mouse (and gun) input always runs via RawInput — every
+                // Sunshine's TeknoParrot identity bridge runs alongside normal merged input.
+                // It supplies per-Moonlight-client identity for synthetic keyboard/mouse events.
+                _listeners.Add(new SunshineInputListener());
+
+                // Keyboard/mouse (and gun) input always runs via RawInput - every
                 // game is merged. The saved Input API only picks the gun flavour.
                 _listeners.Add(new RawInputListenerHost(ResolveGunFlavour(gameProfile)));
                 NeedsWndProcRouting = true;
@@ -65,7 +69,7 @@ namespace TeknoParrotUi.Common.InputListening
                 //
                 // Permission fallback: when /dev/input is not readable (user not
                 // in 'input' group, no udev rule), the X11 fallback polls the X
-                // server instead — no permissions needed, works under XWayland.
+                // server instead - no permissions needed, works under XWayland.
                 // Decided independently for mice and keyboards because vendor
                 // udev ACLs often make mice readable while keyboards are not.
                 bool evdevMouseOk = Mouse.EvdevInterop.AnyReadableMouse();
@@ -76,7 +80,7 @@ namespace TeknoParrotUi.Common.InputListening
 
                 if ((!evdevMouseOk || !evdevKeyboardOk) && Mouse.X11Interop.IsAvailable())
                 {
-                    Debug.WriteLine("InputListenersManager: /dev/input not fully readable — " +
+                    Debug.WriteLine("InputListenersManager: /dev/input not fully readable - " +
                                     $"X11 fallback covers {(!evdevMouseOk && !evdevKeyboardOk ? "mouse+keyboard" : !evdevMouseOk ? "mouse" : "keyboard")}" +
                                     " (install setup/70-teknoparrot-input.rules for full evdev support)");
                     _listeners.Add(new Mouse.X11FallbackInputListener(

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -14,10 +14,10 @@ public partial class SettingsView : UserControl
 {
     private static readonly (string Name, string Tag)[] Languages =
     {
-        ("English", "en-US"), ("Suomi", "fi-FI"), ("العربية", "ar-SA"), ("Deutsch", "de-DE"),
-        ("Español", "es-ES"), ("Français", "fr-FR"), ("Italiano", "it-IT"), ("日本語", "ja-JP"),
-        ("한국어", "ko-KR"), ("Nederlands", "nl-NL"), ("Polski", "pl-PL"), ("Português", "pt-PT"),
-        ("Русский", "ru-RU"), ("中文", "zh-CN"),
+        ("English", "en-US"), ("Suomi", "fi-FI"), ("╪º┘ä╪╣╪▒╪¿┘è╪⌐", "ar-SA"), ("Deutsch", "de-DE"),
+        ("Espa├▒ol", "es-ES"), ("Fran├ºais", "fr-FR"), ("Italiano", "it-IT"), ("µùÑµ£¼Φ¬₧", "ja-JP"),
+        ("φò£Ω╡¡∞û┤", "ko-KR"), ("Nederlands", "nl-NL"), ("Polski", "pl-PL"), ("Portugu├¬s", "pt-PT"),
+        ("╨á╤â╤ü╤ü╨║╨╕╨╣", "ru-RU"), ("Σ╕¡µûç", "zh-CN"),
     };
 
     public event Action? SavedNotification;
@@ -34,7 +34,7 @@ public partial class SettingsView : UserControl
         };
 
         LanguageSelector.ItemsSource = Languages.Select(l => l.Name).ToList();
-        // Live language switching — no restart required
+        // Live language switching - no restart required
         LanguageSelector.SelectionChanged += (_, _) =>
         {
             if (_loadingSettings || LanguageSelector.SelectedIndex < 0)

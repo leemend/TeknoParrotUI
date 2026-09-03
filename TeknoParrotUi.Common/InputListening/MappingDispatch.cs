@@ -1,11 +1,11 @@
-using TeknoParrotUi.Common.Jvs;
+﻿using TeknoParrotUi.Common.Jvs;
 
 namespace TeknoParrotUi.Common.InputListening
 {
     /// <summary>
     /// Shared InputMapping → InputCode dispatch for mouse/keyboard gun-game
     /// listeners (evdev and the X11 fallback). Full parity with
-    /// InputListenerRawInput.HandleRawInputButton's switch — including the
+    /// InputListenerRawInput.HandleRawInputButton's switch - including the
     /// JVS board 2, extension, card, TPSystem and relative mappings plus the
     /// per-game special cases (PlayInput Test toggle, EADP coin mirror, GSEVO
     /// Button2 mirror, BattleGear key sensor, Haunted Museum inversion).
@@ -190,7 +190,7 @@ namespace TeknoParrotUi.Common.InputListening
                     break;
 
                 // ---------- JVS board 2 ----------
-                // (JvsTwoP2 directions intentionally write to buttons[2] — same
+                // (JvsTwoP2 directions intentionally write to buttons[2] - same
                 // as the Windows RawInput listener; kept identical on purpose.)
                 case InputMapping.JvsTwoService1:
                     InputCode.PlayerDigitalButtons[2].Service = pressed;
@@ -426,6 +426,95 @@ namespace TeknoParrotUi.Common.InputListening
                     break;
                 case InputMapping.TPSystem3:
                     InputCode.TPSystem3 = pressed;
+                    break;
+
+                // ---------- Sunshine / Remote Local Play ----------
+                case InputMapping.StreamHostP1ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[6].Start = pressed;
+                    break;
+
+                case InputMapping.Stream2P1ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[0].Start = pressed;
+                    break;
+                case InputMapping.Stream2P1Button1:
+                    InputCode.StreamingPlayerDigitalButtons[0].Button1 = pressed;
+                    break;
+                case InputMapping.Stream2P1Button2:
+                    InputCode.StreamingPlayerDigitalButtons[0].Button2 = pressed;
+                    break;
+                case InputMapping.Stream2P1Button3:
+                    InputCode.StreamingPlayerDigitalButtons[0].Button3 = pressed;
+                    break;
+                case InputMapping.Stream2P1Button4:
+                    InputCode.StreamingPlayerDigitalButtons[0].Button4 = pressed;
+                    break;
+                case InputMapping.Stream2P1Button6:
+                    InputCode.StreamingPlayerDigitalButtons[0].Button6 = pressed;
+                    break;
+                case InputMapping.Stream2P2ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[1].Start = pressed;
+                    break;
+                case InputMapping.Stream2P2Button1:
+                    InputCode.StreamingPlayerDigitalButtons[1].Button1 = pressed;
+                    break;
+                case InputMapping.Stream2P2Button2:
+                    InputCode.StreamingPlayerDigitalButtons[1].Button2 = pressed;
+                    break;
+
+                case InputMapping.Stream3P1ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[2].Start = pressed;
+                    break;
+                case InputMapping.Stream3P1Button1:
+                    InputCode.StreamingPlayerDigitalButtons[2].Button1 = pressed;
+                    break;
+                case InputMapping.Stream3P1Button2:
+                    InputCode.StreamingPlayerDigitalButtons[2].Button2 = pressed;
+                    break;
+                case InputMapping.Stream3P1Button3:
+                    InputCode.StreamingPlayerDigitalButtons[2].Button3 = pressed;
+                    break;
+                case InputMapping.Stream3P1Button4:
+                    InputCode.StreamingPlayerDigitalButtons[2].Button4 = pressed;
+                    break;
+                case InputMapping.Stream3P1Button6:
+                    InputCode.StreamingPlayerDigitalButtons[2].Button6 = pressed;
+                    break;
+                case InputMapping.Stream3P2ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[3].Start = pressed;
+                    break;
+                case InputMapping.Stream3P2Button1:
+                    InputCode.StreamingPlayerDigitalButtons[3].Button1 = pressed;
+                    break;
+                case InputMapping.Stream3P2Button2:
+                    InputCode.StreamingPlayerDigitalButtons[3].Button2 = pressed;
+                    break;
+
+                case InputMapping.Stream4P1ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[4].Start = pressed;
+                    break;
+                case InputMapping.Stream4P1Button1:
+                    InputCode.StreamingPlayerDigitalButtons[4].Button1 = pressed;
+                    break;
+                case InputMapping.Stream4P1Button2:
+                    InputCode.StreamingPlayerDigitalButtons[4].Button2 = pressed;
+                    break;
+                case InputMapping.Stream4P1Button3:
+                    InputCode.StreamingPlayerDigitalButtons[4].Button3 = pressed;
+                    break;
+                case InputMapping.Stream4P1Button4:
+                    InputCode.StreamingPlayerDigitalButtons[4].Button4 = pressed;
+                    break;
+                case InputMapping.Stream4P1Button6:
+                    InputCode.StreamingPlayerDigitalButtons[4].Button6 = pressed;
+                    break;
+                case InputMapping.Stream4P2ButtonStart:
+                    InputCode.StreamingPlayerDigitalButtons[5].Start = pressed;
+                    break;
+                case InputMapping.Stream4P2Button1:
+                    InputCode.StreamingPlayerDigitalButtons[5].Button1 = pressed;
+                    break;
+                case InputMapping.Stream4P2Button2:
+                    InputCode.StreamingPlayerDigitalButtons[5].Button2 = pressed;
                     break;
             }
         }

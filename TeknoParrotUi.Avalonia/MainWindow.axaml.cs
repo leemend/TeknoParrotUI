@@ -29,7 +29,9 @@ public partial class MainWindow : Window
         TeknoParrotUi.Common.Proton.LinuxDisplayResolver.AvaloniaScreenCountProvider = GetScreenCount;
 
         var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "";
-        Title = $"TeknoParrot UI {version}";
+
+        //Title = $"TeknoParrot UI {version}";   -- DIFFERENTIATE FROM NET8-MIGRATION BRANCH BUILD
+        Title = "TeknoParrot UI - BETA 5 - Remote Play .NET 8";
 
         // Window-only concerns surfaced by the shared view
         Root.FullscreenToggleRequested += ToggleFullscreen;

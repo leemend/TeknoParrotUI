@@ -1,4 +1,5 @@
-﻿using TeknoParrotUi.Common.Jvs;
+using TeknoParrotUi.Common.InputListening;
+using TeknoParrotUi.Common.Jvs;
 
 namespace TeknoParrotUi.Common.Pipes
 {
@@ -6,6 +7,42 @@ namespace TeknoParrotUi.Common.Pipes
     {
         public override void Transmit()
         {
+            bool localOptionPressed =
+                InputCode.PlayerDigitalButtons[0].Button3.HasValue &&
+                InputCode.PlayerDigitalButtons[0].Button3.Value;
+            bool localStartPressed =
+                InputCode.PlayerDigitalButtons[0].Start.HasValue &&
+                InputCode.PlayerDigitalButtons[0].Start.Value;
+
+            GoldenTeeOptionsControl.ObserveLocalInput(
+                localOptionPressed,
+                localStartPressed);
+
+            // Remote Moonlight gamepads are routed through SDL2 into the existing
+            // StreamingPlayerDigitalButtons arrays. Observe those authoritative states
+            // here so Options arbitration works for gamepad input as well as tagged
+            // Sunshine keyboard/mouse input.
+            GoldenTeeOptionsControl.ObserveRemoteInput(
+                2,
+                InputCode.StreamingPlayerDigitalButtons[0].Button3.HasValue &&
+                InputCode.StreamingPlayerDigitalButtons[0].Button3.Value,
+                InputCode.StreamingPlayerDigitalButtons[0].Start.HasValue &&
+                InputCode.StreamingPlayerDigitalButtons[0].Start.Value);
+
+            GoldenTeeOptionsControl.ObserveRemoteInput(
+                3,
+                InputCode.StreamingPlayerDigitalButtons[2].Button3.HasValue &&
+                InputCode.StreamingPlayerDigitalButtons[2].Button3.Value,
+                InputCode.StreamingPlayerDigitalButtons[2].Start.HasValue &&
+                InputCode.StreamingPlayerDigitalButtons[2].Start.Value);
+
+            GoldenTeeOptionsControl.ObserveRemoteInput(
+                4,
+                InputCode.StreamingPlayerDigitalButtons[4].Button3.HasValue &&
+                InputCode.StreamingPlayerDigitalButtons[4].Button3.Value,
+                InputCode.StreamingPlayerDigitalButtons[4].Start.HasValue &&
+                InputCode.StreamingPlayerDigitalButtons[4].Start.Value);
+
             if (InputCode.PlayerDigitalButtons[0].Test.HasValue && InputCode.PlayerDigitalButtons[0].Test.Value)
                 Control |= 0x0001;
             if (InputCode.PlayerDigitalButtons[0].Service.HasValue && InputCode.PlayerDigitalButtons[0].Service.Value)
@@ -41,11 +78,133 @@ namespace TeknoParrotUi.Common.Pipes
             if (InputCode.PlayerDigitalButtons[1].Button3.HasValue && InputCode.PlayerDigitalButtons[1].Button3.Value)
                 Control |= 0x10000;
 
-            JvsHelper.StateView.Write(8, Control);
-			JvsHelper.StateView.Write(12, InputCode.AnalogBytes[0]);
-			JvsHelper.StateView.Write(13, InputCode.AnalogBytes[1]);
-			JvsHelper.StateView.Write(16, InputCode.AnalogBytes[2]);
-			JvsHelper.StateView.Write(17, InputCode.AnalogBytes[3]);
+            // P2
+            if (InputCode.StreamingPlayerDigitalButtons[0].Start.HasValue && InputCode.StreamingPlayerDigitalButtons[0].Start.Value)
+                Control2 |= 0x0010;
+            if (InputCode.StreamingPlayerDigitalButtons[0].Button1.HasValue && InputCode.StreamingPlayerDigitalButtons[0].Button1.Value)
+                Control2 |= 0x0020;
+            if (InputCode.StreamingPlayerDigitalButtons[0].Button2.HasValue && InputCode.StreamingPlayerDigitalButtons[0].Button2.Value)
+                Control2 |= 0x0040;
+            if (InputCode.StreamingPlayerDigitalButtons[0].Button3.HasValue && InputCode.StreamingPlayerDigitalButtons[0].Button3.Value)
+                Control2 |= 0x0080;
+            if (InputCode.StreamingPlayerDigitalButtons[0].Button4.HasValue && InputCode.StreamingPlayerDigitalButtons[0].Button4.Value)
+                Control2 |= 0x0100;
+            if (InputCode.StreamingPlayerDigitalButtons[0].Button6.HasValue && InputCode.StreamingPlayerDigitalButtons[0].Button6.Value)
+                Control2 |= 0x0400;
+            if (InputCode.StreamingPlayerDigitalButtons[1].Button1.HasValue && InputCode.StreamingPlayerDigitalButtons[1].Button1.Value)
+                Control2 |= 0x4000;
+            if (InputCode.StreamingPlayerDigitalButtons[1].Button2.HasValue && InputCode.StreamingPlayerDigitalButtons[1].Button2.Value)
+                Control2 |= 0x8000;
+            if (InputCode.StreamingPlayerDigitalButtons[1].Start.HasValue && InputCode.StreamingPlayerDigitalButtons[1].Start.Value)
+                Control2 |= 0x0800;
+
+            // P3
+            if (InputCode.StreamingPlayerDigitalButtons[2].Start.HasValue && InputCode.StreamingPlayerDigitalButtons[2].Start.Value)
+                Control3 |= 0x0010;
+            if (InputCode.StreamingPlayerDigitalButtons[2].Button1.HasValue && InputCode.StreamingPlayerDigitalButtons[2].Button1.Value)
+                Control3 |= 0x0020;
+            if (InputCode.StreamingPlayerDigitalButtons[2].Button2.HasValue && InputCode.StreamingPlayerDigitalButtons[2].Button2.Value)
+                Control3 |= 0x0040;
+            if (InputCode.StreamingPlayerDigitalButtons[2].Button3.HasValue && InputCode.StreamingPlayerDigitalButtons[2].Button3.Value)
+                Control3 |= 0x0080;
+            if (InputCode.StreamingPlayerDigitalButtons[2].Button4.HasValue && InputCode.StreamingPlayerDigitalButtons[2].Button4.Value)
+                Control3 |= 0x0100;
+            if (InputCode.StreamingPlayerDigitalButtons[2].Button6.HasValue && InputCode.StreamingPlayerDigitalButtons[2].Button6.Value)
+                Control3 |= 0x0400;
+            if (InputCode.StreamingPlayerDigitalButtons[3].Button1.HasValue && InputCode.StreamingPlayerDigitalButtons[3].Button1.Value)
+                Control3 |= 0x4000;
+            if (InputCode.StreamingPlayerDigitalButtons[3].Button2.HasValue && InputCode.StreamingPlayerDigitalButtons[3].Button2.Value)
+                Control3 |= 0x8000;
+            if (InputCode.StreamingPlayerDigitalButtons[3].Start.HasValue && InputCode.StreamingPlayerDigitalButtons[3].Start.Value)
+                Control3 |= 0x0800;
+
+            // P4
+            if (InputCode.StreamingPlayerDigitalButtons[4].Start.HasValue && InputCode.StreamingPlayerDigitalButtons[4].Start.Value)
+                Control4 |= 0x0010;
+            if (InputCode.StreamingPlayerDigitalButtons[4].Button1.HasValue && InputCode.StreamingPlayerDigitalButtons[4].Button1.Value)
+                Control4 |= 0x0020;
+            if (InputCode.StreamingPlayerDigitalButtons[4].Button2.HasValue && InputCode.StreamingPlayerDigitalButtons[4].Button2.Value)
+                Control4 |= 0x0040;
+            if (InputCode.StreamingPlayerDigitalButtons[4].Button3.HasValue && InputCode.StreamingPlayerDigitalButtons[4].Button3.Value)
+                Control4 |= 0x0080;
+            if (InputCode.StreamingPlayerDigitalButtons[4].Button4.HasValue && InputCode.StreamingPlayerDigitalButtons[4].Button4.Value)
+                Control4 |= 0x0100;
+            if (InputCode.StreamingPlayerDigitalButtons[4].Button6.HasValue && InputCode.StreamingPlayerDigitalButtons[4].Button6.Value)
+                Control4 |= 0x0400;
+            if (InputCode.StreamingPlayerDigitalButtons[5].Button1.HasValue && InputCode.StreamingPlayerDigitalButtons[5].Button1.Value)
+                Control4 |= 0x4000;
+            if (InputCode.StreamingPlayerDigitalButtons[5].Button2.HasValue && InputCode.StreamingPlayerDigitalButtons[5].Button2.Value)
+                Control4 |= 0x8000;
+            if (InputCode.StreamingPlayerDigitalButtons[5].Start.HasValue && InputCode.StreamingPlayerDigitalButtons[5].Start.Value)
+                Control4 |= 0x0800;
+
+            // Golden Tee Options must be visible to whichever player the game currently
+            // considers active. Broadcast ONLY the Option bit; all other player controls
+            // and trackball buffers remain isolated.
+            if (GoldenTeeOptionsControl.ShouldBroadcastOption())
+            {
+                Control |= 0x0080;
+                Control2 |= 0x0080;
+                Control3 |= 0x0080;
+                Control4 |= 0x0080;
+            }
+
+            // Golden Tee keeps consuming the current turn player's normal
+            // Start bit inside Options. Once the trackball probe identifies
+            // which player buffer the game is actually consuming, route the
+            // Options owner's Start ONLY to that player. This avoids carrying
+            // the owner's Start authority into unrelated players/turns.
+            if (GoldenTeeOptionsControl.ShouldMirrorStart())
+            {
+                int optionsOwner = GoldenTeeOptionsControl.GetOwnerPlayer();
+                int optionsConsumer =
+                    GoldenTeeOptionsTrackballBroadcast.GetConsumerPlayer(optionsOwner);
+
+                switch (optionsConsumer)
+                {
+                    case 1:
+                        Control |= 0x0010;
+                        break;
+                    case 2:
+                        Control2 |= 0x0010;
+                        break;
+                    case 3:
+                        Control3 |= 0x0010;
+                        break;
+                    case 4:
+                        Control4 |= 0x0010;
+                        break;
+                    default:
+                        // No trackball consumer has been discovered yet.
+                        // Preserve immediate Start behavior until the first
+                        // trackball movement identifies the real menu consumer.
+                        Control |= 0x0010;
+                        Control2 |= 0x0010;
+                        Control3 |= 0x0010;
+                        Control4 |= 0x0010;
+                        break;
+                }
+            }
+
+            // Preserve the original Host Start path and OR in only the current Options
+            // owner's physical Start through the dedicated Host override channel.
+            if ((InputCode.StreamingPlayerDigitalButtons[6].Start.HasValue &&
+                 InputCode.StreamingPlayerDigitalButtons[6].Start.Value) ||
+                GoldenTeeOptionsControl.ShouldMirrorStart())
+            {
+                ControlHost |= 0x0010;
+            }
+
+            JvsHelper.StateView.Write(8, Control); // Normal Inputs
+            JvsHelper.StateView.Write(24, Control2); // P2
+            JvsHelper.StateView.Write(40, Control3); // P3
+            JvsHelper.StateView.Write(56, Control4); // P4
+            JvsHelper.StateView.Write(4, ControlHost); // Host
+
+            JvsHelper.StateView.Write(12, InputCode.AnalogBytes[0]);
+            JvsHelper.StateView.Write(13, InputCode.AnalogBytes[1]);
+            JvsHelper.StateView.Write(16, InputCode.AnalogBytes[2]);
+            JvsHelper.StateView.Write(17, InputCode.AnalogBytes[3]);
         }
     }
 }

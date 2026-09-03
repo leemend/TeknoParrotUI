@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <GameProfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<GamePath></GamePath>
 	<TestMenuParameter></TestMenuParameter>
@@ -7,7 +7,7 @@
 	<TestMenuExtraParameters></TestMenuExtraParameters>
 	<ResetHint>false</ResetHint>
 	<EmulationProfile>IncredibleTechnologies</EmulationProfile>
-	<GameProfileRevision>4</GameProfileRevision>
+	<GameProfileRevision>9</GameProfileRevision>
 	<HasSeparateTestMode>false</HasSeparateTestMode>
 	<Is64Bit>false</Is64Bit>
 	<DevOnly>false</DevOnly>
@@ -24,11 +24,22 @@
 	<AllowSettingSync>true</AllowSettingSync>
 	<ConfigValues>
 		<FieldInformation>
-			<CategoryName>General</CategoryName>
-			<FieldName>Input API</FieldName>
-			<FieldValue>RawInput</FieldValue>
+			<CategoryName>Streaming</CategoryName>
+			<FieldName>Remote Local Play</FieldName>
+			<FieldValue>Off</FieldValue>
 			<FieldType>Dropdown</FieldType>
 			<FieldOptions>
+				<string>Off</string>
+				<string>On</string>
+			</FieldOptions>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>General</CategoryName>
+			<FieldName>Input API</FieldName>
+			<FieldValue>MergedInput</FieldValue>
+			<FieldType>Dropdown</FieldType>
+			<FieldOptions>
+				<string>MergedInput</string>
 				<string>DirectInput</string>
 				<string>XInput</string>
 				<string>RawInput</string>
@@ -174,6 +185,78 @@
 			<FieldOptions></FieldOptions>
 			<Hint>Scales the trackballs Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
 		</FieldInformation>
+                <FieldInformation>
+                        <CategoryName>Controls</CategoryName>
+                        <FieldName>P2 Trackball Sensitivity X</FieldName>
+                        <FieldValue>100</FieldValue>
+                        <FieldType>Slider</FieldType>
+                        <FieldMin>1</FieldMin>
+                        <FieldMax>200</FieldMax>
+                        <FieldOptions></FieldOptions>
+                        <Hint>Scales Player 2 trackball X input. Percent, so 100 = 100%, 25 = 25%</Hint>
+                        <VisibleWhenField>Remote Local Play</VisibleWhenField>
+                        <VisibleWhenValue>On</VisibleWhenValue>
+                </FieldInformation>
+                <FieldInformation>
+                        <CategoryName>Controls</CategoryName>
+                        <FieldName>P2 Trackball Sensitivity Y</FieldName>
+                        <FieldValue>100</FieldValue>
+                        <FieldType>Slider</FieldType>
+                        <FieldMin>1</FieldMin>
+                        <FieldMax>200</FieldMax>
+                        <FieldOptions></FieldOptions>
+                        <Hint>Scales Player 2 trackball Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+                        <VisibleWhenField>Remote Local Play</VisibleWhenField>
+                        <VisibleWhenValue>On</VisibleWhenValue>
+                </FieldInformation>
+                <FieldInformation>
+                        <CategoryName>Controls</CategoryName>
+                        <FieldName>P3 Trackball Sensitivity X</FieldName>
+                        <FieldValue>100</FieldValue>
+                        <FieldType>Slider</FieldType>
+                        <FieldMin>1</FieldMin>
+                        <FieldMax>200</FieldMax>
+                        <FieldOptions></FieldOptions>
+                        <Hint>Scales Player 3 trackball X input. Percent, so 100 = 100%, 25 = 25%</Hint>
+                        <VisibleWhenField>Remote Local Play</VisibleWhenField>
+                        <VisibleWhenValue>On</VisibleWhenValue>
+                </FieldInformation>
+                <FieldInformation>
+                        <CategoryName>Controls</CategoryName>
+                        <FieldName>P3 Trackball Sensitivity Y</FieldName>
+                        <FieldValue>100</FieldValue>
+                        <FieldType>Slider</FieldType>
+                        <FieldMin>1</FieldMin>
+                        <FieldMax>200</FieldMax>
+                        <FieldOptions></FieldOptions>
+                        <Hint>Scales Player 3 trackball Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+                        <VisibleWhenField>Remote Local Play</VisibleWhenField>
+                        <VisibleWhenValue>On</VisibleWhenValue>
+                </FieldInformation>
+                <FieldInformation>
+                        <CategoryName>Controls</CategoryName>
+                        <FieldName>P4 Trackball Sensitivity X</FieldName>
+                        <FieldValue>100</FieldValue>
+                        <FieldType>Slider</FieldType>
+                        <FieldMin>1</FieldMin>
+                        <FieldMax>200</FieldMax>
+                        <FieldOptions></FieldOptions>
+                        <Hint>Scales Player 4 trackball X input. Percent, so 100 = 100%, 25 = 25%</Hint>
+                        <VisibleWhenField>Remote Local Play</VisibleWhenField>
+                        <VisibleWhenValue>On</VisibleWhenValue>
+                </FieldInformation>
+                <FieldInformation>
+                        <CategoryName>Controls</CategoryName>
+                        <FieldName>P4 Trackball Sensitivity Y</FieldName>
+                        <FieldValue>100</FieldValue>
+                        <FieldType>Slider</FieldType>
+                        <FieldMin>1</FieldMin>
+                        <FieldMax>200</FieldMax>
+                        <FieldOptions></FieldOptions>
+                        <Hint>Scales Player 4 trackball Y input. Percent, so 100 = 100%, 25 = 25%</Hint>
+                        <VisibleWhenField>Remote Local Play</VisibleWhenField>
+                        <VisibleWhenValue>On</VisibleWhenValue>
+                </FieldInformation>
 		<FieldInformation>
 			<CategoryName>Customization</CategoryName>
 			<FieldName>Override Default Outfit</FieldName>
@@ -694,6 +777,541 @@
 			</FieldOptions>
 			<Hint>Trails will NOT appear when using standard balls. Pick any other set to make the trails appear.</Hint>
 		</FieldInformation>
+				<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Override Default Initials</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Bool</FieldType>
+			<Hint>Internal named-profile initials override for Player 2.</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Initials</FieldName>
+			<FieldValue></FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Internal named-profile initials for Player 2.</Hint>
+		</FieldInformation>
+<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Override Default Outfit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Bool</FieldType>
+			<Hint>Enables independent Player 2 appearance, club set, and ball defaults.</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Gender</FieldName>
+			<FieldValue>Male</FieldValue>
+			<FieldType>Dropdown</FieldType>
+			<FieldOptions>
+				<string>Male</string>
+				<string>Female</string>
+			</FieldOptions>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Face</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Shirt</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Bottoms</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Shoes</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Hat</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Bodysuit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Outfit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Clubs</FieldName>
+			<FieldValue>GT LINE</FieldValue>
+			<FieldType>DropdownIndex</FieldType>
+			<FieldOptions>
+				<string>GT LINE</string>
+				<string>BUZZSAW</string>
+				<string>HOWITZER</string>
+				<string>HAWK</string>
+				<string>OSPREY</string>
+				<string>HELIX</string>
+				<string>HIGHTAIL</string>
+				<string>FALCON</string>
+				<string>HI-LO</string>
+				<string>EQUALIZER</string>
+				<string>FLARE</string>
+				<string>RIPPER</string>
+				<string>SLICK-CAST</string>
+				<string>HICKORY</string>
+				<string>PYRO</string>
+				<string>REBEL</string>
+				<string>THOR</string>
+				<string>PEREGRINE</string>
+				<string>TANDEM</string>
+				<string>BALLISTA</string>
+				<string>SURGE</string>
+				<string>INCITER</string>
+				<string>VULTURE</string>
+				<string>DETONATOR</string>
+				<string>WORLD CHAMP 2018</string>
+				<string>PLAYERS CHOICE 2018</string>
+				<string>WORLD CHAMP 2019</string>
+				<string>SEEKER</string>
+				<string>STINGER</string>
+			</FieldOptions>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 2 Customization</CategoryName>
+			<FieldName>P2 Default Balls</FieldName>
+			<FieldValue>STANDARD</FieldValue>
+			<FieldType>DropdownIndex</FieldType>
+			<FieldOptions>
+				<string>STANDARD</string>
+				<string>STRAIGHT JACKET</string>
+				<string>JUICE</string>
+				<string>SPINNY</string>
+				<string>PUMMEL</string>
+				<string>HURTLE</string>
+				<string>ORBIT</string>
+				<string>STREAK</string>
+				<string>MANIAX</string>
+				<string>PLAYER</string>
+				<string>AIR-O</string>
+				<string>RANGER</string>
+				<string>TRACKER</string>
+				<string>STOCK PLUS</string>
+				<string>FRENZY</string>
+				<string>TORPEDO</string>
+				<string>SPECTRUM</string>
+				<string>SETTLER</string>
+				<string>BOUNDER</string>
+				<string>RAZOR</string>
+				<string>ARCHER</string>
+				<string>SNIPER</string>
+				<string>GRABBER</string>
+				<string>JAVELIN</string>
+				<string>STOUT</string>
+				<string>BARRAGE</string>
+				<string>VANGUARD</string>
+				<string>RAMBLER</string>
+				<string>GRIPPER</string>
+				<string>RAINMAKER</string>
+			</FieldOptions>
+			<Hint>Used when Player 2 customization is enabled.</Hint>
+			<VisibleWhenField>P2 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+				<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Override Default Initials</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Bool</FieldType>
+			<Hint>Internal named-profile initials override for Player 3.</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Initials</FieldName>
+			<FieldValue></FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Internal named-profile initials for Player 3.</Hint>
+		</FieldInformation>
+<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Override Default Outfit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Bool</FieldType>
+			<Hint>Enables independent Player 3 appearance, club set, and ball defaults.</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Gender</FieldName>
+			<FieldValue>Male</FieldValue>
+			<FieldType>Dropdown</FieldType>
+			<FieldOptions>
+				<string>Male</string>
+				<string>Female</string>
+			</FieldOptions>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Face</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Shirt</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Bottoms</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Shoes</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Hat</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Bodysuit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Outfit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Clubs</FieldName>
+			<FieldValue>GT LINE</FieldValue>
+			<FieldType>DropdownIndex</FieldType>
+			<FieldOptions>
+				<string>GT LINE</string>
+				<string>BUZZSAW</string>
+				<string>HOWITZER</string>
+				<string>HAWK</string>
+				<string>OSPREY</string>
+				<string>HELIX</string>
+				<string>HIGHTAIL</string>
+				<string>FALCON</string>
+				<string>HI-LO</string>
+				<string>EQUALIZER</string>
+				<string>FLARE</string>
+				<string>RIPPER</string>
+				<string>SLICK-CAST</string>
+				<string>HICKORY</string>
+				<string>PYRO</string>
+				<string>REBEL</string>
+				<string>THOR</string>
+				<string>PEREGRINE</string>
+				<string>TANDEM</string>
+				<string>BALLISTA</string>
+				<string>SURGE</string>
+				<string>INCITER</string>
+				<string>VULTURE</string>
+				<string>DETONATOR</string>
+				<string>WORLD CHAMP 2018</string>
+				<string>PLAYERS CHOICE 2018</string>
+				<string>WORLD CHAMP 2019</string>
+				<string>SEEKER</string>
+				<string>STINGER</string>
+			</FieldOptions>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 3 Customization</CategoryName>
+			<FieldName>P3 Default Balls</FieldName>
+			<FieldValue>STANDARD</FieldValue>
+			<FieldType>DropdownIndex</FieldType>
+			<FieldOptions>
+				<string>STANDARD</string>
+				<string>STRAIGHT JACKET</string>
+				<string>JUICE</string>
+				<string>SPINNY</string>
+				<string>PUMMEL</string>
+				<string>HURTLE</string>
+				<string>ORBIT</string>
+				<string>STREAK</string>
+				<string>MANIAX</string>
+				<string>PLAYER</string>
+				<string>AIR-O</string>
+				<string>RANGER</string>
+				<string>TRACKER</string>
+				<string>STOCK PLUS</string>
+				<string>FRENZY</string>
+				<string>TORPEDO</string>
+				<string>SPECTRUM</string>
+				<string>SETTLER</string>
+				<string>BOUNDER</string>
+				<string>RAZOR</string>
+				<string>ARCHER</string>
+				<string>SNIPER</string>
+				<string>GRABBER</string>
+				<string>JAVELIN</string>
+				<string>STOUT</string>
+				<string>BARRAGE</string>
+				<string>VANGUARD</string>
+				<string>RAMBLER</string>
+				<string>GRIPPER</string>
+				<string>RAINMAKER</string>
+			</FieldOptions>
+			<Hint>Used when Player 3 customization is enabled.</Hint>
+			<VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+				<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Override Default Initials</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Bool</FieldType>
+			<Hint>Internal named-profile initials override for Player 4.</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Initials</FieldName>
+			<FieldValue></FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Internal named-profile initials for Player 4.</Hint>
+		</FieldInformation>
+<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Override Default Outfit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Bool</FieldType>
+			<Hint>Enables independent Player 4 appearance, club set, and ball defaults.</Hint>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Gender</FieldName>
+			<FieldValue>Male</FieldValue>
+			<FieldType>Dropdown</FieldType>
+			<FieldOptions>
+				<string>Male</string>
+				<string>Female</string>
+			</FieldOptions>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Face</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Shirt</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Bottoms</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Shoes</FieldName>
+			<FieldValue>1</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Hat</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Bodysuit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Outfit</FieldName>
+			<FieldValue>0</FieldValue>
+			<FieldType>Text</FieldType>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Clubs</FieldName>
+			<FieldValue>GT LINE</FieldValue>
+			<FieldType>DropdownIndex</FieldType>
+			<FieldOptions>
+				<string>GT LINE</string>
+				<string>BUZZSAW</string>
+				<string>HOWITZER</string>
+				<string>HAWK</string>
+				<string>OSPREY</string>
+				<string>HELIX</string>
+				<string>HIGHTAIL</string>
+				<string>FALCON</string>
+				<string>HI-LO</string>
+				<string>EQUALIZER</string>
+				<string>FLARE</string>
+				<string>RIPPER</string>
+				<string>SLICK-CAST</string>
+				<string>HICKORY</string>
+				<string>PYRO</string>
+				<string>REBEL</string>
+				<string>THOR</string>
+				<string>PEREGRINE</string>
+				<string>TANDEM</string>
+				<string>BALLISTA</string>
+				<string>SURGE</string>
+				<string>INCITER</string>
+				<string>VULTURE</string>
+				<string>DETONATOR</string>
+				<string>WORLD CHAMP 2018</string>
+				<string>PLAYERS CHOICE 2018</string>
+				<string>WORLD CHAMP 2019</string>
+				<string>SEEKER</string>
+				<string>STINGER</string>
+			</FieldOptions>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+		<FieldInformation>
+			<CategoryName>Player 4 Customization</CategoryName>
+			<FieldName>P4 Default Balls</FieldName>
+			<FieldValue>STANDARD</FieldValue>
+			<FieldType>DropdownIndex</FieldType>
+			<FieldOptions>
+				<string>STANDARD</string>
+				<string>STRAIGHT JACKET</string>
+				<string>JUICE</string>
+				<string>SPINNY</string>
+				<string>PUMMEL</string>
+				<string>HURTLE</string>
+				<string>ORBIT</string>
+				<string>STREAK</string>
+				<string>MANIAX</string>
+				<string>PLAYER</string>
+				<string>AIR-O</string>
+				<string>RANGER</string>
+				<string>TRACKER</string>
+				<string>STOCK PLUS</string>
+				<string>FRENZY</string>
+				<string>TORPEDO</string>
+				<string>SPECTRUM</string>
+				<string>SETTLER</string>
+				<string>BOUNDER</string>
+				<string>RAZOR</string>
+				<string>ARCHER</string>
+				<string>SNIPER</string>
+				<string>GRABBER</string>
+				<string>JAVELIN</string>
+				<string>STOUT</string>
+				<string>BARRAGE</string>
+				<string>VANGUARD</string>
+				<string>RAMBLER</string>
+				<string>GRIPPER</string>
+				<string>RAINMAKER</string>
+			</FieldOptions>
+			<Hint>Used when Player 4 customization is enabled.</Hint>
+			<VisibleWhenField>P4 Override Default Outfit</VisibleWhenField>
+			<VisibleWhenValue>1</VisibleWhenValue>
+		</FieldInformation>
+
 		<FieldInformation>
 			<CategoryName>Postgres</CategoryName>
 			<FieldName>Path</FieldName>
@@ -807,8 +1425,155 @@
 			</FieldOptions>
 		</FieldInformation>
 	</ConfigValues>
-	<JoystickButtons>
 		<JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>Host Start</ButtonName>
+			<InputMapping>StreamHostP1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>Host TrackBall</ButtonName>
+			<InputMapping>HostTrackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Start</ButtonName>
+			<InputMapping>Stream2P1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Left</ButtonName>
+			<InputMapping>Stream2P2Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Right</ButtonName>
+			<InputMapping>Stream2P2Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 FlyBy</ButtonName>
+			<InputMapping>Stream2P1Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Spin</ButtonName>
+			<InputMapping>Stream2P1Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Option</ButtonName>
+			<InputMapping>Stream2P1Button3</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Help</ButtonName>
+			<InputMapping>Stream2P1Button4</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Switch Club Left</ButtonName>
+			<InputMapping>Stream2P1Button6</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Switch Club Right</ButtonName>
+			<InputMapping>Stream2P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Start</ButtonName>
+			<InputMapping>Stream3P1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Left</ButtonName>
+			<InputMapping>Stream3P2Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Right</ButtonName>
+			<InputMapping>Stream3P2Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 FlyBy</ButtonName>
+			<InputMapping>Stream3P1Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Spin</ButtonName>
+			<InputMapping>Stream3P1Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Option</ButtonName>
+			<InputMapping>Stream3P1Button3</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Help</ButtonName>
+			<InputMapping>Stream3P1Button4</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Switch Club Left</ButtonName>
+			<InputMapping>Stream3P1Button6</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Switch Club Right</ButtonName>
+			<InputMapping>Stream3P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Start</ButtonName>
+			<InputMapping>Stream4P1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Left</ButtonName>
+			<InputMapping>Stream4P2Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Right</ButtonName>
+			<InputMapping>Stream4P2Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 FlyBy</ButtonName>
+			<InputMapping>Stream4P1Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Spin</ButtonName>
+			<InputMapping>Stream4P1Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Option</ButtonName>
+			<InputMapping>Stream4P1Button3</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Help</ButtonName>
+			<InputMapping>Stream4P1Button4</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Switch Club Left</ButtonName>
+			<InputMapping>Stream4P1Button6</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Switch Club Right</ButtonName>
+			<InputMapping>Stream4P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+	<JoystickButtons>
 			<ButtonName>Test</ButtonName>
 			<InputMapping>Test</InputMapping>
 		</JoystickButtons>
@@ -881,6 +1646,27 @@
 			<InputMapping>P1Trackball</InputMapping>
 			<HideWithDirectInput>true</HideWithDirectInput>
 			<HideWithXInput>true</HideWithXInput>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 TrackBall</ButtonName>
+			<InputMapping>P2Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 TrackBall</ButtonName>
+			<InputMapping>P3Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 TrackBall</ButtonName>
+			<InputMapping>P4Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
 		</JoystickButtons>
 	</JoystickButtons>
 </GameProfile>
