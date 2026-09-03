@@ -1,247 +1,394 @@
-﻿using System;
+#nullable enable annotations
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
-namespace TeknoParrotUi.Common
+namespace TeknoParrotUi.Common;
+
+public static class GoldenTeeLocalPlayerProfiles
 {
-    /// <summary>
-    /// Persistent named Golden Tee LOCAL player profiles.
-    ///
-    /// P1-P4 remain physical/runtime seats. A local person is identified by
-    /// exactly three A-Z initials and can be assigned to any unclaimed seat.
-    /// Sunshine-owned seats continue to use GoldenTeeRemotePlayerProfiles.
-    /// </summary>
-    public static class GoldenTeeLocalPlayerProfiles
+    private const string StorageDirectory = "GoldenTeeLocalPlayers";
+    private const string AssignmentsFileName = "assignments.json";
+    private const string LegacyAssignmentsFileName = "_assignments.json";
+
+    public sealed class LocalPlayerProfile
     {
-        private const string StorageDirectory = "GoldenTeeLocalPlayers";
-        private const string AssignmentsFileName = "_assignments.json";
+        public string ProfileName { get; set; } = string.Empty;
+        public string Initials { get; set; } = string.Empty;
+        public Dictionary<string, string> Values { get; set; } =
+            new(StringComparer.OrdinalIgnoreCase);
+    }
 
-        private static readonly string[] ValueNames =
+    public static string? NormalizeInitials(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var normalized = value.Trim().ToUpperInvariant();
+        return normalized.Length == 3 && normalized.All(ch => ch is >= 'A' and <= 'Z')
+            ? normalized
+            : null;
+    }
+
+    public static string? NormalizeProfileName(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim();
+        return normalized.Length == 0 ? null : normalized;
+    }
+
+    public static IReadOnlyList<string> ListProfileNames()
+    {
+        return LoadAll()
+            .Select(x => x.ProfileName)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    // Backward-compatible API name used by the current settings view.
+    public static IReadOnlyList<string> ListProfileInitials() => ListProfileNames();
+
+    public static LocalPlayerProfile? Load(string profileName)
+    {
+        var normalizedName = NormalizeProfileName(profileName);
+        if (normalizedName == null)
+            return null;
+
+        return LoadAll().FirstOrDefault(x =>
+            string.Equals(x.ProfileName, normalizedName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static void Save(LocalPlayerProfile profile, string? previousProfileName = null)
+    {
+        if (profile == null)
+            throw new ArgumentNullException(nameof(profile));
+
+        var profileName = NormalizeProfileName(profile.ProfileName);
+        if (profileName == null)
+            throw new InvalidOperationException("Profile name is required.");
+
+        var initials = NormalizeInitials(profile.Initials);
+        if (initials == null)
+            throw new InvalidOperationException("Initials must be exactly 3 letters (A-Z).");
+
+        var previousName = NormalizeProfileName(previousProfileName);
+
+        if (ProfileNameExists(
+                profileName,
+                ignoreLocalProfileName: previousName ?? profileName))
         {
-            "Gender",
-            "Face",
-            "Shirt",
-            "Bottoms",
-            "Shoes",
-            "Hat",
-            "Bodysuit",
-            "Clubs",
-            "Balls"
-        };
-
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            WriteIndented = true
-        };
-
-        public sealed class LocalPlayerProfile
-        {
-            public string Initials { get; set; } = string.Empty;
-
-            public Dictionary<string, string> Values { get; set; } =
-                new(StringComparer.OrdinalIgnoreCase);
+            throw new InvalidOperationException(
+                $"A Golden Tee profile named \"{profileName}\" already exists.");
         }
 
-        public static string? NormalizeInitials(string? value)
+        profile.ProfileName = profileName;
+        profile.Initials = initials;
+        profile.Values ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        profile.Values = new Dictionary<string, string>(
+            profile.Values,
+            StringComparer.OrdinalIgnoreCase);
+
+        Directory.CreateDirectory(GetStorageRoot());
+
+        var newPath = GetPathForName(profileName);
+        File.WriteAllText(
+            newPath,
+            JsonSerializer.Serialize(
+                profile,
+                new JsonSerializerOptions { WriteIndented = true }));
+
+        if (previousName != null &&
+            !string.Equals(previousName, profileName, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.IsNullOrWhiteSpace(value))
-                return null;
-
-            var normalized = value.Trim().ToUpperInvariant();
-
-            if (normalized.Length != 3 ||
-                normalized.Any(ch => ch < 'A' || ch > 'Z'))
+            foreach (var file in Directory.EnumerateFiles(GetStorageRoot(), "*.json"))
             {
-                return null;
-            }
-
-            return normalized;
-        }
-
-        public static IReadOnlyList<string> ListProfileInitials()
-        {
-            var directory = GetStorageDirectoryPath();
-            if (!Directory.Exists(directory))
-                return Array.Empty<string>();
-
-            return Directory.GetFiles(directory, "*.json")
-                .Select(Path.GetFileNameWithoutExtension)
-                .Where(name =>
-                    !string.Equals(name, Path.GetFileNameWithoutExtension(AssignmentsFileName),
-                        StringComparison.OrdinalIgnoreCase))
-                .Select(NormalizeInitials)
-                .Where(name => name != null)
-                .Select(name => name!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-
-        public static LocalPlayerProfile? Load(string initials)
-        {
-            var normalized = NormalizeInitials(initials);
-            if (normalized == null)
-                return null;
-
-            var path = GetProfilePath(normalized);
-            if (!File.Exists(path))
-                return null;
-
-            try
-            {
-                var json = File.ReadAllText(path);
-                var profile = JsonSerializer.Deserialize<LocalPlayerProfile>(json, JsonOptions);
-                if (profile == null)
-                    return null;
-
-                profile.Initials = normalized;
-                profile.Values ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-                // System.Text.Json may deserialize with the default comparer.
-                profile.Values = new Dictionary<string, string>(
-                    profile.Values,
-                    StringComparer.OrdinalIgnoreCase);
-
-                return profile;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public static void Save(LocalPlayerProfile profile)
-        {
-            ArgumentNullException.ThrowIfNull(profile);
-
-            var normalized = NormalizeInitials(profile.Initials) ??
-                throw new InvalidOperationException("Golden Tee local profile initials must be exactly 3 letters A-Z.");
-
-            profile.Initials = normalized;
-            profile.Values ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            Directory.CreateDirectory(GetStorageDirectoryPath());
-
-            File.WriteAllText(
-                GetProfilePath(normalized),
-                JsonSerializer.Serialize(profile, JsonOptions));
-        }
-
-        public static Dictionary<int, string> LoadAssignments()
-        {
-            var path = GetAssignmentsPath();
-            if (!File.Exists(path))
-                return new Dictionary<int, string>();
-
-            try
-            {
-                var json = File.ReadAllText(path);
-                var stored = JsonSerializer.Deserialize<Dictionary<int, string>>(json, JsonOptions) ??
-                    new Dictionary<int, string>();
-
-                var result = new Dictionary<int, string>();
-
-                foreach (var (player, initials) in stored)
+                if (IsAssignmentsFile(file) ||
+                    string.Equals(file, newPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    var normalized = NormalizeInitials(initials);
-                    if (player is >= 1 and <= 4 && normalized != null)
-                        result[player] = normalized;
+                    continue;
                 }
 
-                return result;
+                var loaded = TryReadProfile(file);
+                if (loaded != null &&
+                    string.Equals(
+                        loaded.ProfileName,
+                        previousName,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    try { File.Delete(file); } catch { }
+                }
             }
-            catch
+
+            var assignments = LoadAssignments();
+            var changed = false;
+
+            foreach (var player in assignments.Keys.ToList())
             {
-                return new Dictionary<int, string>();
+                if (!string.Equals(
+                        assignments[player],
+                        previousName,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                assignments[player] = profileName;
+                changed = true;
             }
+
+            if (changed)
+                SaveAssignments(assignments);
         }
 
-        public static void SaveAssignments(IReadOnlyDictionary<int, string> assignments)
+        // Remove duplicate/legacy copies representing the same current profile.
+        foreach (var file in Directory.EnumerateFiles(GetStorageRoot(), "*.json"))
         {
-            Directory.CreateDirectory(GetStorageDirectoryPath());
-
-            var normalized = new Dictionary<int, string>();
-
-            foreach (var (player, initials) in assignments)
+            if (IsAssignmentsFile(file) ||
+                string.Equals(file, newPath, StringComparison.OrdinalIgnoreCase))
             {
-                var value = NormalizeInitials(initials);
-                if (player is >= 1 and <= 4 && value != null)
-                    normalized[player] = value;
+                continue;
             }
 
-            File.WriteAllText(
-                GetAssignmentsPath(),
-                JsonSerializer.Serialize(normalized, JsonOptions));
-        }
-
-        public static bool TryGetProfileField(
-            FieldInformation field,
-            out int player,
-            out string valueName)
-        {
-            player = 0;
-            valueName = string.Empty;
-
-            if (field == null || string.IsNullOrWhiteSpace(field.FieldName))
-                return false;
-
-            // Player 1 uses the original "Customization" category and unprefixed
-            // "Default X" field names.
-            if (string.Equals(
-                    field.CategoryName,
-                    "Customization",
+            var loaded = TryReadProfile(file);
+            if (loaded != null &&
+                string.Equals(
+                    loaded.ProfileName,
+                    profileName,
                     StringComparison.OrdinalIgnoreCase))
             {
-                const string p1Prefix = "Default ";
-
-                if (field.FieldName.StartsWith(p1Prefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    var suffix = field.FieldName.Substring(p1Prefix.Length);
-                    var canonical = CanonicalValueName(suffix);
-                    if (canonical != null)
-                    {
-                        player = 1;
-                        valueName = canonical;
-                        return true;
-                    }
-                }
+                try { File.Delete(file); } catch { }
             }
+        }
+    }
 
-            // P2-P4 use "P# Default X".
-            for (var candidate = 2; candidate <= 4; candidate++)
+    public static bool Delete(string profileName)
+    {
+        var normalizedName = NormalizeProfileName(profileName);
+        if (normalizedName == null)
+            return false;
+
+        var deleted = false;
+        if (Directory.Exists(GetStorageRoot()))
+        {
+            foreach (var file in Directory.EnumerateFiles(GetStorageRoot(), "*.json"))
             {
-                var prefix = $"P{candidate} Default ";
-                if (!field.FieldName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                if (IsAssignmentsFile(file))
                     continue;
 
-                var suffix = field.FieldName.Substring(prefix.Length);
-                var canonical = CanonicalValueName(suffix);
-                if (canonical == null)
-                    return false;
+                var loaded = TryReadProfile(file);
+                if (loaded == null ||
+                    !string.Equals(loaded.ProfileName, normalizedName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
-                player = candidate;
-                valueName = canonical;
-                return true;
+                try
+                {
+                    File.Delete(file);
+                    deleted = true;
+                }
+                catch { }
+            }
+        }
+
+        var assignments = LoadAssignments();
+        foreach (var player in assignments
+                     .Where(x => string.Equals(x.Value, normalizedName, StringComparison.OrdinalIgnoreCase))
+                     .Select(x => x.Key)
+                     .ToList())
+        {
+            assignments.Remove(player);
+        }
+        SaveAssignments(assignments);
+
+        return deleted;
+    }
+
+    public static bool ProfileNameExists(
+        string profileName,
+        string? ignoreLocalProfileName = null,
+        string? ignoreRemoteUuid = null)
+    {
+        var normalized = NormalizeProfileName(profileName);
+        if (normalized == null)
+            return false;
+
+        var localMatch = ListProfileNames().Any(name =>
+            !string.Equals(name, ignoreLocalProfileName, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(name, normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (localMatch)
+            return true;
+
+        return GoldenTeeRemotePlayerProfiles.ListProfiles().Any(remote =>
+            !string.Equals(remote.ClientUuid, ignoreRemoteUuid, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(remote.ProfileName, normalized, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static Dictionary<int, string> LoadAssignments()
+    {
+        var path = GetAssignmentsPath();
+        if (!File.Exists(path))
+            return new Dictionary<int, string>();
+
+        try
+        {
+            var json = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<Dictionary<int, string>>(json)
+                   ?? new Dictionary<int, string>();
+        }
+        catch
+        {
+            return new Dictionary<int, string>();
+        }
+    }
+
+    public static void SaveAssignments(IReadOnlyDictionary<int, string> assignments)
+    {
+        Directory.CreateDirectory(GetStorageRoot());
+
+        var normalized = assignments
+            .Where(x => x.Key is >= 1 and <= 4 && !string.IsNullOrWhiteSpace(x.Value))
+            .ToDictionary(x => x.Key, x => x.Value.Trim());
+
+        File.WriteAllText(
+            GetAssignmentsPath(),
+            JsonSerializer.Serialize(normalized, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    public static bool TryGetProfileField(
+        FieldInformation field,
+        out int player,
+        out string valueName)
+    {
+        player = 0;
+        valueName = string.Empty;
+
+        if (field == null || string.IsNullOrWhiteSpace(field.FieldName))
+            return false;
+
+        if (string.Equals(field.CategoryName, "Customization", StringComparison.OrdinalIgnoreCase))
+        {
+            player = 1;
+            valueName = NormalizeValueName(field.FieldName, 1);
+            return IsProfileValue(valueName);
+        }
+
+        for (var candidate = 2; candidate <= 4; candidate++)
+        {
+            if (!string.Equals(
+                    field.CategoryName,
+                    $"Player {candidate} Customization",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
             }
 
-            return false;
+            player = candidate;
+            valueName = NormalizeValueName(field.FieldName, candidate);
+            return IsProfileValue(valueName);
         }
 
-        private static string? CanonicalValueName(string valueName)
+        return false;
+    }
+
+    private static bool IsProfileValue(string valueName)
+    {
+        return !string.Equals(valueName, "Override Default Initials", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(valueName, "Default Initials", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeValueName(string fieldName, int player)
+    {
+        var name = fieldName ?? string.Empty;
+        var prefix = $"P{player} ";
+        if (player > 1 && name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            name = name.Substring(prefix.Length);
+
+        return name;
+    }
+
+    private static List<LocalPlayerProfile> LoadAll()
+    {
+        var result = new List<LocalPlayerProfile>();
+        if (!Directory.Exists(GetStorageRoot()))
+            return result;
+
+        foreach (var file in Directory.EnumerateFiles(GetStorageRoot(), "*.json"))
         {
-            return ValueNames.FirstOrDefault(name =>
-                string.Equals(name, valueName, StringComparison.OrdinalIgnoreCase));
+            if (IsAssignmentsFile(file))
+                continue;
+
+            var profile = TryReadProfile(file);
+            if (profile != null)
+                result.Add(profile);
         }
 
-        private static string GetStorageDirectoryPath() =>
-            Path.Combine("UserProfiles", StorageDirectory);
+        return result;
+    }
 
-        private static string GetAssignmentsPath() =>
-            Path.Combine(GetStorageDirectoryPath(), AssignmentsFileName);
+    private static LocalPlayerProfile? TryReadProfile(string file)
+    {
+        try
+        {
+            if (IsAssignmentsFile(file))
+                return null;
 
-        private static string GetProfilePath(string normalizedInitials) =>
-            Path.Combine(GetStorageDirectoryPath(), normalizedInitials + ".json");
+            var profile = JsonSerializer.Deserialize<LocalPlayerProfile>(File.ReadAllText(file));
+            if (profile == null)
+                return null;
+
+            var normalizedInitials = NormalizeInitials(profile.Initials);
+
+            // A real legacy profile always had valid initials. If this JSON has
+            // neither a profile name nor valid initials, it is not a player profile
+            // (for example the legacy _assignments.json file).
+            if (string.IsNullOrWhiteSpace(profile.ProfileName) &&
+                normalizedInitials == null)
+            {
+                return null;
+            }
+
+            // Legacy local profiles used initials as their identity and had no ProfileName.
+            if (string.IsNullOrWhiteSpace(profile.ProfileName))
+                profile.ProfileName = normalizedInitials!;
+
+            profile.ProfileName = profile.ProfileName.Trim();
+            profile.Initials = normalizedInitials ?? string.Empty;
+            profile.Values ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            profile.Values = new Dictionary<string, string>(profile.Values, StringComparer.OrdinalIgnoreCase);
+            return profile;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool IsAssignmentsFile(string file)
+    {
+        var fileName = Path.GetFileName(file);
+
+        return string.Equals(fileName, AssignmentsFileName, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(fileName, LegacyAssignmentsFileName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetStorageRoot() =>
+        Path.Combine("UserProfiles", StorageDirectory);
+
+    private static string GetAssignmentsPath() =>
+        Path.Combine(GetStorageRoot(), AssignmentsFileName);
+
+    private static string GetPathForName(string profileName)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(profileName.Trim().ToUpperInvariant()));
+        var key = Convert.ToHexString(bytes).Substring(0, 24);
+        return Path.Combine(GetStorageRoot(), key + ".json");
     }
 }

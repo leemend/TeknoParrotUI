@@ -74,26 +74,57 @@ if (Test-Path (Join-Path $OutputDir 'runtimes')) {
 
 Write-Host "Moved $($moved.Count) dependency file(s) into libs\" -ForegroundColor Green
 # Golden Tee Live 2019 local-player defaults native helper.
-$gtNativeSource = Join-Path $PSScriptRoot 'TeknoParrotUi.Common\Native\GoldenTee'
+# Prefer the actively-developed native helper repo next to this repo. This avoids
+# silently packaging stale copies from TeknoParrotUi.Common\Native\GoldenTee.
+$gtNativeRepo = Join-Path (Split-Path $PSScriptRoot -Parent) 'GoldenTeePlayerDefaults'
+$gtNativeFallback = Join-Path $PSScriptRoot 'TeknoParrotUi.Common\Native\GoldenTee'
 $gtNativeOutput = Join-Path $OutputDir 'Native\GoldenTee'
 
-if (!(Test-Path $gtNativeSource)) {
-    throw "Golden Tee native helper directory not found: $gtNativeSource"
+if (Test-Path $gtNativeRepo) {
+    $gtNativeSource = $gtNativeRepo
+}
+elseif (Test-Path $gtNativeFallback) {
+    $gtNativeSource = $gtNativeFallback
+    Write-Warning "Golden Tee native helper repo not found at '$gtNativeRepo'. Falling back to staged binaries at '$gtNativeFallback'."
+}
+else {
+    throw "Golden Tee native helper not found. Checked '$gtNativeRepo' and '$gtNativeFallback'."
+}
+
+$gtMainSource = Join-Path $gtNativeSource 'GoldenTeePlayerDefaults.dll'
+$gtBootstrapSource = Join-Path $gtNativeSource 'GoldenTeePlayerDefaultsBootstrap.dll'
+
+foreach ($requiredFile in @($gtMainSource, $gtBootstrapSource)) {
+    if (!(Test-Path $requiredFile)) {
+        throw "Required Golden Tee native helper file not found: $requiredFile"
+    }
 }
 
 New-Item -ItemType Directory -Force -Path $gtNativeOutput | Out-Null
 
-Copy-Item `
-    (Join-Path $gtNativeSource 'GoldenTeePlayerDefaults.dll') `
-    $gtNativeOutput `
-    -Force
+$gtMainOutput = Join-Path $gtNativeOutput 'GoldenTeePlayerDefaults.dll'
+$gtBootstrapOutput = Join-Path $gtNativeOutput 'GoldenTeePlayerDefaultsBootstrap.dll'
 
-Copy-Item `
-    (Join-Path $gtNativeSource 'GoldenTeePlayerDefaultsBootstrap.dll') `
-    $gtNativeOutput `
-    -Force
+Copy-Item $gtMainSource $gtMainOutput -Force
+Copy-Item $gtBootstrapSource $gtBootstrapOutput -Force
 
-Write-Host "Packaged Golden Tee player-defaults native helper." -ForegroundColor Green
+# Verify publish output byte-for-byte so a successful publish cannot silently
+# contain stale Golden Tee native helpers.
+$gtMainSourceHash = (Get-FileHash $gtMainSource -Algorithm SHA256).Hash
+$gtMainOutputHash = (Get-FileHash $gtMainOutput -Algorithm SHA256).Hash
+
+if ($gtMainSourceHash -ne $gtMainOutputHash) {
+    throw "Published GoldenTeePlayerDefaults.dll does not match the native build."
+}
+
+$gtBootstrapSourceHash = (Get-FileHash $gtBootstrapSource -Algorithm SHA256).Hash
+$gtBootstrapOutputHash = (Get-FileHash $gtBootstrapOutput -Algorithm SHA256).Hash
+
+if ($gtBootstrapSourceHash -ne $gtBootstrapOutputHash) {
+    throw "Published GoldenTeePlayerDefaultsBootstrap.dll does not match the native build."
+}
+
+Write-Host "Packaged Golden Tee player-defaults native helper from $gtNativeSource." -ForegroundColor Green
 
 $exe = Join-Path $OutputDir 'TeknoParrotUi.exe'
 $version = (Get-Item $exe).VersionInfo.FileVersion
