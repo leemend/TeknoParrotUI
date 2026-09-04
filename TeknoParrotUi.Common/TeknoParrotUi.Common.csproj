@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- Plain net8.0: compiles for Windows, Linux and macOS.
          Windows-only functionality (raw input, XInput registry lookup, memory-mapped
