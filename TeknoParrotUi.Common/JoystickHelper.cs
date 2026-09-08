@@ -140,7 +140,14 @@ namespace TeknoParrotUi.Common
             {
                 GameProfile profile;
 
-                using (XmlReader reader = XmlReader.Create(fileName, readerSettings))
+                var xml = System.IO.File.ReadAllText(fileName);
+                if (xml.Contains("<FieldType>Password</FieldType>"))
+                {
+                    xml = xml.Replace("<FieldType>Password</FieldType>", "<FieldType>Text</FieldType>");
+                }
+
+                using (var stringReader = new System.IO.StringReader(xml))
+                using (XmlReader reader = XmlReader.Create(stringReader, readerSettings))
                 {
                     profile = (GameProfile)gameProfileSerializer.Deserialize(reader);
                 }
