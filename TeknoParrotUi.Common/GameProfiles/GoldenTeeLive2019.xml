@@ -124,7 +124,7 @@
       <CategoryName>General</CategoryName>
       <FieldName>Banner Message</FieldName>
       <FieldValue>Welcome to Golden Tee Golf</FieldValue>
-      <FieldType>Password</FieldType>
+      <FieldType>Text</FieldType>
       <Hint>If enabled, will display on attract in a little LCD/segment like view. Only shows if Home Edition is disabled.</Hint>
     </FieldInformation>
     <FieldInformation>
@@ -776,6 +776,20 @@
     </FieldInformation>
     <FieldInformation>
       <CategoryName>Player 2 Customization</CategoryName>
+      <FieldName>P2 Override Default Initials</FieldName>
+      <FieldValue>0</FieldValue>
+      <FieldType>Bool</FieldType>
+      <Hint>Use the initials from the selected Player 2 profile.</Hint>
+    </FieldInformation>
+    <FieldInformation>
+      <CategoryName>Player 2 Customization</CategoryName>
+      <FieldName>P2 Default Initials</FieldName>
+      <FieldValue>PL2</FieldValue>
+      <FieldType>Text</FieldType>
+      <Hint>This should be 3 letters, no numbers or special signs.</Hint>
+    </FieldInformation>
+    <FieldInformation>
+      <CategoryName>Player 2 Customization</CategoryName>
       <FieldName>P2 Override Default Outfit</FieldName>
       <FieldValue>0</FieldValue>
       <FieldType>Bool</FieldType>
@@ -940,6 +954,20 @@
     </FieldInformation>
     <FieldInformation>
       <CategoryName>Player 3 Customization</CategoryName>
+      <FieldName>P3 Override Default Initials</FieldName>
+      <FieldValue>0</FieldValue>
+      <FieldType>Bool</FieldType>
+      <Hint>Use the initials from the selected Player 3 profile.</Hint>
+    </FieldInformation>
+    <FieldInformation>
+      <CategoryName>Player 3 Customization</CategoryName>
+      <FieldName>P3 Default Initials</FieldName>
+      <FieldValue>PL3</FieldValue>
+      <FieldType>Text</FieldType>
+      <Hint>This should be 3 letters, no numbers or special signs.</Hint>
+    </FieldInformation>
+    <FieldInformation>
+      <CategoryName>Player 3 Customization</CategoryName>
       <FieldName>P3 Override Default Outfit</FieldName>
       <FieldValue>0</FieldValue>
       <FieldType>Bool</FieldType>
@@ -1101,6 +1129,20 @@
       <Hint>Used when Player 3 customization is enabled.</Hint>
       <VisibleWhenField>P3 Override Default Outfit</VisibleWhenField>
       <VisibleWhenValue>1</VisibleWhenValue>
+    </FieldInformation>
+    <FieldInformation>
+      <CategoryName>Player 4 Customization</CategoryName>
+      <FieldName>P4 Override Default Initials</FieldName>
+      <FieldValue>0</FieldValue>
+      <FieldType>Bool</FieldType>
+      <Hint>Use the initials from the selected Player 4 profile.</Hint>
+    </FieldInformation>
+    <FieldInformation>
+      <CategoryName>Player 4 Customization</CategoryName>
+      <FieldName>P4 Default Initials</FieldName>
+      <FieldValue>PL4</FieldValue>
+      <FieldType>Text</FieldType>
+      <Hint>This should be 3 letters, no numbers or special signs.</Hint>
     </FieldInformation>
     <FieldInformation>
       <CategoryName>Player 4 Customization</CategoryName>
