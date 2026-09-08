@@ -29,6 +29,7 @@ public partial class JoystickSetupView : UserControl
 
     private readonly List<(ComboBox Combo, JoystickButtons Binding)> _deviceCombos = new();
     private bool _refreshingDeviceLists;
+    private bool _sunshineInputSubscribed;
 
     private readonly InputCaptureService _capture = new();
     private readonly RawInputCaptureService _rawCapture = new();
@@ -53,16 +54,35 @@ public partial class JoystickSetupView : UserControl
         _rawCapture.BindingCaptured += (name, button, isEscape) =>
             Dispatcher.UIThread.Post(() => OnRawCaptured(name, button, isEscape));
 
-        SunshinePlayerInput.InputReceived += OnSunshineInputReceived;
-        SunshinePlayerInput.Start();
+        StartSunshineInputCapture();
+        Loaded += (_, _) => StartSunshineInputCapture();
 
         Unloaded += (_, _) =>
         {
-            SunshinePlayerInput.InputReceived -= OnSunshineInputReceived;
-            SunshinePlayerInput.Stop();
+            StopSunshineInputCapture();
             ActiveCaptureSource.AllowedPlayer = ActiveCaptureSource.Any;
             StopCapture();
         };
+    }
+
+    private void StartSunshineInputCapture()
+    {
+        if (_sunshineInputSubscribed)
+            return;
+
+        SunshinePlayerInput.InputReceived += OnSunshineInputReceived;
+        SunshinePlayerInput.Start();
+        _sunshineInputSubscribed = true;
+    }
+
+    private void StopSunshineInputCapture()
+    {
+        if (!_sunshineInputSubscribed)
+            return;
+
+        SunshinePlayerInput.InputReceived -= OnSunshineInputReceived;
+        SunshinePlayerInput.Stop();
+        _sunshineInputSubscribed = false;
     }
 
     private void StopCapture()
