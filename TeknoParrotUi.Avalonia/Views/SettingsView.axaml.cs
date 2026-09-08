@@ -34,7 +34,7 @@ public partial class SettingsView : UserControl
         };
 
         LanguageSelector.ItemsSource = Languages.Select(l => l.Name).ToList();
-        // Live language switching ΓÇö no restart required
+        // Live language switching - no restart required
         LanguageSelector.SelectionChanged += (_, _) =>
         {
             if (_loadingSettings || LanguageSelector.SelectedIndex < 0)

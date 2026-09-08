@@ -14,7 +14,7 @@ using TeknoParrotUi.Common.InputListening;
 namespace TeknoParrotUi.Avalonia.Views;
 
 /// <summary>
-/// Configure buttons once, apply to many games ΓÇö full port of the classic
+/// Configure buttons once, apply to many games - full port of the classic
 /// MultiGameButtonConfig: input mode selection (MergedInput default), category
 /// and search filters, named profile save/load/delete, copy-from-game, reset,
 /// per-API binding copies restricted to APIs each game can actually read, and
@@ -279,7 +279,7 @@ public partial class MultiButtonConfigView : UserControl
         var selected = SelectedGames;
         if (selected.Count == 0)
         {
-            ButtonsHeader.Text = "Buttons ΓÇö select target games first";
+            ButtonsHeader.Text = "Buttons - select target games first";
             StopListening();
             return;
         }
@@ -333,7 +333,7 @@ public partial class MultiButtonConfigView : UserControl
             {
                 ToolTip.SetTip(label, string.Join("\n", usage
                     .GroupBy(u => u.ButtonName)
-                    .Select(g => $"{g.Key} ΓÇö {string.Join(", ", g.Select(u => u.GameName))}")));
+                    .Select(g => $"{g.Key} - {string.Join(", ", g.Select(u => u.GameName))}")));
             }
 
             Control editor;
@@ -363,7 +363,7 @@ public partial class MultiButtonConfigView : UserControl
                 Margin = new global::Avalonia.Thickness(6, 0, 0, 0)
             };
 
-            var clear = new Button { Content = "Γ£ò", FontSize = 12, Margin = new global::Avalonia.Thickness(4, 0, 0, 0) };
+            var clear = new Button { Content = "✕", FontSize = 12, Margin = new global::Avalonia.Thickness(4, 0, 0, 0) };
             ToolTip.SetTip(clear, "Clear this binding (all APIs)");
             clear.Click += (_, _) =>
             {
@@ -585,7 +585,7 @@ public partial class MultiButtonConfigView : UserControl
             case InputApi.SDL2 when captured.XInput != null:
             case InputApi.MergedInput when captured.XInput != null:
                 // SDL2 capture produces XInput-shaped bindings; one binding per
-                // row ΓÇö replaces any keyboard/mouse binding
+                // row - replaces any keyboard/mouse binding
                 master.XInputButton = captured.XInput;
                 master.BindNameXi = captured.DisplayName;
                 master.RawInputButton = null;
@@ -809,7 +809,7 @@ public partial class MultiButtonConfigView : UserControl
     // ---------- apply / save ----------
 
     /// <summary>
-    /// Applies the master bindings to the given games ΓÇö only for APIs each game can
+    /// Applies the master bindings to the given games - only for APIs each game can
     /// read, further restricted to the APIs the current UI mode edits (WPF rules).
     /// </summary>
     private (int changes, int applied, int skipped) ApplyMasterToGames(List<GameProfile> games, bool quiet = false)
@@ -837,7 +837,7 @@ public partial class MultiButtonConfigView : UserControl
                     gameChanges++;
             }
 
-            // Input is always merged at runtime (SDL2 + RawInput) ΓÇö no need to
+            // Input is always merged at runtime (SDL2 + RawInput) - no need to
             // rewrite the game's Input API, which now only stores gun flavour.
             totalChanges += gameChanges;
         }
@@ -952,7 +952,7 @@ public partial class MultiButtonConfigView : UserControl
         if (sourceProfile == null)
             return;
 
-        // Copy matching buttons ΓÇö only APIs the target game can actually read
+        // Copy matching buttons - only APIs the target game can actually read
         var targetApis = GetSupportedApis(targetProfile);
         foreach (var sourceButton in sourceProfile.JoystickButtons)
         {
@@ -1072,7 +1072,7 @@ public partial class MultiButtonConfigView : UserControl
             var result = await Dialogs.ConfirmCancelAsync(OwnerWindow, "Unsaved Changes",
                 "You have unsaved changes. Save them before leaving?");
             if (result == null)
-                return; // cancel ΓÇö stay
+                return; // cancel - stay
             if (result == true)
             {
                 var selectedGames = SelectedGames;

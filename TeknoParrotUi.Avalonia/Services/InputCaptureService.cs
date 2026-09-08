@@ -30,7 +30,7 @@ public sealed class InputCaptureService : IDisposable
     {
         Stop();
         _stop = false;
-        // Every gamepad API selection captures via SDL2 ΓÇö legacy DirectInput/
+        // Every gamepad API selection captures via SDL2 - legacy DirectInput/
         // XInput selections produce the same XInput-shaped bindings.
         SpawnSdl2Capture();
     }
