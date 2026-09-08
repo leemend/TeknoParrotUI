@@ -43,6 +43,7 @@ public partial class GameSettingsView : UserControl
     private GameProfile? _stockGoldenTeeProfile;
     private FieldInformation? _rodPreferredSetupAnchor;
     private bool _applyingRodPreferredSetup;
+    private bool _syncingRemoteLocalPlayInputApi;
     private CheckBox? _rodPreferredSetupCheckBox;
     private Control? _rodPreferredSetupRow;
     private readonly Dictionary<FieldInformation, Control> _fieldEditors = new();
@@ -215,6 +216,8 @@ public partial class GameSettingsView : UserControl
             foreach (var field in profile.ConfigValues.Where(c => c.CategoryName == category))
                 AddFieldEditor(field);
         }
+
+        SyncRemoteLocalPlayInputApi();
 
         // Baseline for unsaved-change detection (editor values normalize e.g. "" -> "0",
         // so compare against the editors' initial output rather than raw FieldValues)
@@ -1003,7 +1006,7 @@ public partial class GameSettingsView : UserControl
 
     private void HandleConfigFieldValueChanged(FieldInformation field)
     {
-        if (_applyingRodPreferredSetup)
+        if (_applyingRodPreferredSetup || _syncingRemoteLocalPlayInputApi)
             return;
 
         // Custom Golden Tee outfit and Rod mode are mutually exclusive.
@@ -1015,8 +1018,69 @@ public partial class GameSettingsView : UserControl
                 _rodPreferredSetupCheckBox.IsChecked = false;
         }
 
+        if (string.Equals(field.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase))
+            SyncRemoteLocalPlayInputApi();
+
         UpdateConditionalVisibilityModel();
         ApplyConditionalVisibilityToControls();
+    }
+
+    private void SyncRemoteLocalPlayInputApi()
+    {
+        if (_syncingRemoteLocalPlayInputApi || _profile?.ConfigValues == null)
+            return;
+
+        var remoteField = _profile.ConfigValues.FirstOrDefault(c =>
+            string.Equals(c.FieldName, "Remote Local Play", StringComparison.OrdinalIgnoreCase));
+        var inputApiField = _profile.ConfigValues.FirstOrDefault(c =>
+            string.Equals(c.FieldName, "Input API", StringComparison.OrdinalIgnoreCase));
+
+        if (remoteField == null || inputApiField == null ||
+            !_fieldEditors.TryGetValue(inputApiField, out var editor) ||
+            editor is not ComboBox combo)
+            return;
+
+        var remoteOn = string.Equals(remoteField.FieldValue, "On", StringComparison.OrdinalIgnoreCase);
+
+        _syncingRemoteLocalPlayInputApi = true;
+        try
+        {
+            if (remoteOn)
+            {
+                inputApiField.FieldValue = "MergedInput";
+                combo.ItemsSource = new List<string> { "MergedInput" };
+                combo.SelectedItem = "MergedInput";
+                inputApiField.IsEditorEnabled = false;
+                combo.IsEnabled = false;
+            }
+            else
+            {
+                var localOptions = (inputApiField.FieldOptions ?? new List<string>())
+                    .Where(o => o is "RawInput" or "RawInputTrackball")
+                    .ToList();
+
+                if (localOptions.Count == 0)
+                    localOptions.AddRange(new[] { "RawInput", "RawInputTrackball" });
+
+                combo.ItemsSource = localOptions;
+
+                if (string.Equals(inputApiField.FieldValue, "MergedInput", StringComparison.OrdinalIgnoreCase) ||
+                    !localOptions.Contains(inputApiField.FieldValue ?? ""))
+                {
+                    inputApiField.FieldValue = localOptions.Contains("RawInputTrackball")
+                        ? "RawInputTrackball"
+                        : localOptions[0];
+                }
+
+                combo.SelectedItem = inputApiField.FieldValue;
+                inputApiField.IsEditorEnabled = true;
+                combo.IsEnabled = true;
+            }
+        }
+        finally
+        {
+            _syncingRemoteLocalPlayInputApi = false;
+        }
     }
 
     private void ConfigureRodPreferredSetup(GameProfile profile)
