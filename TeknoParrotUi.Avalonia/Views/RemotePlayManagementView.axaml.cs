@@ -17,6 +17,7 @@ public partial class RemotePlayManagementView : UserControl
     private bool _moonlightBusy;
     private bool _moonlightChecking;
     private bool _moonlightReady;
+    private int _moonlightStatusGeneration;
     private DateTime _lastMoonlightCheck = DateTime.MinValue;
 
     public event Action<SunshineClientInfo, int>? EditProfileRequested;
@@ -486,10 +487,23 @@ public partial class RemotePlayManagementView : UserControl
         var host = (MoonlightHostTextBox.Text ?? "").Trim();
         if (string.IsNullOrWhiteSpace(host)) return;
 
+        var statusGeneration = _moonlightStatusGeneration;
+
         _moonlightChecking = true;
-        try { ApplyApps(host, await MoonlightManager.ListAppsAsync(host, TimeSpan.FromSeconds(6))); }
+        try
+        {
+            var apps = await MoonlightManager.ListAppsAsync(host, TimeSpan.FromSeconds(6));
+
+            if (statusGeneration != _moonlightStatusGeneration)
+                return;
+
+            ApplyApps(host, apps);
+        }
         catch (Exception ex) when (NotPaired(ex))
         {
+            if (statusGeneration != _moonlightStatusGeneration)
+                return;
+
             MoonlightAppsListBox.ItemsSource = null;
             MoonlightGeneratedPinText.Text = "----";
             MoonlightPairStatusText.Text = "This host is not paired. Generate a new PIN to pair again.";
@@ -497,6 +511,9 @@ public partial class RemotePlayManagementView : UserControl
         }
         catch (Exception ex) when (HostUnavailable(ex))
         {
+            if (statusGeneration != _moonlightStatusGeneration)
+                return;
+
             MoonlightAppsListBox.ItemsSource = null;
             MoonlightConnectionStatusText.Text = "Host Offline / Sunshine Unavailable";
         }
@@ -532,6 +549,11 @@ public partial class RemotePlayManagementView : UserControl
         try
         {
             var host = Host();
+
+            // Invalidate any host-status request that started before this pairing
+            // attempt. A stale "not paired" result must never erase the active PIN.
+            _moonlightStatusGeneration++;
+
             var pin = Random.Shared.Next(0, 10000).ToString("D4");
             MoonlightGeneratedPinText.Text = pin;
             MoonlightPairStatusText.Text = $"Enter PIN {pin} on the Sunshine host to approve this client.";
