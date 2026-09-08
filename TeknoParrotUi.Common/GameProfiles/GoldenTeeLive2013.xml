@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <GameProfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<GamePath></GamePath>
 	<TestMenuParameter></TestMenuParameter>
@@ -7,7 +7,7 @@
 	<TestMenuExtraParameters></TestMenuExtraParameters>
 	<ResetHint>false</ResetHint>
 	<EmulationProfile>IncredibleTechnologies</EmulationProfile>
-	<GameProfileRevision>9</GameProfileRevision>
+	<GameProfileRevision>12</GameProfileRevision>
 	<HasSeparateTestMode>false</HasSeparateTestMode>
 	<Is64Bit>false</Is64Bit>
 	<DevOnly>false</DevOnly>
@@ -22,6 +22,17 @@
 	<yAxisMin>0</yAxisMin>
 	<yAxisMax>255</yAxisMax>
 	<ConfigValues>
+		<FieldInformation>
+			<CategoryName>Streaming</CategoryName>
+			<FieldName>Remote Local Play</FieldName>
+			<FieldValue>Off</FieldValue>
+			<FieldType>Dropdown</FieldType>
+			<FieldOptions>
+				<string>Off</string>
+				<string>On</string>
+				<string>Host Only</string>
+			</FieldOptions>
+		</FieldInformation>
 		<FieldInformation>
 			<CategoryName>General</CategoryName>
 			<FieldName>Input API</FieldName>
@@ -91,7 +102,7 @@
 			<CategoryName>General</CategoryName>
 			<FieldName>Default Initials</FieldName>
 			<FieldValue>PL1</FieldValue>
-			<FieldType>Text</FieldType>
+			<FieldType>Password</FieldType>
 			<Hint>This should be 3 letters, no numbers or special signs.</Hint>
 		</FieldInformation>
 		<FieldInformation>
@@ -354,6 +365,146 @@
       </FieldOptions>
     </FieldInformation>
 	</ConfigValues>
+		<JoystickButtons>
+			<ButtonName>P2 Start</ButtonName>
+			<InputMapping>Stream2P1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Left</ButtonName>
+			<InputMapping>Stream2P2Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Right</ButtonName>
+			<InputMapping>Stream2P2Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 FlyBy</ButtonName>
+			<InputMapping>Stream2P1Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Spin</ButtonName>
+			<InputMapping>Stream2P1Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Option</ButtonName>
+			<InputMapping>Stream2P1Button3</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Help</ButtonName>
+			<InputMapping>Stream2P1Button4</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Switch Club Left</ButtonName>
+			<InputMapping>Stream2P1Button6</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 Switch Club Right</ButtonName>
+			<InputMapping>Stream2P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Start</ButtonName>
+			<InputMapping>Stream3P1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Left</ButtonName>
+			<InputMapping>Stream3P2Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Right</ButtonName>
+			<InputMapping>Stream3P2Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 FlyBy</ButtonName>
+			<InputMapping>Stream3P1Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Spin</ButtonName>
+			<InputMapping>Stream3P1Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Option</ButtonName>
+			<InputMapping>Stream3P1Button3</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Help</ButtonName>
+			<InputMapping>Stream3P1Button4</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Switch Club Left</ButtonName>
+			<InputMapping>Stream3P1Button6</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 Switch Club Right</ButtonName>
+			<InputMapping>Stream3P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Start</ButtonName>
+			<InputMapping>Stream4P1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Left</ButtonName>
+			<InputMapping>Stream4P2Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Right</ButtonName>
+			<InputMapping>Stream4P2Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 FlyBy</ButtonName>
+			<InputMapping>Stream4P1Button1</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Spin</ButtonName>
+			<InputMapping>Stream4P1Button2</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Option</ButtonName>
+			<InputMapping>Stream4P1Button3</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Help</ButtonName>
+			<InputMapping>Stream4P1Button4</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Switch Club Left</ButtonName>
+			<InputMapping>Stream4P1Button6</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 Switch Club Right</ButtonName>
+			<InputMapping>Stream4P2ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>Host Start</ButtonName>
+			<InputMapping>StreamHostP1ButtonStart</InputMapping>
+			<HideWithoutRemoteLocalPlayHost>true</HideWithoutRemoteLocalPlayHost>
+		</JoystickButtons>
 	<JoystickButtons>
 		<JoystickButtons>
 			<ButtonName>Test</ButtonName>
@@ -424,6 +575,34 @@
 			<InputMapping>P1Trackball</InputMapping>
 			<HideWithDirectInput>true</HideWithDirectInput>
 			<HideWithXInput>true</HideWithXInput>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P2 TrackBall</ButtonName>
+			<InputMapping>P2Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P3 TrackBall</ButtonName>
+			<InputMapping>P3Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>P4 TrackBall</ButtonName>
+			<InputMapping>P4Trackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayMode>true</HideWithoutRemoteLocalPlayMode>
+		</JoystickButtons>
+		<JoystickButtons>
+			<ButtonName>Host TrackBall</ButtonName>
+			<InputMapping>HostTrackball</InputMapping>
+			<HideWithDirectInput>true</HideWithDirectInput>
+			<HideWithXInput>true</HideWithXInput>
+			<HideWithoutRemoteLocalPlayHost>true</HideWithoutRemoteLocalPlayHost>
 		</JoystickButtons>
 	</JoystickButtons>
 </GameProfile>
