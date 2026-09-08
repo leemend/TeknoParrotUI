@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2787,5 +2787,93 @@ Nyt suljetaan...</value>
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>Vaihe {0} / {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>TeknoParrot-uutiset</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>Tilaa</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>Sulje</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>Sivua ei voitu ladata t├ñss├ñ ikkunassa. Avaa se selaimessa tai sulje tiedote jatkaaksesi TeknoParrotin k├ñytt├╢├ñ.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>Selainta ei voitu avata: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / UUTISET</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>Avaa selaimessa</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>Ladataan uusinta tiedotetta</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>Yhdistet├ñ├ñn uutissy├╢tteeseen...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>Avaa t├ñm├ñ uutinen selaimessa.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>Yrit├ñ uudelleen</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>PID├ä ARCADE HENGISS├ä.</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>Tilauksesi auttaa tuomaan lis├ñ├ñ pelej├ñ TeknoParrotiin.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>Sulje tiedote jatkaaksesi TeknoParrotin k├ñytt├╢├ñ.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>Suurenna / palauta</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>Poistetaanko paikallinen tilausavain?</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+Jos t├ñm├ñ avain ei ole sinun tai se on vanhentunut, haluatko poistaa sen t├ñlt├ñ tietokoneelta?
+
+Vain t├ñlle tietokoneelle tallennettu avain poistetaan. T├ñm├ñ ei vapauta aktivointia palvelimella eik├ñ nollaa 30 p├ñiv├ñn odotusaikaa.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>Paikallinen tilausavain poistettiin. Valitse tai sy├╢t├ñ oma voimassa oleva avaimesi ja yrit├ñ rekister├╢inti├ñ uudelleen.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>Tallennettu tilausavain muuttui toiminnon aikana. Mit├ñ├ñn ei poistettu. Yrit├ñ uudelleen.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>Paikallista tilausavainta ei voitu poistaa. Tarkista k├ñytt├╢oikeutesi ja yrit├ñ uudelleen.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader ep├ñonnistui paluukoodilla {0}. Paikallinen aktivointi s├ñilytettiin.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader ei palauttanut kelvollista deaktivoinnin tulosta. Paikallinen aktivointi s├ñilytettiin.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>Aktivointipalvelimeen ei saatu yhteytt├ñ. Paikallinen aktivointi s├ñilytettiin.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>Aktivointipalvelin palautti virheellisen vastauksen. Paikallinen aktivointi s├ñilytettiin.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>Aktivointipalvelin ei tunnistanut t├ñt├ñ aktivointia. Paikallinen aktivointi s├ñilytettiin.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>Aktivointipalvelin hylk├ñsi deaktivoinnin. T├ñm├ñn sarjanumeron 30 p├ñiv├ñn odotusaika saattaa olla viel├ñ kesken.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>Aktivointipalvelin hylk├ñsi deaktivoinnin koodilla {0}. Paikallinen aktivointi s├ñilytettiin.</value>
   </data>
 </root>

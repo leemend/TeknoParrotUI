@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2787,5 +2787,93 @@ Jetzt wird geschlossen...</value>
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>Schritt {0} von {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>TeknoParrot-Neuigkeiten</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>Abonnieren</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>Schlie├ƒen</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>Diese Seite konnte hier nicht geladen werden. ├ûffne sie im Browser oder schlie├ƒe diese Meldung, um TeknoParrot weiter zu nutzen.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>Dein Browser konnte nicht ge├╢ffnet werden: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / NACHRICHTEN</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>Im Browser ├╢ffnen</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>Die neuesten Nachrichten werden geladen</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>Verbindung zum Nachrichtenfeed wird hergestellt...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>├ûffne diesen Beitrag in deinem Browser.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>Erneut versuchen</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>HALTE DIE ARCADE AM LEBEN.</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>Dein Abonnement hilft dabei, mehr Spiele zu TeknoParrot zu bringen.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>Schlie├ƒe diese Meldung, um TeknoParrot weiter zu nutzen.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>Maximieren / Wiederherstellen</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>Lokalen Abonnementschl├╝ssel entfernen?</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+Wenn dies nicht dein Schl├╝ssel ist oder er abgelaufen ist, m├╢chtest du ihn von diesem Computer l├╢schen?
+
+Nur der auf diesem PC gespeicherte Schl├╝ssel wird entfernt. Dadurch wird keine Aktivierung auf dem Server freigegeben und die Wartezeit von 30 Tagen wird nicht zur├╝ckgesetzt.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>Der lokale Abonnementschl├╝ssel wurde entfernt. W├ñhle deinen eigenen g├╝ltigen Schl├╝ssel aus oder gib ihn ein und versuche die Registrierung erneut.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>Der gespeicherte Abonnementschl├╝ssel hat sich w├ñhrend dieses Vorgangs ge├ñndert. Es wurde nichts gel├╢scht. Bitte versuche es erneut.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>Der lokale Abonnementschl├╝ssel konnte nicht entfernt werden. Pr├╝fe deine Berechtigungen und versuche es erneut.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader ist mit dem Exitcode {0} fehlgeschlagen. Die lokale Aktivierung wurde beibehalten.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader hat kein g├╝ltiges Deaktivierungsergebnis zur├╝ckgegeben. Die lokale Aktivierung wurde beibehalten.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>Der Aktivierungsserver konnte nicht erreicht werden. Die lokale Aktivierung wurde beibehalten.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>Der Aktivierungsserver hat eine ung├╝ltige Antwort zur├╝ckgegeben. Die lokale Aktivierung wurde beibehalten.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>Der Aktivierungsserver hat diese Aktivierung nicht erkannt. Die lokale Aktivierung wurde beibehalten.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>Der Aktivierungsserver hat die Deaktivierung abgelehnt. F├╝r diese Seriennummer gilt m├╢glicherweise noch die Wartezeit von 30 Tagen.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>Der Aktivierungsserver hat die Deaktivierung mit dem Code {0} abgelehnt. Die lokale Aktivierung wurde beibehalten.</value>
   </data>
 </root>

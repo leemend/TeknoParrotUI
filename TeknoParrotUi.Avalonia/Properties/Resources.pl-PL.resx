@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2787,5 +2787,93 @@ Teraz zamykam...</value>
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>Krok {0} z {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>Wiadomo┼¢ci TeknoParrot</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>Subskrybuj</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>Nie uda┼éo si─Ö tutaj wczyta─ç tej strony. Otw├│rz j─à w przegl─àdarce lub zamknij ten biuletyn, aby dalej korzysta─ç z TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>Nie uda┼éo si─Ö otworzy─ç przegl─àdarki: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / WIADOMO┼ÜCI</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>Otw├│rz w przegl─àdarce</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>Wczytywanie najnowszego biuletynu</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>┼ü─àczenie z kana┼éem wiadomo┼¢ci...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>Otw├│rz ten artyku┼é w przegl─àdarce.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>Spr├│buj ponownie</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>NIECH ARCADE ┼╗YJE DALEJ.</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>Twoja subskrypcja pomaga dodawa─ç kolejne gry do TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>Zamknij ten biuletyn, aby dalej korzysta─ç z TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>Maksymalizuj / przywr├│─ç</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>Usun─à─ç lokalny klucz subskrypcji?</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+Je┼¢li ten klucz nie nale┼╝y do Ciebie lub wygas┼é, czy chcesz usun─à─ç go z tego komputera?
+
+Zostanie usuni─Öty tylko klucz zapisany na tym komputerze. Nie zwolni to aktywacji na serwerze ani nie zresetuje 30-dniowego okresu oczekiwania.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>Lokalny klucz subskrypcji zosta┼é usuni─Öty. Wybierz lub wpisz w┼éasny wa┼╝ny klucz i spr├│buj ponownie go zarejestrowa─ç.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>Zapisany klucz subskrypcji zmieni┼é si─Ö podczas tej operacji. Niczego nie usuni─Öto. Spr├│buj ponownie.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>Nie uda┼éo si─Ö usun─à─ç lokalnego klucza subskrypcji. Sprawd┼║ uprawnienia i spr├│buj ponownie.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader zako┼äczy┼é dzia┼éanie z kodem b┼é─Ödu {0}. Lokalna aktywacja zosta┼éa zachowana.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader nie zwr├│ci┼é prawid┼éowego wyniku dezaktywacji. Lokalna aktywacja zosta┼éa zachowana.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>Nie uda┼éo si─Ö po┼é─àczy─ç z serwerem aktywacji. Lokalna aktywacja zosta┼éa zachowana.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>Serwer aktywacji zwr├│ci┼é nieprawid┼éow─à odpowied┼║. Lokalna aktywacja zosta┼éa zachowana.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>Serwer aktywacji nie rozpozna┼é tej aktywacji. Lokalna aktywacja zosta┼éa zachowana.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>Serwer aktywacji odrzuci┼é dezaktywacj─Ö. Ten numer seryjny mo┼╝e nadal podlega─ç 30-dniowemu okresowi oczekiwania.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>Serwer aktywacji odrzuci┼é dezaktywacj─Ö z kodem {0}. Lokalna aktywacja zosta┼éa zachowana.</value>
   </data>
 </root>

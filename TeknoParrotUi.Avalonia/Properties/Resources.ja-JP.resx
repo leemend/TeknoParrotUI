@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2787,5 +2787,93 @@ TeknoParrotを再展開してください。</value>
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>ステップ {0} / {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>TeknoParrot πâïπâÑπâ╝πé╣</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>πé╡πâûπé╣πé»πâ¬πâùπé╖πâºπâ│πü½τÖ╗Θî▓</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>Θûëπüÿπéï</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>πüôπü«πéªπéúπâ│πâëπéªπüºπü»πâÜπâ╝πé╕πéÆΦ¬¡πü┐Φ╛╝πéüπü╛πü¢πéôπüºπüùπüƒπÇéπâûπâ⌐πéªπé╢πâ╝πüºΘûïπüÅπüïπÇüπüôπü«πüèτƒÑπéëπü¢πéÆΘûëπüÿπüª TeknoParrot πü«Σ╜┐τö¿πéÆτ╢ÜπüæπüªπüÅπüáπüòπüäπÇé</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>πâûπâ⌐πéªπé╢πâ╝πéÆΘûïπüæπü╛πü¢πéôπüºπüùπüƒ: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / πâïπâÑπâ╝πé╣</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>πâûπâ⌐πéªπé╢πâ╝πüºΘûïπüÅ</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>µ£Çµû░πü«πüèτƒÑπéëπü¢πéÆΦ¬¡πü┐Φ╛╝πü┐Σ╕¡</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>πâïπâÑπâ╝πé╣πâòπéúπâ╝πâëπü½µÄÑτ╢ÜΣ╕¡...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>πüôπü«Φ¿ÿΣ║ïπéÆπâûπâ⌐πéªπé╢πâ╝πüºΘûïπüäπüªπüÅπüáπüòπüäπÇé</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>σåìΦ⌐ªΦíî</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>πéóπâ╝πé▒πâ╝πâëπü«µ£¬µ¥ÑπéÆµö»πüêπéêπüåπÇé</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>πé╡πâûπé╣πé»πâ¬πâùπé╖πâºπâ│πü╕πü«τÖ╗Θî▓πüîπÇüTeknoParrot πü«σ»╛σ┐£πé▓πâ╝πâáΦ┐╜σèáπü½πüñπü¬πüîπéèπü╛πüÖπÇé</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>πüôπü«πüèτƒÑπéëπü¢πéÆΘûëπüÿπüª TeknoParrot πü«Σ╜┐τö¿πéÆτ╢Üπüæπü╛πüÖπÇé</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>µ£Çσñºσîû / σàâπü½µê╗πüÖ</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>πâ¡πâ╝πé½πâ½πü«πé╡πâûπé╣πé»πâ¬πâùπé╖πâºπâ│πé¡πâ╝πéÆσëèΘÖñπüùπü╛πüÖπüï∩╝ƒ</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+πüôπü«πé¡πâ╝πüîπüöΦç¬Φ║½πü«πééπü«πüºπü»πü¬πüäπÇüπü╛πüƒπü»µ£ëσè╣µ£ƒΘÖÉπüîσêçπéîπüªπüäπéïσá┤σÉêπÇüπüôπü«πé│πâ│πâöπâÑπâ╝πé┐πâ╝πüïπéëσëèΘÖñπüùπü╛πüÖπüï∩╝ƒ
+
+σëèΘÖñπüòπéîπéïπü«πü»πÇüπüôπü« PC πü½Σ┐¥σ¡ÿπüòπéîπüƒπé¡πâ╝πüáπüæπüºπüÖπÇéπé╡πâ╝πâÉπâ╝Σ╕èπü«Φ¬ìΦ¿╝πü»ΦºúΘÖñπüòπéîπüÜπÇü30 µùÑΘûôπü«σ╛àµ⌐ƒµ£ƒΘûôπééπâ¬πé╗πââπâêπüòπéîπü╛πü¢πéôπÇé</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>πâ¡πâ╝πé½πâ½πü«πé╡πâûπé╣πé»πâ¬πâùπé╖πâºπâ│πé¡πâ╝πéÆσëèΘÖñπüùπü╛πüùπüƒπÇéπüöΦç¬Φ║½πü«µ£ëσè╣πü¬πé¡πâ╝πéÆΘü╕µè₧πü╛πüƒπü»σàÑσè¢πüùπÇüπééπüåΣ╕Çσ║ªτÖ╗Θî▓πüùπüªπüÅπüáπüòπüäπÇé</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>σçªτÉåΣ╕¡πü½Σ┐¥σ¡ÿµ╕êπü┐πü«πé╡πâûπé╣πé»πâ¬πâùπé╖πâºπâ│πé¡πâ╝πüîσñëµ¢┤πüòπéîπü╛πüùπüƒπÇéΣ╜òπééσëèΘÖñπüùπüªπüäπü╛πü¢πéôπÇéπééπüåΣ╕Çσ║ªπüèΦ⌐ªπüùπüÅπüáπüòπüäπÇé</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>πâ¡πâ╝πé½πâ½πü«πé╡πâûπé╣πé»πâ¬πâùπé╖πâºπâ│πé¡πâ╝πéÆσëèΘÖñπüºπüìπü╛πü¢πéôπüºπüùπüƒπÇéπéóπé»πé╗πé╣µ¿⌐πéÆτó║Φ¬ìπüùπüªπÇüπééπüåΣ╕Çσ║ªπüèΦ⌐ªπüùπüÅπüáπüòπüäπÇé</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader πüîτ╡éΣ║åπé│πâ╝πâë {0} πüºσñ▒µòùπüùπü╛πüùπüƒπÇéπâ¡πâ╝πé½πâ½πü«Φ¬ìΦ¿╝µâàσá▒πü»Σ┐¥µîüπüòπéîπüªπüäπü╛πüÖπÇé</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader πüïπéëµ£ëσè╣πü¬Φ¬ìΦ¿╝ΦºúΘÖñτ╡Éµ₧£πüîΦ┐öπüòπéîπü╛πü¢πéôπüºπüùπüƒπÇéπâ¡πâ╝πé½πâ½πü«Φ¬ìΦ¿╝µâàσá▒πü»Σ┐¥µîüπüòπéîπüªπüäπü╛πüÖπÇé</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>Φ¬ìΦ¿╝πé╡πâ╝πâÉπâ╝πü½µÄÑτ╢Üπüºπüìπü╛πü¢πéôπüºπüùπüƒπÇéπâ¡πâ╝πé½πâ½πü«Φ¬ìΦ¿╝µâàσá▒πü»Σ┐¥µîüπüòπéîπüªπüäπü╛πüÖπÇé</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>Φ¬ìΦ¿╝πé╡πâ╝πâÉπâ╝πüïπéëτäíσè╣πü¬σ┐£τ¡öπüîΦ┐öπüòπéîπü╛πüùπüƒπÇéπâ¡πâ╝πé½πâ½πü«Φ¬ìΦ¿╝µâàσá▒πü»Σ┐¥µîüπüòπéîπüªπüäπü╛πüÖπÇé</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>Φ¬ìΦ¿╝πé╡πâ╝πâÉπâ╝πüîπüôπü«Φ¬ìΦ¿╝πéÆΦ¬ìΦ¡ÿπüùπü╛πü¢πéôπüºπüùπüƒπÇéπâ¡πâ╝πé½πâ½πü«Φ¬ìΦ¿╝µâàσá▒πü»Σ┐¥µîüπüòπéîπüªπüäπü╛πüÖπÇé</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>Φ¬ìΦ¿╝πé╡πâ╝πâÉπâ╝πüîΦ¬ìΦ¿╝ΦºúΘÖñπéÆµïÆσÉªπüùπü╛πüùπüƒπÇéπüôπü«πé╖πâ¬πéóπâ½τò¬σÅ╖πü»πÇüπü╛πüá 30 µùÑΘûôπü«σ╛àµ⌐ƒµ£ƒΘûôΣ╕¡πü«σÅ»Φâ╜µÇºπüîπüéπéèπü╛πüÖπÇé</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>Φ¬ìΦ¿╝πé╡πâ╝πâÉπâ╝πüîπé│πâ╝πâë {0} πüºΦ¬ìΦ¿╝ΦºúΘÖñπéÆµïÆσÉªπüùπü╛πüùπüƒπÇéπâ¡πâ╝πé½πâ½πü«Φ¬ìΦ¿╝µâàσá▒πü»Σ┐¥µîüπüòπéîπüªπüäπü╛πüÖπÇé</value>
   </data>
 </root>

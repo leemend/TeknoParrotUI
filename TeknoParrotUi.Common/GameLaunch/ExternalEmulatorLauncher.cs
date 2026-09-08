@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -27,6 +29,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 case EmulatorType.pcsx2x6:
                 case EmulatorType.TeknoVegas:
                 case EmulatorType.TeknoViper:
+                case EmulatorType.TeknoModel1:
                     return true;
                 default:
                     return false;
@@ -50,6 +53,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 case EmulatorType.pcsx2x6: return BuildPcsx2x6(profile, windowed, log);
                 case EmulatorType.TeknoVegas: return BuildTeknoVegas(profile, gameLocation, log);
                 case EmulatorType.TeknoViper: return BuildTeknoViper(profile, gameLocation, log);
+                case EmulatorType.TeknoModel1: return BuildTeknoModel1(profile, gameLocation, log);
                 case EmulatorType.RPCS3: return BuildRpcs3(profile, windowed, log);
                 case EmulatorType.cxbxr: return BuildCxbxr(profile, windowed, log);
                 default: throw new InvalidOperationException($"{profile.EmulatorType} is not an external emulator");
@@ -399,7 +403,199 @@ namespace TeknoParrotUi.Common.GameLaunch
             xmlDoc.Save(configPath);
         }
 
-        // ---------- TeknoVegas ----------
+        // ---------- TeknoModel1 / TeknoVegas / TeknoViper ----------
+
+        private const int ErrorFileNotFound = 2;
+        private const int ErrorPathNotFound = 3;
+        private const int ErrorNotSupported = 50;
+        private const int ErrorInvalidName = 123;
+
+        private static string VrDepthArgument(string value)
+        {
+            if (!int.TryParse(value, out var percentage) ||
+                percentage < 100 || percentage > 200)
+                percentage = 150;
+            return $"{percentage / 100}.{percentage % 100:D2}";
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool DeleteFile(string fileName);
+
+        private static ProcessStartInfo BuildTeknoModel1(
+            GameProfile profile,
+            string gameLocation,
+            Action<string> log)
+        {
+            string Setting(string name, string fallback = "") =>
+                profile.ConfigValues?.FirstOrDefault(x => x.FieldName == name)?.FieldValue
+                ?? fallback;
+
+            bool Enabled(string name, bool fallback = false)
+            {
+                var value = Setting(name, fallback ? "1" : "0");
+                return value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase);
+            }
+
+            string Quote(string value) =>
+                "\"" + (value ?? string.Empty).Replace("\"", "\\\"") + "\"";
+
+            var uiRoot = Directory.GetCurrentDirectory();
+            var workDir = Path.Combine(uiRoot, "TeknoModel1");
+            var executable = Path.Combine(workDir, "TeknoModel1.exe");
+
+            string ResolveUiPath(string path, string fallback)
+            {
+                var value = string.IsNullOrWhiteSpace(path) ? fallback : path;
+                return Path.IsPathRooted(value)
+                    ? value
+                    : Path.GetFullPath(Path.Combine(uiRoot, value));
+            }
+
+            var selectedRom = string.IsNullOrWhiteSpace(gameLocation)
+                ? profile.GamePath
+                : gameLocation;
+            var configuredRomRoot = Setting("ROM Root");
+            string romRoot;
+            if (!string.IsNullOrWhiteSpace(configuredRomRoot))
+                romRoot = ResolveUiPath(configuredRomRoot, workDir);
+            else if (!string.IsNullOrWhiteSpace(selectedRom) &&
+                     selectedRom.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                romRoot = Path.GetDirectoryName(ResolveUiPath(selectedRom, workDir)) ?? workDir;
+            else
+                romRoot = ResolveUiPath(selectedRom, workDir);
+
+            var gameId = profile.ProfileName;
+            var saveRoot = ResolveUiPath(
+                Setting("Save Root"), Path.Combine(workDir, "saves"));
+            Directory.CreateDirectory(saveRoot);
+
+            var scale = Setting("Internal Resolution", "4");
+            if (!int.TryParse(scale, out var scaleValue) || scaleValue < 1 || scaleValue > 8)
+                scale = "4";
+            var vrEnabled = Enabled("Enable VR");
+            var filter = Setting("Presentation Filter", "ssaa").Trim().ToLowerInvariant();
+            if (filter != "ssaa" && filter != "nearest" && filter != "linear" && filter != "bicubic")
+                filter = "ssaa";
+
+            if (vrEnabled && filter == "bicubic")
+                filter = "nearest";
+
+            string DisplayValue(string name, double fallback, double minimum, double maximum)
+            {
+                var value = Setting(name);
+                if ((!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) &&
+                     !double.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out parsed)) ||
+                    double.IsNaN(parsed) || double.IsInfinity(parsed) || parsed < minimum || parsed > maximum)
+                    parsed = fallback;
+                return parsed.ToString(CultureInfo.InvariantCulture);
+            }
+
+            var parameters = new List<string>
+            {
+                "--game", gameId,
+                "--rom-dir", Quote(romRoot),
+                "--save-dir", Quote(saveRoot),
+                "--internal-scale", scale,
+                "--presentation-filter", filter,
+                "--outputs"
+            };
+
+            if (Enabled("Smooth Geometry"))
+                parameters.Add("--smooth-geometry");
+            if (gameId == "vr" && Enabled("Extended Draw Distance"))
+                parameters.Add("--vr-extended-draw-distance");
+            if (Setting("DisplayMode", "Fullscreen") == "Fullscreen")
+                parameters.Add("--fullscreen");
+            if (Enabled("Stretch to Fullscreen"))
+                parameters.Add("--stretch-to-fullscreen");
+            if (vrEnabled)
+            {
+                parameters.Add("--vr");
+                parameters.Add("--vr-depth");
+                parameters.Add(VrDepthArgument(Setting("VR Depth", "150")));
+            }
+            else
+            {
+                var crtShader = Setting("CRT Shader", "None").Trim().ToLowerInvariant();
+                switch (crtShader)
+                {
+                    case "lottes":
+                        break;
+                    case "lottes downsample":
+                    case "lottes-ssaa":
+                        crtShader = "lottes-ssaa";
+                        break;
+                    default:
+                        crtShader = "none";
+                        break;
+                }
+                parameters.AddRange(new[]
+                {
+                    "--crt-shader", crtShader,
+                    "--sharpen", DisplayValue("Presentation Sharpening", 0.0, 0.0, 1.0),
+                    "--gamma", DisplayValue("Display Gamma", 1.0, 0.5, 2.0),
+                    "--saturation", DisplayValue("Display Saturation", 1.0, 0.5, 2.0),
+                    "--contrast", DisplayValue("Display Contrast", 1.0, 0.5, 2.0)
+                });
+                if (Enabled("Use Bezel"))
+                    parameters.Add("--bezels");
+            }
+            if (Enabled("Mute Audio"))
+                parameters.Add("--no-audio");
+            if (Enabled("Cabinet Outputs"))
+                parameters.Add("--outputs");
+            if (Enabled("Uncapped"))
+                parameters.Add("--uncapped");
+            if (Enabled("Legacy Low-Latency Pacing"))
+                parameters.Add("--pace-after-present");
+
+            var ffbDevice = Setting("Force Feedback Device", "off").Trim();
+            var ffbToken = ffbDevice.Split(':');
+            if (ffbDevice != "off" &&
+                (ffbToken.Length != 2 ||
+                 (ffbToken[0] != "wheel" && ffbToken[0] != "gamepad") ||
+                 !uint.TryParse(ffbToken[1], out _)))
+                ffbDevice = "off";
+            parameters.Add("--ffb-device");
+            parameters.Add(ffbDevice);
+
+            if (gameId == "netmerc")
+            {
+                var donor = Setting("NetMerc Audio Donor", "vf");
+                if (donor != "vf" && donor != "vr" && donor != "swa" &&
+                    donor != "wingwar" && donor != "off")
+                    donor = "vf";
+                parameters.Add("--netmerc-donor");
+                parameters.Add(donor);
+            }
+
+            var linkRole = Setting("Link Role", "Off").ToLowerInvariant();
+            var linkServer = Setting("Link Server").Trim();
+            if ((linkRole == "master" || linkRole == "slave") &&
+                !string.IsNullOrWhiteSpace(linkServer))
+            {
+                parameters.Add("--link-server");
+                parameters.Add(Quote(linkServer));
+                parameters.Add("--link-role");
+                parameters.Add(linkRole);
+            }
+
+            if (!File.Exists(executable))
+                log?.Invoke($"TeknoModel1 executable was not found at {executable}");
+            if (!Directory.Exists(romRoot))
+                log?.Invoke($"TeknoModel1 ROM root was not found at {romRoot}");
+
+            if (!string.IsNullOrWhiteSpace(selectedRom) &&
+                selectedRom.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                UnblockFile(ResolveUiPath(selectedRom, workDir), log);
+
+            return new ProcessStartInfo(executable, string.Join(" ", parameters))
+            {
+                UseShellExecute = false,
+                WorkingDirectory = workDir,
+                RedirectStandardError = true
+            };
+        }
 
         private static ProcessStartInfo BuildTeknoVegas(
             GameProfile profile,
@@ -416,7 +612,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 return value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
 
-            static string Quote(string value) =>
+            string Quote(string value) =>
                 "\"" + (value ?? string.Empty).Replace("\"", "\\\"") + "\"";
 
             var uiRoot = Directory.GetCurrentDirectory();
@@ -476,6 +672,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 "--disk", Quote(diskPath),
                 "--game", gameId,
                 "--vulkan",
+                "--outputs",
                 "--internal-scale", Setting("Internal Resolution", "4").TrimEnd('x', 'X'),
                 "--texture-filter", Setting("Texture Filtering", "trilinear"),
                 "--presentation-filter", Setting("Presentation Resampling", "bicubic"),
@@ -484,6 +681,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 "--saturation", Setting("Display Saturation", "1.0"),
                 "--contrast", Setting("Display Contrast", "1.0"),
                 "--jit",
+                "--gpu-high-performance",
                 "--sync-dcs",
                 "--scale", Setting("Window Scale", "1"),
                 "--cabinet", cabinetId.ToString(),
@@ -499,8 +697,24 @@ namespace TeknoParrotUi.Common.GameLaunch
 
             if (Setting("DisplayMode", "Fullscreen") == "Fullscreen")
                 parameters.Add("--fullscreen");
+            if (Enabled("Stretch to Fullscreen"))
+                parameters.Add("--stretch-to-fullscreen");
+            if (Enabled("Enable VR"))
+            {
+                parameters.Add("--vr");
+                parameters.Add("--vr-depth");
+                parameters.Add(VrDepthArgument(Setting("VR Depth", "150")));
+                if (!Enabled("Use VR Controls", true))
+                    parameters.Add("--no-vr-controls");
+            }
             if (Enabled("Mute Audio"))
                 parameters.Add("--mute");
+            if (Enabled("Use Bezel"))
+                parameters.Add("--bezels");
+            if (Setting("CRT Shader", "None") == "Lottes")
+                parameters.Add("--crt-shader lottes");
+            if (Enabled("Show Performance Overlay"))
+                parameters.Add("--statistics");
             if (Enabled("Crosshairs"))
             {
                 parameters.Add("--crosshairs");
@@ -564,26 +778,20 @@ namespace TeknoParrotUi.Common.GameLaunch
             if (!File.Exists(diskPath))
                 log?.Invoke($"TeknoVegas CHD was not found at {diskPath}. Select it as the second game file in Game Settings.");
 
+            var romFilePath = Path.IsPathRooted(romPath)
+                ? romPath
+                : Path.GetFullPath(Path.Combine(workDir, romPath));
+            UnblockFile(romFilePath, log);
+            UnblockFile(diskPath, log);
+
             var startInfo = new ProcessStartInfo(executable, string.Join(" ", parameters))
             {
                 UseShellExecute = false,
-                WorkingDirectory = workDir
+                WorkingDirectory = workDir,
+                RedirectStandardError = true
             };
-
-            // Somehow RTSS's Vulkan layer crashes immediately when Vegas starts so
-            // disabling it for TeknoVegas seems to work around it on Windows.
-            if (OperatingSystem.IsWindows())
-            {
-
-                startInfo.EnvironmentVariables["DISABLE_RTSS_LAYER"] = "1";
-                startInfo.EnvironmentVariables["DISABLE_VULKAN_OBS_CAPTURE"] = "1";
-                startInfo.EnvironmentVariables["VK_LOADER_LAYERS_DISABLE"] =
-                    "VK_LAYER_RTSS,VK_LAYER_OBS_HOOK";
-            }
             return startInfo;
         }
-
-        // ---------- TeknoViper ----------
 
         private static ProcessStartInfo BuildTeknoViper(
             GameProfile profile,
@@ -600,7 +808,7 @@ namespace TeknoParrotUi.Common.GameLaunch
                 return value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
 
-            static string Quote(string value) =>
+            string Quote(string value) =>
                 "\"" + (value ?? string.Empty).Replace("\"", "\\\"") + "\"";
 
             var uiRoot = Directory.GetCurrentDirectory();
@@ -634,19 +842,16 @@ namespace TeknoParrotUi.Common.GameLaunch
 
             var selectedChd = profile.GamePath2;
             var configuredChdRoot = Setting("CHD Root");
-            string chdRoot;
-            if (!string.IsNullOrWhiteSpace(configuredChdRoot))
+            string diskPath = null;
+            string chdRoot = null;
+            if (!string.IsNullOrWhiteSpace(selectedChd) &&
+                selectedChd.EndsWith(".chd", StringComparison.OrdinalIgnoreCase))
+            {
+                diskPath = ResolveUiPath(selectedChd, workDir);
+            }
+            else if (!string.IsNullOrWhiteSpace(configuredChdRoot))
             {
                 chdRoot = ResolveUiPath(configuredChdRoot, workDir);
-            }
-            else if (!string.IsNullOrWhiteSpace(selectedChd) &&
-                     selectedChd.EndsWith(".chd", StringComparison.OrdinalIgnoreCase))
-            {
-                var chdPath = ResolveUiPath(selectedChd, workDir);
-                var setDirectory = Path.GetDirectoryName(chdPath);
-                chdRoot = setDirectory == null
-                    ? workDir
-                    : (Directory.GetParent(setDirectory)?.FullName ?? setDirectory);
             }
             else
             {
@@ -664,10 +869,10 @@ namespace TeknoParrotUi.Common.GameLaunch
             {
                 "--game", gameId,
                 "--rom-root", Quote(romRoot),
-                "--chd-root", Quote(chdRoot),
                 "--state-dir", Quote(stateRoot),
                 "--shader-cache-dir", Quote(shaderRoot),
                 "--vulkan",
+                "--outputs",
                 "--internal-scale", Setting("Internal Resolution", "4").TrimEnd('x', 'X'),
                 "--texture-filter", Setting("Texture Filtering", "trilinear"),
                 "--presentation-filter", Setting("Presentation Resampling", "bicubic"),
@@ -677,32 +882,228 @@ namespace TeknoParrotUi.Common.GameLaunch
                 "--contrast", Setting("Display Contrast", "1.0")
             };
 
+            if (diskPath != null)
+            {
+                parameters.Add("--disk");
+                parameters.Add(Quote(diskPath));
+            }
+            else
+            {
+                parameters.Add("--chd-root");
+                parameters.Add(Quote(chdRoot));
+            }
+
             if (Setting("DisplayMode", "Fullscreen") == "Fullscreen")
                 parameters.Add("--fullscreen");
+            if (Enabled("Stretch to Fullscreen"))
+                parameters.Add("--stretch-to-fullscreen");
+            if (Enabled("Enable VR"))
+             {
+                parameters.Add("--vr");
+                parameters.Add("--vr-depth");
+                parameters.Add(VrDepthArgument(Setting("VR Depth", "150")));
+                if (!Enabled("Use VR Controls", true))
+                    parameters.Add("--no-vr-controls");
+            }
             if (profile.GunGame && !Enabled("Crosshairs", true))
                 parameters.Add("--no-crosshairs");
             if (Enabled("Mute Audio"))
                 parameters.Add("--mute");
+
+            string FfbDevice(string settingName)
+            {
+                var device = Setting(settingName, "off").Trim();
+                var token = device.Split(':');
+                if (device != "off" &&
+                    (token.Length != 2 ||
+                     (token[0] != "wheel" && token[0] != "gamepad") ||
+                     !uint.TryParse(token[1], out _)))
+                    return "off";
+                return device;
+            }
+
+            parameters.Add("--ffb-device");
+            parameters.Add(FfbDevice("Force Feedback Device"));
+            parameters.Add("--ffb-device2");
+            parameters.Add(FfbDevice("Player 2 Force Feedback Device"));
+
             if (Enabled("Prefer High Performance", true))
             {
                 parameters.Add("--high-priority");
                 parameters.Add("--gpu-high-performance");
+            }
+            if (Enabled("Use Bezel"))
+                parameters.Add("--bezels");
+            if (Setting("CRT Shader", "None") == "Lottes")
+                parameters.Add("--crt-shader lottes");
+            if (Setting("CRT Shader", "None") == "Lottes Downsample")
+                parameters.Add("--crt-shader lottes-ssaa");
+
+            if (!Enabled("Hide Crosshairs after Inactivity"))
+                parameters.Add("--no-crosshair-autohide");
+
+            var texturePackRoot = ResolveUiPath(
+               Setting("Texture Pack Root"), Path.Combine(workDir, "texture-packs"));
+            if (Enabled("Load Texture Packs", true))
+            {
+                parameters.Add("--texture-pack");
+                parameters.Add(Quote(texturePackRoot));
+                if (!int.TryParse(Setting("Texture VRAM Budget MB", "1024"), out var textureBudget) ||
+                    textureBudget < 0 || textureBudget > 16384)
+                    textureBudget = 1024;
+                parameters.Add("--texture-budget-mb");
+                parameters.Add(textureBudget.ToString());
+                var anisotropy = Setting("HD Texture Anisotropy", "4");
+                if (anisotropy != "1" && anisotropy != "2" &&
+                    anisotropy != "4" && anisotropy != "8")
+                    anisotropy = "4";
+                parameters.Add("--texture-anisotropy");
+                parameters.Add(anisotropy);
+                if (Enabled("Texture Hot Reload"))
+                    parameters.Add("--texture-hot-reload");
+            }
+            if (Enabled("Dump Textures"))
+            {
+                var textureDumpRoot = ResolveUiPath(
+                    Setting("Texture Dump Root"), Path.Combine(workDir, "texture-dumps"));
+                Directory.CreateDirectory(textureDumpRoot);
+                parameters.Add("--texture-dump");
+                parameters.Add(Quote(textureDumpRoot));
+            }
+
+            // TeknoViper consumes TPOnline's inherited environment handoff
+            // directly. Its peer transport is mutually exclusive with the
+            // local UDP multicast transport configured by --network-port.
+            var tpOnline = !string.IsNullOrWhiteSpace(
+                Environment.GetEnvironmentVariable("TP_TPONLINE2"));
+            if (!tpOnline &&
+                int.TryParse(Setting("Network Port", "0"), out var networkPort) &&
+                networkPort > 0 && networkPort <= 65535)
+            {
+                var cabinet = Setting("Cabinet Id", "1");
+                if (!int.TryParse(cabinet, out var cabinetId) || cabinetId < 1 || cabinetId > 8)
+                    cabinetId = 1;
+
+                parameters.Add("--network-port");
+                parameters.Add(networkPort.ToString());
+                parameters.Add("--network-node");
+                parameters.Add(cabinetId.ToString());
+
+                var networkInterface = Setting("Network Interface", "auto").Trim();
+                if (!string.IsNullOrWhiteSpace(networkInterface))
+                {
+                    parameters.Add("--network-interface");
+                    parameters.Add(Quote(networkInterface));
+                }
+                if (Enabled("Network Diagnostics", true))
+                    parameters.Add("--network-diagnostics");
+            }
+            else if (tpOnline && Enabled("Network Diagnostics", true))
+            {
+                parameters.Add("--network-diagnostics");
             }
 
             if (!File.Exists(executable))
                 log?.Invoke($"TeknoViper executable was not found at {preferredExecutable} or {legacyExecutable}");
             if (!Directory.Exists(romRoot))
                 log?.Invoke($"TeknoViper ROM root was not found at {romRoot}");
-            if (!Directory.Exists(chdRoot))
+            if (diskPath != null && !File.Exists(diskPath))
+                log?.Invoke($"TeknoViper CHD was not found at {diskPath}");
+            else if (diskPath == null && !Directory.Exists(chdRoot))
                 log?.Invoke($"TeknoViper CHD root was not found at {chdRoot}");
+
+            // Viper loads the selected set and its shared system archive. Avoid
+            // scanning a complete MAME collection on every launch.
+            if (!string.IsNullOrWhiteSpace(selectedRom) &&
+                selectedRom.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                UnblockFile(ResolveUiPath(selectedRom, workDir), log);
+            }
+            else
+            {
+                UnblockFile(Path.Combine(romRoot, gameId + ".zip"), log);
+            }
+            UnblockFile(Path.Combine(romRoot, "kviper.zip"), log);
+            if (diskPath != null)
+            {
+                UnblockFile(diskPath, log);
+            }
+            else
+            {
+                UnblockFilesInDirectory(
+                    Path.Combine(chdRoot, gameId),
+                    "*.chd",
+                    SearchOption.AllDirectories,
+                    log);
+            }
 
             return new ProcessStartInfo(executable, string.Join(" ", parameters))
             {
                 UseShellExecute = false,
-                WorkingDirectory = workDir
+                WorkingDirectory = workDir,
+                // Fatal startup detail is emitted on stderr. GameProcessManager
+                // drains it asynchronously and includes it in TPUI's exit-code
+                // dialog instead of letting a release build disappear silently.
+                RedirectStandardError = true
             };
         }
 
+        private static void UnblockFilesInDirectory(
+            string directory,
+            string searchPattern,
+            SearchOption searchOption,
+            Action<string> log)
+        {
+            if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+                return;
+
+            try
+            {
+                foreach (var path in Directory.EnumerateFiles(directory, searchPattern, searchOption))
+                    UnblockFile(path, log);
+            }
+            catch (Exception ex) when (ex is IOException ||
+                                       ex is UnauthorizedAccessException ||
+                                       ex is ArgumentException)
+            {
+                log?.Invoke($"Could not scan launch media in {directory} for Internet zone metadata: {ex.Message}");
+            }
+        }
+
+        private static void UnblockFile(string path, Action<string> log)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return;
+
+            try
+            {
+                // .NET Framework's File.Delete rejects alternate-data-stream
+                // paths, so call Win32 directly to remove the Mark of the Web.
+                if (DeleteFile(path + ":Zone.Identifier"))
+                    return;
+
+                var error = Marshal.GetLastWin32Error();
+                // A missing stream means the file is already unblocked. File
+                // systems without alternate streams cannot contain this mark.
+                if (error == ErrorFileNotFound ||
+                    error == ErrorPathNotFound ||
+                    error == ErrorNotSupported ||
+                    error == ErrorInvalidName)
+                    return;
+
+                throw new Win32Exception(error);
+            }
+            catch (Exception ex) when (ex is IOException ||
+                                       ex is UnauthorizedAccessException ||
+                                       ex is NotSupportedException ||
+                                       ex is Win32Exception ||
+                                       ex is ArgumentException)
+            {
+                // Unblocking is best-effort; a read-only/network ROM should not
+                // prevent the emulator from attempting to launch it.
+                log?.Invoke($"Could not remove Internet zone metadata from {path}: {ex.Message}");
+            }
+        }
         // ---------- PCSX2 ----------
 
         private static ProcessStartInfo BuildPcsx2x6(GameProfile profile, bool windowed, Action<string> log)
@@ -1204,7 +1605,7 @@ namespace TeknoParrotUi.Common.GameLaunch
         }
 
         /// <summary>
-        /// cxbxr-ldr re-launches itself — after the initial process exits, wait
+        /// cxbxr-ldr re-launches itself ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â after the initial process exits, wait
         /// until no cxbxr-ldr processes remain (or kill them on force quit).
         /// </summary>
         public static void WaitForCxbxrChildren(Func<bool> forceQuit)

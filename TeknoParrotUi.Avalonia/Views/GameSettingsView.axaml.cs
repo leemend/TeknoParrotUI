@@ -71,7 +71,7 @@ public partial class GameSettingsView : UserControl
     public void LoadProfile(GameProfile profile)
     {
         _profile = profile;
-        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} — Settings";
+        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Settings";
         _valueReaders.Clear();
         FieldsPanel.Children.Clear();
 
@@ -554,7 +554,7 @@ public partial class GameSettingsView : UserControl
     }
 
     /// <summary>
-    /// "Game Executable (GameProject-Win64-Shipping.exe)" — shows the expected file
+    /// "Game Executable (GameProject-Win64-Shipping.exe)" ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â shows the expected file
     /// name(s) from the profile, matching the classic UI (';'/'|' = alternatives).
     /// </summary>
     private static string BuildExecutableLabel(string key, string fallback, string? executableName)
@@ -581,7 +581,7 @@ public partial class GameSettingsView : UserControl
             if (top == null) return;
 
             var pickerTitle =
-                $"{Services.Loc.T("GameSettingsSelectGameExecutable", "Select Game Executable")} — {label}";
+                $"{Services.Loc.T("GameSettingsSelectGameExecutable", "Select Game Executable")} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {label}";
             var pickerOptions = new FilePickerOpenOptions
             {
                 Title = pickerTitle,
@@ -731,6 +731,60 @@ public partial class GameSettingsView : UserControl
                 editor = cb;
                 break;
 
+            case FieldType.DynamicDropdown:
+            {
+                List<DynamicDropdownOption> dynamicOptions;
+
+                if (_profile?.EmulatorType == EmulatorType.TeknoModel1)
+                    dynamicOptions = Model1FfbDeviceProbe.GetDevices();
+                else if (_profile?.EmulatorType == EmulatorType.TeknoViper)
+                    dynamicOptions = ViperFfbDeviceProbe.GetDevices();
+                else
+                    dynamicOptions = field.DynamicOptions ?? new List<DynamicDropdownOption>();
+
+                if (dynamicOptions.Count == 0)
+                {
+                    dynamicOptions.Add(new DynamicDropdownOption
+                    {
+                        DisplayName = "Off",
+                        Value = "off"
+                    });
+                }
+
+                field.DynamicOptions = dynamicOptions;
+
+                var dynamicLabels = dynamicOptions
+                    .Select(option => option.DisplayName)
+                    .ToList();
+
+                var dynamicSelectedIndex = dynamicOptions.FindIndex(option =>
+                    string.Equals(
+                        option.Value,
+                        field.FieldValue,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (dynamicSelectedIndex < 0)
+                    dynamicSelectedIndex = 0;
+
+                var dynamicCombo = new ComboBox
+                {
+                    ItemsSource = dynamicLabels,
+                    SelectedIndex = dynamicSelectedIndex,
+                    MinWidth = 220
+                };
+
+                _valueReaders[field] = () =>
+                {
+                    var index = dynamicCombo.SelectedIndex;
+                    return index >= 0 && index < dynamicOptions.Count
+                        ? dynamicOptions[index].Value
+                        : field.FieldValue;
+                };
+
+                editor = dynamicCombo;
+                break;
+            }
+
             case FieldType.Dropdown:
             case FieldType.DropdownIndex:
                 var options = field.FieldOptions ?? new List<string>();
@@ -738,12 +792,12 @@ public partial class GameSettingsView : UserControl
                 if (field.FieldName == "Input API")
                 {
                     // Input is always merged (SDL2 gamepads + RawInput keyboard/
-                    // mouse) — no input-system selection anymore. The dropdown
+                    // mouse) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no input-system selection anymore. The dropdown
                     // survives only as a gun-flavour picker for games offering
                     // both RawInput and RawInputTrackball.
                     var gunOptions = options.FindAll(o => o is "RawInput" or "RawInputTrackball");
                     if (gunOptions.Count < 2)
-                        return; // nothing to choose — hide the row entirely
+                        return; // nothing to choose ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â hide the row entirely
                     options = gunOptions;
                     if (!options.Contains(selected ?? ""))
                         selected = options[0];
@@ -861,7 +915,7 @@ public partial class GameSettingsView : UserControl
 
     private async void HandleBack()
     {
-        // Don't silently discard changes (e.g. a switched Input API) — losing an
+        // Don't silently discard changes (e.g. a switched Input API) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â losing an
         // unsaved API change makes freshly-bound controls dead in-game.
         if (HasUnsavedChanges() && TopLevel.GetTopLevel(this) is Window owner)
         {

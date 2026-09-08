@@ -32,6 +32,8 @@ namespace TeknoParrotUi.Common.InputListening
         private bool _isPlay;
         private bool _isTeknoVegas;
         private bool _isTeknoViper;
+        private bool _isTeknoModel1;
+        private bool _isNetMerc;
         private bool _isPCSX2;
         private bool _swapdisplay;
         private bool _onedisplay;
@@ -179,19 +181,6 @@ namespace TeknoParrotUi.Common.InputListening
         private const int LOGPIXELSX = 88;
         private const int LOGPIXELSY = 90;
 
-        private void UpdateDpiScaling()
-        {
-            IntPtr desktop = GetDC(IntPtr.Zero);
-            if (desktop != IntPtr.Zero)
-            {
-                int dpiX = GetDeviceCaps(desktop, LOGPIXELSX);
-                int dpiY = GetDeviceCaps(desktop, LOGPIXELSY);
-                _dpiScaleX = dpiX / 96.0;
-                _dpiScaleY = dpiY / 96.0;
-                ReleaseDC(IntPtr.Zero, desktop);
-            }
-        }
-
         public InputListenerRawInput()
         {
             _hookedWindows = File.Exists("HookedWindows.txt") ? File.ReadAllLines("HookedWindows.txt").ToList() : new List<string>();
@@ -204,6 +193,16 @@ namespace TeknoParrotUi.Common.InputListening
                 // PCSX2 bases the name on the acgame file, and everyone has a different game name in there it seems
                 // so let's just prefix it, and then check for the prefix i think?
                 if (_isPCSX2 && windowTitle.StartsWith("PCSX2 on TP:"))
+                {
+                    return true;
+                }
+
+                if (_isTeknoViper && windowTitle.StartsWith("TeknoViper - ", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                if (_isTeknoModel1 && windowTitle.StartsWith("TeknoModel1 - ", StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -230,7 +229,7 @@ namespace TeknoParrotUi.Common.InputListening
 
                 // Classic gun-game window titles, or any window belonging to the
                 // game/emulator process this session launched (merged input runs
-                // RawInput for every game — most game windows are not in
+                // RawInput for every game â€” most game windows are not in
                 // HookedWindows.txt)
                 if (isHookableWindow(pList.MainWindowTitle) ||
                     GameWindowTracker.IsGameProcess(pList.Id, pList.ProcessName))
@@ -255,6 +254,8 @@ namespace TeknoParrotUi.Common.InputListening
             _isPlay = gameProfile.EmulationProfile == EmulationProfile.PlayInput;
             _isTeknoVegas = gameProfile.EmulationProfile == EmulationProfile.TeknoVegas;
             _isTeknoViper = gameProfile.EmulationProfile == EmulationProfile.TeknoViper;
+            _isTeknoModel1 = gameProfile.EmulationProfile == EmulationProfile.TeknoModel1;
+            _isNetMerc = _isTeknoModel1 && string.Equals(gameProfile.ExecutableName, "netmerc.zip", StringComparison.OrdinalIgnoreCase);
             _isPCSX2 = gameProfile.EmulationProfile == EmulationProfile.pcsx2x6;
             _16bit = gameProfile.Use16BitAnalog;
             _gameProfile = gameProfile;
@@ -263,7 +264,7 @@ namespace TeknoParrotUi.Common.InputListening
             KeyboardorButtonAxis = gameProfile.ConfigValues.Any(x => x.FieldName == "Use Keyboard/Button For Axis" && x.FieldValue == "1");
 
             // Keyboard wheel/gas/brake ramping (ported from the DirectInput
-            // listener — keyboards are serviced by RawInput now)
+            // listener â€” keyboards are serviced by RawInput now)
             KeyboardAxis.Initialize(gameProfile);
 
             if (KeyboardorButtonAxis)
@@ -354,15 +355,29 @@ namespace TeknoParrotUi.Common.InputListening
             // for use with Play
             bool hasCanvasInfo = false;
 
-            // Play and TeknoVegas publish the exact screen-space content
-            // viewport. This matters even in borderless fullscreen: a 4:3
-            // CarnEvil image is letterboxed inside a widescreen desktop, so
-            // mapping the gun against the whole monitor swaps/scales its axes.
-            if (_isPlay || _isTeknoVegas || _isTeknoViper)
+            // These emulators publish their exact screen-space content viewport.
+            // This keeps absolute and relative gun input aligned with letterboxed output.
+            if (_isPlay || _isTeknoVegas || _isTeknoViper || _isTeknoModel1)
             {
-                string canvasName = _isTeknoViper
-                    ? "TeknoViperCanvasInfo"
-                    : (_isTeknoVegas ? "TeknoVegasCanvasInfo" : "PlayCanvasInfo");
+                string canvasName = "TeknoparrotCanvas";
+                if (_isPlay)
+                {
+                    canvasName = "PlayCanvasInfo";
+                }
+                else if (_isTeknoVegas)
+                {
+                    canvasName = "TeknoVegasCanvasInfo";
+                }
+                else if (_isTeknoViper)
+                {
+                    canvasName = "TeknoViperCanvasInfo";
+                }
+                else if (_isTeknoModel1)
+                {
+                    canvasName = "TeknoModel1CanvasInfo";
+                }
+
+
                 while (!KillMe && _canvasInfoMMF == null)
                 {
                     try
@@ -407,7 +422,7 @@ namespace TeknoParrotUi.Common.InputListening
                     // Only update when we are on the foreground
                     if (_windowHandle == GetForegroundWindow())
                     {
-                        if ((_isPlay || _isTeknoVegas || _isTeknoViper) &&
+                        if ((_isPlay || _isTeknoVegas || _isTeknoViper || _isTeknoModel1) &&
                             _canvasInfoAccessor != null)
                         {
                             try
@@ -838,7 +853,7 @@ namespace TeknoParrotUi.Common.InputListening
                                 else if (gun.InputMapping == InputMapping.P4LightGun)
                                     player = 3;
 
-                                if (_isPlay || _isTeknoVegas || _isTeknoViper)
+                                if (_isPlay || _isTeknoVegas || _isTeknoViper || _isTeknoModel1)
                                 {
                                     int scaledDeltaX = (int)(mouse.Mouse.LastX * _dpiScaleX);
                                     int scaledDeltaY = (int)(mouse.Mouse.LastY * _dpiScaleY);
@@ -875,7 +890,7 @@ namespace TeknoParrotUi.Common.InputListening
         /// <summary>
         /// Hooks the static 16ms keyboard-axis timer to THIS instance and starts
         /// it. Rebinding is essential: the timer and its guard state are static
-        /// but the handler is an instance method — without rebinding, the second
+        /// but the handler is an instance method â€” without rebinding, the second
         /// game launch keeps ticking the first (dead) listener instance and all
         /// keyboard/button axes go silent.
         /// </summary>
@@ -1091,7 +1106,7 @@ namespace TeknoParrotUi.Common.InputListening
                     }
                     break;
                 // Relative gun-direction buttons (consumed by the relative-input
-                // timer in the SDL2 mapper) — keyboards can drive them too
+                // timer in the SDL2 mapper) â€” keyboards can drive them too
                 case InputMapping.P1RelativeUp:
                     InputCode.PlayerDigitalButtons[0].RelativeUp = pressed;
                     break;
@@ -1507,13 +1522,26 @@ namespace TeknoParrotUi.Common.InputListening
             float factorY = 0.0f;
 
             // Windowed
-            if (_windowed || _isPlay || _isTeknoVegas || _isTeknoViper)
+            if (_windowed || _isPlay || _isTeknoVegas || _isTeknoViper || _isTeknoModel1)
             {
                 // Translate absolute units to pixels
                 if (moveAbsolute)
                 {
-                    inputX = (int)((float)inputX / (float)0xFFFF * GetSystemMetrics(SM_CXSCREEN));
-                    inputY = (int)((float)inputY / (float)0xFFFF * GetSystemMetrics(SM_CYSCREEN));
+                    if ((_isPlay || _isTeknoVegas || _isTeknoViper || _isTeknoModel1) &&
+                        canvasInfo.windowWidth > 0 && canvasInfo.windowHeight > 0)
+                    {
+                        // Canvas publishers use physical pixels. Map normalized RawInput
+                        // coordinates into that same space without DPI-sensitive WPF metrics.
+                        inputX = canvasInfo.windowLocationX +
+                            (int)((long)inputX * canvasInfo.windowWidth / 0xFFFF);
+                        inputY = canvasInfo.windowLocationY +
+                            (int)((long)inputY * canvasInfo.windowHeight / 0xFFFF);
+                    }
+                    else
+                    {
+                        inputX = (int)((float)inputX / (float)0xFFFF * GetSystemMetrics(SM_CXSCREEN));
+                        inputY = (int)((float)inputY / (float)0xFFFF * GetSystemMetrics(SM_CYSCREEN));
+                    }
                 }
 
                 // X
@@ -1541,12 +1569,17 @@ namespace TeknoParrotUi.Common.InputListening
                 }
                 else
                 {
-                    // Use GetSystemMetrics for physical pixel dimensions — SystemParameters returns
+                    // Use GetSystemMetrics for physical pixel dimensions â€” SystemParameters returns
                     // logical (DIP) values which are halved at 200% DPI, causing a double-wrap bug.
                     factorX = (float)inputX / (float)GetSystemMetrics(SM_CXSCREEN);
                     factorY = (float)inputY / (float)GetSystemMetrics(SM_CYSCREEN);
                 }
             }
+
+            // NetMerc's STICKY input is reversed by the cabinet/game. Keep the
+            // normal TPUI lightgun byte layout, but flip its screen-space Y value.
+            if (_isNetMerc)
+                factorY = 1.0f - factorY;
 
             float minX = _minX;
             float maxX = _maxX;

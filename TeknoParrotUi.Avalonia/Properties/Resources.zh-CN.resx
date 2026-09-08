@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2789,5 +2789,93 @@ attract、attractreplays、configuration、enterinitials、lasvegas、newyorksho
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>第 {0} 步，共 {1} 步</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>TeknoParrot µû░Θù╗</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>Φ«óΘÿà</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>σà│Θù¡</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>µùáµ│òσ£¿µ¡ñτ¬ùσÅúΣ╕¡σèáΦ╜╜µ¡ñΘí╡Θ¥óπÇéΦ»╖σ£¿µ╡ÅΦºêσÖ¿Σ╕¡µëôσ╝Ç∩╝îµêûσà│Θù¡µ¡ñσà¼σæèΣ╗Ñτ╗ºτ╗¡Σ╜┐τö¿ TeknoParrotπÇé</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>µùáµ│òµëôσ╝Çµ╡ÅΦºêσÖ¿∩╝Ü{0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / µû░Θù╗Σ╕¡σ┐â</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>σ£¿µ╡ÅΦºêσÖ¿Σ╕¡µëôσ╝Ç</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>µ¡úσ£¿σèáΦ╜╜µ£Çµû░σà¼σæè</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>µ¡úσ£¿Φ┐₧µÄÑµû░Θù╗µ║É...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>Φ»╖σ£¿µ╡ÅΦºêσÖ¿Σ╕¡µëôσ╝ÇΦ┐Öτ»çµûçτ½áπÇé</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>ΘçìΦ»ò</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>Φ«⌐Φíùµ£║τ╗ºτ╗¡τ▓╛σ╜⌐πÇé</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>µé¿τÜäΦ«óΘÿàµ£ëσè⌐Σ║ÄΣ╕║ TeknoParrot µ╖╗σèáµ¢┤σñÜµ╕╕µêÅπÇé</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>σà│Θù¡µ¡ñσà¼σæèΣ╗Ñτ╗ºτ╗¡Σ╜┐τö¿ TeknoParrotπÇé</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>µ£Çσñºσîû / Φ┐ÿσÄƒ</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>σêáΘÖñµ£¼σ£░Φ«óΘÿàσ»åΘÆÑ∩╝ƒ</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+σªéµ₧£µ¡ñσ»åΘÆÑΣ╕ìσ▒₧Σ║Äµé¿µêûσ╖▓Φ┐çµ£ƒ∩╝îµÿ»σÉªΦªüσ░åσà╢Σ╗ÄΦ┐ÖσÅ░τö╡ΦäæΣ╕¡σêáΘÖñ∩╝ƒ
+
+µ¡ñµôìΣ╜£σÅ¬Σ╝ÜσêáΘÖñΣ┐¥σ¡ÿσ£¿Φ┐ÖσÅ░τö╡ΦäæΣ╕èτÜäσ»åΘÆÑ∩╝îΣ╕ìΣ╝ÜΘçèµö╛µ£ìσèíσÖ¿Σ╕èτÜäµ┐Çµ┤╗∩╝îΣ╣ƒΣ╕ìΣ╝ÜΘçìτ╜« 30 σñ⌐τÜäτ¡ëσ╛àµ£ƒπÇé</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>µ£¼σ£░Φ«óΘÿàσ»åΘÆÑσ╖▓σêáΘÖñπÇéΦ»╖ΘÇëµï⌐µêûΦ╛ôσàÑµé¿Φç¬σ╖▒τÜäµ£ëµòêσ»åΘÆÑ∩╝îτä╢σÉÄΘçìΦ»òµ│¿σåîπÇé</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>Σ┐¥σ¡ÿτÜäΦ«óΘÿàσ»åΘÆÑσ£¿µ¡ñµôìΣ╜£µ£ƒΘù┤σÅæτöƒΣ║åσÅÿσîûπÇéµ£¬σêáΘÖñΣ╗╗Σ╜òσåàσ«╣πÇéΦ»╖ΘçìΦ»òπÇé</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>µùáµ│òσêáΘÖñµ£¼σ£░Φ«óΘÿàσ»åΘÆÑπÇéΦ»╖µúÇµƒÑµé¿τÜäµ¥âΘÖÉ∩╝îτä╢σÉÄΘçìΦ»òπÇé</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader σñ▒Φ┤Ñ∩╝îΘÇÇσç║Σ╗úτáüΣ╕║ {0}πÇéσ╖▓Σ┐¥τòÖµ£¼σ£░µ┐Çµ┤╗πÇé</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader µ£¬Φ┐öσ¢₧µ£ëµòêτÜäσü£τö¿τ╗ôµ₧£πÇéσ╖▓Σ┐¥τòÖµ£¼σ£░µ┐Çµ┤╗πÇé</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>µùáµ│òΦ┐₧µÄÑµ┐Çµ┤╗µ£ìσèíσÖ¿πÇéσ╖▓Σ┐¥τòÖµ£¼σ£░µ┐Çµ┤╗πÇé</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>µ┐Çµ┤╗µ£ìσèíσÖ¿Φ┐öσ¢₧Σ║åµùáµòêσôìσ║öπÇéσ╖▓Σ┐¥τòÖµ£¼σ£░µ┐Çµ┤╗πÇé</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>µ┐Çµ┤╗µ£ìσèíσÖ¿µ£¬Φ»åσê½µ¡ñµ┐Çµ┤╗πÇéσ╖▓Σ┐¥τòÖµ£¼σ£░µ┐Çµ┤╗πÇé</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>µ┐Çµ┤╗µ£ìσèíσÖ¿µïÆτ╗¥Σ║åσü£τö¿Φ»╖µ▒éπÇéµ¡ñσ║ÅσêùσÅ╖σÅ»Φâ╜Σ╗ìσñäΣ║Ä 30 σñ⌐τÜäτ¡ëσ╛àµ£ƒσåàπÇé</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>µ┐Çµ┤╗µ£ìσèíσÖ¿µïÆτ╗¥Σ║åσü£τö¿Φ»╖µ▒é∩╝îΣ╗úτáüΣ╕║ {0}πÇéσ╖▓Σ┐¥τòÖµ£¼σ£░µ┐Çµ┤╗πÇé</value>
   </data>
 </root>

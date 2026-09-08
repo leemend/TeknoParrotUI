@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2791,5 +2791,93 @@ attract، attractreplays، configuration، enterinitials، lasvegas، newyorksho
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>الخطوة {0} من {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>╪ú╪«╪¿╪º╪▒ TeknoParrot</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>╪º╪┤╪¬╪▒┘â</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>╪Ñ╪║┘ä╪º┘é</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>╪¬╪╣╪░┘æ╪▒ ╪¬╪¡┘à┘è┘ä ┘ç╪░┘ç ╪º┘ä╪╡┘ü╪¡╪⌐ ┘ç┘å╪º. ╪º┘ü╪¬╪¡┘ç╪º ┘ü┘è ╪º┘ä┘à╪¬╪╡┘ü╪¡ ╪ú┘ê ╪ú╪║┘ä┘é ┘ç╪░┘ç ╪º┘ä┘å╪┤╪▒╪⌐ ┘ä┘à╪¬╪º╪¿╪╣╪⌐ ╪º╪│╪¬╪«╪»╪º┘à TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>╪¬╪╣╪░┘æ╪▒ ┘ü╪¬╪¡ ╪º┘ä┘à╪¬╪╡┘ü╪¡: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / ╪º┘ä╪ú╪«╪¿╪º╪▒</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>┘ü╪¬╪¡ ┘ü┘è ╪º┘ä┘à╪¬╪╡┘ü╪¡</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>╪¼╪º╪▒┘ì ╪¬╪¡┘à┘è┘ä ╪ó╪«╪▒ ┘å╪┤╪▒╪⌐</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>╪¼╪º╪▒┘ì ╪º┘ä╪º╪¬╪╡╪º┘ä ╪¿┘à┘ê╪¼╪▓ ╪º┘ä╪ú╪«╪¿╪º╪▒...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>╪º┘ü╪¬╪¡ ┘ç╪░╪º ╪º┘ä╪«╪¿╪▒ ┘ü┘è ┘à╪¬╪╡┘ü╪¡┘â.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>╪Ñ╪╣╪º╪»╪⌐ ╪º┘ä┘à╪¡╪º┘ê┘ä╪⌐</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>╪│╪º┘ç┘à ┘ü┘è ╪º╪│╪¬┘à╪▒╪º╪▒ ╪ú┘ä╪╣╪º╪¿ ╪º┘ä╪ú╪▒┘â┘è╪».</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>┘è╪│╪º╪╣╪» ╪º╪┤╪¬╪▒╪º┘â┘â ┘ü┘è ╪Ñ╪╢╪º┘ü╪⌐ ╪º┘ä┘à╪▓┘è╪» ┘à┘å ╪º┘ä╪ú┘ä╪╣╪º╪¿ ╪Ñ┘ä┘ë TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>╪ú╪║┘ä┘é ┘ç╪░┘ç ╪º┘ä┘å╪┤╪▒╪⌐ ┘ä┘à╪¬╪º╪¿╪╣╪⌐ ╪º╪│╪¬╪«╪»╪º┘à TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>╪¬┘â╪¿┘è╪▒ / ╪º╪│╪¬╪╣╪º╪»╪⌐</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>╪Ñ╪▓╪º┘ä╪⌐ ┘à┘ü╪¬╪º╪¡ ╪º┘ä╪º╪┤╪¬╪▒╪º┘â ╪º┘ä┘à╪¡┘ä┘è╪ƒ</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+╪Ñ╪░╪º ┘ä┘à ┘è┘â┘å ┘ç╪░╪º ┘à┘ü╪¬╪º╪¡┘â ╪ú┘ê ╪º┘å╪¬┘ç╪¬ ╪╡┘ä╪º╪¡┘è╪¬┘ç╪î ┘ü┘ç┘ä ╪¬╪▒┘è╪» ╪¡╪░┘ü┘ç ┘à┘å ┘ç╪░╪º ╪º┘ä╪¼┘ç╪º╪▓╪ƒ
+
+╪│╪¬╪¬┘à ╪Ñ╪▓╪º┘ä╪⌐ ╪º┘ä┘à┘ü╪¬╪º╪¡ ╪º┘ä┘à╪¡┘ü┘ê╪╕ ╪╣┘ä┘ë ┘ç╪░╪º ╪º┘ä┘â┘à╪¿┘è┘ê╪¬╪▒ ┘ü┘é╪╖. ┘ä┘å ┘è╪ñ╪»┘è ╪░┘ä┘â ╪Ñ┘ä┘ë ╪¬╪¡╪▒┘è╪▒ ╪ú┘è ╪¬┘ü╪╣┘è┘ä ╪╣┘ä┘ë ╪º┘ä╪«╪º╪»┘à ╪ú┘ê ╪Ñ╪╣╪º╪»╪⌐ ╪¬╪╣┘è┘è┘å ┘ü╪¬╪▒╪⌐ ╪º┘ä╪º┘å╪¬╪╕╪º╪▒ ╪º┘ä╪¿╪º┘ä╪║╪⌐ 30 ┘è┘ê┘à┘ï╪º.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>╪¬┘à╪¬ ╪Ñ╪▓╪º┘ä╪⌐ ┘à┘ü╪¬╪º╪¡ ╪º┘ä╪º╪┤╪¬╪▒╪º┘â ╪º┘ä┘à╪¡┘ä┘è. ╪º╪«╪¬╪▒ ┘à┘ü╪¬╪º╪¡┘â ╪º┘ä╪╡╪º┘ä╪¡ ╪ú┘ê ╪ú╪»╪«┘ä┘ç╪î ╪½┘à ╪¡╪º┘ê┘ä ╪¬╪│╪¼┘è┘ä┘ç ┘à╪¼╪»╪»┘ï╪º.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>╪¬╪║┘è┘æ╪▒ ┘à┘ü╪¬╪º╪¡ ╪º┘ä╪º╪┤╪¬╪▒╪º┘â ╪º┘ä┘à╪¡┘ü┘ê╪╕ ╪ú╪½┘å╪º╪í ┘ç╪░┘ç ╪º┘ä╪╣┘à┘ä┘è╪⌐. ┘ä┘à ┘è╪¬┘à ╪¡╪░┘ü ╪ú┘è ╪┤┘è╪í. ┘è┘Å╪▒╪¼┘ë ╪º┘ä┘à╪¡╪º┘ê┘ä╪⌐ ┘à╪¼╪»╪»┘ï╪º.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>╪¬╪╣╪░┘æ╪▒╪¬ ╪Ñ╪▓╪º┘ä╪⌐ ┘à┘ü╪¬╪º╪¡ ╪º┘ä╪º╪┤╪¬╪▒╪º┘â ╪º┘ä┘à╪¡┘ä┘è. ╪¬╪¡┘é┘æ┘é ┘à┘å ╪ú╪░┘ê┘å╪º╪¬┘â ┘ê╪¡╪º┘ê┘ä ┘à╪¼╪»╪»┘ï╪º.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>┘ü╪┤┘ä BudgieLoader ╪¿╪▒┘à╪▓ ╪º┘ä╪«╪▒┘ê╪¼ {0}. ╪¬┘à ╪º┘ä╪º╪¡╪¬┘ü╪º╪╕ ╪¿╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º┘ä┘à╪¡┘ä┘è.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>┘ä┘à ┘è┘Å╪▒╪¼╪╣ BudgieLoader ┘å╪¬┘è╪¼╪⌐ ╪╡╪º┘ä╪¡╪⌐ ┘ä╪Ñ┘ä╪║╪º╪í ╪º┘ä╪¬┘ü╪╣┘è┘ä. ╪¬┘à ╪º┘ä╪º╪¡╪¬┘ü╪º╪╕ ╪¿╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º┘ä┘à╪¡┘ä┘è.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>╪¬╪╣╪░┘æ╪▒ ╪º┘ä╪º╪¬╪╡╪º┘ä ╪¿╪«╪º╪»┘à ╪º┘ä╪¬┘ü╪╣┘è┘ä. ╪¬┘à ╪º┘ä╪º╪¡╪¬┘ü╪º╪╕ ╪¿╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º┘ä┘à╪¡┘ä┘è.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>╪ú╪▒╪¼╪╣ ╪«╪º╪»┘à ╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º╪│╪¬╪¼╪º╪¿╪⌐ ╪║┘è╪▒ ╪╡╪º┘ä╪¡╪⌐. ╪¬┘à ╪º┘ä╪º╪¡╪¬┘ü╪º╪╕ ╪¿╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º┘ä┘à╪¡┘ä┘è.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>┘ä┘à ┘è╪¬╪╣╪▒┘æ┘ü ╪«╪º╪»┘à ╪º┘ä╪¬┘ü╪╣┘è┘ä ╪╣┘ä┘ë ┘ç╪░╪º ╪º┘ä╪¬┘ü╪╣┘è┘ä. ╪¬┘à ╪º┘ä╪º╪¡╪¬┘ü╪º╪╕ ╪¿╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º┘ä┘à╪¡┘ä┘è.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>╪▒┘ü╪╢ ╪«╪º╪»┘à ╪º┘ä╪¬┘ü╪╣┘è┘ä ╪Ñ┘ä╪║╪º╪í ╪º┘ä╪¬┘ü╪╣┘è┘ä. ┘é╪» ┘è┘â┘ê┘å ┘ç╪░╪º ╪º┘ä╪▒┘é┘à ╪º┘ä╪¬╪│┘ä╪│┘ä┘è ┘ä╪º ┘è╪▓╪º┘ä ╪╢┘à┘å ┘ü╪¬╪▒╪⌐ ╪º┘ä╪º┘å╪¬╪╕╪º╪▒ ╪º┘ä╪¿╪º┘ä╪║╪⌐ 30 ┘è┘ê┘à┘ï╪º.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>╪▒┘ü╪╢ ╪«╪º╪»┘à ╪º┘ä╪¬┘ü╪╣┘è┘ä ╪Ñ┘ä╪║╪º╪í ╪º┘ä╪¬┘ü╪╣┘è┘ä ╪¿╪º┘ä╪▒┘à╪▓ {0}. ╪¬┘à ╪º┘ä╪º╪¡╪¬┘ü╪º╪╕ ╪¿╪º┘ä╪¬┘ü╪╣┘è┘ä ╪º┘ä┘à╪¡┘ä┘è.</value>
   </data>
 </root>

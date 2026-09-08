@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2787,5 +2787,93 @@ TeknoParrot 로딩을 계속하려면 "확인"을 클릭하세요.</value>
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>단계 {0} / {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>TeknoParrot ∞åî∞ï¥</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>Ω╡¼δÅàφòÿΩ╕░</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>δï½Ω╕░</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>∞¥┤ ∞░╜∞ùÉ∞ä£ φÄÿ∞¥┤∞ºÇδÑ╝ δ╢êδƒ¼∞ÿ¼ ∞êÿ ∞ùå∞è╡δïêδïñ. δ╕îδ¥╝∞Ü░∞áÇ∞ùÉ∞ä£ ∞ù┤Ω▒░δéÿ ∞¥┤ ∞åî∞ï¥ ∞░╜∞¥ä δï½Ω│á TeknoParrot∞¥ä Ω│ä∞åì ∞é¼∞Ü⌐φòÿ∞ä╕∞Üö.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>δ╕îδ¥╝∞Ü░∞áÇδÑ╝ ∞ù┤ ∞êÿ ∞ùå∞è╡δïêδïñ: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / δë┤∞èñδú╕</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>δ╕îδ¥╝∞Ü░∞áÇ∞ùÉ∞ä£ ∞ù┤Ω╕░</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>∞╡£∞ïá ∞åî∞ï¥ δ╢êδƒ¼∞ÿñδèö ∞ñæ</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>δë┤∞èñ φö╝δô£∞ùÉ ∞ù░Ω▓░φòÿδèö ∞ñæ...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>∞¥┤ ∞åî∞ï¥∞¥ä δ╕îδ¥╝∞Ü░∞áÇ∞ùÉ∞ä£ ∞ù┤∞û┤ δ│┤∞ä╕∞Üö.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>δïñ∞ï£ ∞ï£δÅä</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>∞òä∞╝Ç∞¥┤δô£∞¥ÿ δ»╕δ₧ÿδÑ╝ φò¿Ω╗ÿφò┤ ∞ú╝∞ä╕∞Üö.</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>∞ù¼δƒ¼δ╢ä∞¥ÿ Ω╡¼δÅà∞¥Ç TeknoParrot∞ùÉ δìö δºÄ∞¥Ç Ω▓î∞₧ä∞¥ä ∞╢öΩ░Çφòÿδèö δì░ δÅä∞¢Ç∞¥┤ δÉ⌐δïêδïñ.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>∞¥┤ ∞åî∞ï¥ ∞░╜∞¥ä δï½Ω│á TeknoParrot∞¥ä Ω│ä∞åì ∞é¼∞Ü⌐φò⌐δïêδïñ.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>∞╡£δîÇφÖö / δ│╡∞¢É</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>δí£∞╗¼ Ω╡¼δÅà φéñδÑ╝ ∞é¡∞á£φòáΩ╣î∞Üö?</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+∞¥┤ φéñΩ░Ç δ│╕∞¥╕∞¥ÿ Ω▓â∞¥┤ ∞òäδïêΩ▒░δéÿ δºîδúîδÉÿ∞ùêδïñδ⌐┤ ∞¥┤ ∞╗┤φô¿φä░∞ùÉ∞ä£ ∞é¡∞á£φòáΩ╣î∞Üö?
+
+∞¥┤ PC∞ùÉ ∞áÇ∞₧ÑδÉ£ φéñδºî ∞é¡∞á£δÉ⌐δïêδïñ. ∞ä£δ▓ä∞¥ÿ φÖ£∞ä▒φÖöΩ░Ç φò┤∞á£δÉÿΩ▒░δéÿ 30∞¥╝ δîÇΩ╕░ Ω╕░Ω░ä∞¥┤ ∞┤êΩ╕░φÖöδÉÿ∞ºÇδèö ∞òè∞è╡δïêδïñ.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>δí£∞╗¼ Ω╡¼δÅà φéñΩ░Ç ∞é¡∞á£δÉÿ∞ùê∞è╡δïêδïñ. δ│╕∞¥╕∞¥ÿ ∞£áφÜ¿φò£ φéñδÑ╝ ∞äáφâ¥φòÿΩ▒░δéÿ ∞₧àδáÑφò£ φ¢ä δïñ∞ï£ δô▒δí¥φò┤ ∞ú╝∞ä╕∞Üö.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>∞¥┤ ∞₧æ∞ùà ∞ñæ∞ùÉ ∞áÇ∞₧ÑδÉ£ Ω╡¼δÅà φéñΩ░Ç δ│ÇΩ▓╜δÉÿ∞ùê∞è╡δïêδïñ. ∞òäδ¼┤Ω▓âδÅä ∞é¡∞á£φòÿ∞ºÇ ∞òè∞òÿ∞è╡δïêδïñ. δïñ∞ï£ ∞ï£δÅäφò┤ ∞ú╝∞ä╕∞Üö.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>δí£∞╗¼ Ω╡¼δÅà φéñδÑ╝ ∞é¡∞á£φòá ∞êÿ ∞ùå∞è╡δïêδïñ. Ω╢îφò£∞¥ä φÖò∞¥╕φòÿΩ│á δïñ∞ï£ ∞ï£δÅäφò┤ ∞ú╝∞ä╕∞Üö.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoaderΩ░Ç ∞óàδúî ∞╜öδô£ {0}(∞£╝)δí£ ∞ïñφî¿φûê∞è╡δïêδïñ. δí£∞╗¼ φÖ£∞ä▒φÖöδèö ∞£á∞ºÇδÉÿ∞ùê∞è╡δïêδïñ.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoaderΩ░Ç ∞£áφÜ¿φò£ δ╣äφÖ£∞ä▒φÖö Ω▓░Ω│╝δÑ╝ δ░ÿφÖÿφòÿ∞ºÇ ∞òè∞òÿ∞è╡δïêδïñ. δí£∞╗¼ φÖ£∞ä▒φÖöδèö ∞£á∞ºÇδÉÿ∞ùê∞è╡δïêδïñ.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>φÖ£∞ä▒φÖö ∞ä£δ▓ä∞ùÉ ∞ù░Ω▓░φòá ∞êÿ ∞ùå∞è╡δïêδïñ. δí£∞╗¼ φÖ£∞ä▒φÖöδèö ∞£á∞ºÇδÉÿ∞ùê∞è╡δïêδïñ.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>φÖ£∞ä▒φÖö ∞ä£δ▓äΩ░Ç ∞₧ÿδ¬╗δÉ£ ∞¥æδï╡∞¥ä δ░ÿφÖÿφûê∞è╡δïêδïñ. δí£∞╗¼ φÖ£∞ä▒φÖöδèö ∞£á∞ºÇδÉÿ∞ùê∞è╡δïêδïñ.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>φÖ£∞ä▒φÖö ∞ä£δ▓äΩ░Ç ∞¥┤ φÖ£∞ä▒φÖöδÑ╝ ∞¥╕∞ï¥φòÿ∞ºÇ δ¬╗φûê∞è╡δïêδïñ. δí£∞╗¼ φÖ£∞ä▒φÖöδèö ∞£á∞ºÇδÉÿ∞ùê∞è╡δïêδïñ.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>φÖ£∞ä▒φÖö ∞ä£δ▓äΩ░Ç δ╣äφÖ£∞ä▒φÖöδÑ╝ Ω▒░δ╢Çφûê∞è╡δïêδïñ. ∞¥┤ ∞¥╝δá¿δ▓êφÿ╕δèö ∞òä∞ºü 30∞¥╝ δîÇΩ╕░ Ω╕░Ω░ä ∞ñæ∞¥╝ ∞êÿ ∞₧ê∞è╡δïêδïñ.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>φÖ£∞ä▒φÖö ∞ä£δ▓äΩ░Ç ∞╜öδô£ {0}(∞£╝)δí£ δ╣äφÖ£∞ä▒φÖöδÑ╝ Ω▒░δ╢Çφûê∞è╡δïêδïñ. δí£∞╗¼ φÖ£∞ä▒φÖöδèö ∞£á∞ºÇδÉÿ∞ùê∞è╡δïêδïñ.</value>
   </data>
 </root>

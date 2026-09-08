@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
@@ -74,7 +74,7 @@ namespace TeknoParrotUi.Common.Jvs
             StateView?.Write(offset, value);
         }
 
-        /// <summary>
+/// <summary>
         /// Calculates gas position.
         /// </summary>
         /// <param name="gas">Joystick axis value.</param>

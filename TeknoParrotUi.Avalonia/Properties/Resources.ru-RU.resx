@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2787,5 +2787,93 @@ attract, attractreplays, configuration, enterinitials, lasvegas, newyorkshop, op
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>Шаг {0} из {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>╨¥╨╛╨▓╨╛╤ü╤é╨╕ TeknoParrot</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>╨ƒ╨╛╨┤╨┐╨╕╤ü╨░╤é╤î╤ü╤Å</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>╨ù╨░╨║╤Ç╤ï╤é╤î</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>╨¥╨╡ ╤â╨┤╨░╨╗╨╛╤ü╤î ╨╖╨░╨│╤Ç╤â╨╖╨╕╤é╤î ╤ì╤é╤â ╤ü╤é╤Ç╨░╨╜╨╕╤å╤â ╨╖╨┤╨╡╤ü╤î. ╨₧╤é╨║╤Ç╨╛╨╣╤é╨╡ ╨╡╤æ ╨▓ ╨▒╤Ç╨░╤â╨╖╨╡╤Ç╨╡ ╨╕╨╗╨╕ ╨╖╨░╨║╤Ç╨╛╨╣╤é╨╡ ╤ì╤é╨╛╤é ╨▓╤ï╨┐╤â╤ü╨║ ╨╜╨╛╨▓╨╛╤ü╤é╨╡╨╣, ╤ç╤é╨╛╨▒╤ï ╨┐╤Ç╨╛╨┤╨╛╨╗╨╢╨╕╤é╤î ╤Ç╨░╨▒╨╛╤é╤â ╤ü TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>╨¥╨╡ ╤â╨┤╨░╨╗╨╛╤ü╤î ╨╛╤é╨║╤Ç╤ï╤é╤î ╨▒╤Ç╨░╤â╨╖╨╡╤Ç: {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / ╨¥╨₧╨Æ╨₧╨í╨ó╨ÿ</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>╨₧╤é╨║╤Ç╤ï╤é╤î ╨▓ ╨▒╤Ç╨░╤â╨╖╨╡╤Ç╨╡</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>╨ù╨░╨│╤Ç╤â╨╖╨║╨░ ╨┐╨╛╤ü╨╗╨╡╨┤╨╜╨╡╨│╨╛ ╨▓╤ï╨┐╤â╤ü╨║╨░ ╨╜╨╛╨▓╨╛╤ü╤é╨╡╨╣</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>╨ƒ╨╛╨┤╨║╨╗╤Ä╤ç╨╡╨╜╨╕╨╡ ╨║ ╨╗╨╡╨╜╤é╨╡ ╨╜╨╛╨▓╨╛╤ü╤é╨╡╨╣...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>╨₧╤é╨║╤Ç╨╛╨╣╤é╨╡ ╤ì╤é╤â ╤ü╤é╨░╤é╤î╤Ä ╨▓ ╨▒╤Ç╨░╤â╨╖╨╡╤Ç╨╡.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>╨ƒ╨╛╨▓╤é╨╛╤Ç╨╕╤é╤î</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>╨ƒ╨₧╨ö╨ö╨ò╨á╨û╨ÿ╨ó╨ò ╨û╨ÿ╨ù╨¥╨¼ ╨É╨á╨Ü╨É╨ö.</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>╨Æ╨░╤ê╨░ ╨┐╨╛╨┤╨┐╨╕╤ü╨║╨░ ╨┐╨╛╨╝╨╛╨│╨░╨╡╤é ╨┤╨╛╨▒╨░╨▓╨╗╤Å╤é╤î ╨▒╨╛╨╗╤î╤ê╨╡ ╨╕╨│╤Ç ╨▓ TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>╨ù╨░╨║╤Ç╨╛╨╣╤é╨╡ ╤ì╤é╨╛╤é ╨▓╤ï╨┐╤â╤ü╨║ ╨╜╨╛╨▓╨╛╤ü╤é╨╡╨╣, ╤ç╤é╨╛╨▒╤ï ╨┐╤Ç╨╛╨┤╨╛╨╗╨╢╨╕╤é╤î ╤Ç╨░╨▒╨╛╤é╤â ╤ü TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>╨á╨░╨╖╨▓╨╡╤Ç╨╜╤â╤é╤î / ╨▓╨╛╤ü╤ü╤é╨░╨╜╨╛╨▓╨╕╤é╤î</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>╨ú╨┤╨░╨╗╨╕╤é╤î ╨╗╨╛╨║╨░╨╗╤î╨╜╤ï╨╣ ╨║╨╗╤Ä╤ç ╨┐╨╛╨┤╨┐╨╕╤ü╨║╨╕?</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+╨ò╤ü╨╗╨╕ ╤ì╤é╨╛╤é ╨║╨╗╤Ä╤ç ╨╜╨╡ ╨▓╨░╤ê ╨╕╨╗╨╕ ╤ü╤Ç╨╛╨║ ╨╡╨│╨╛ ╨┤╨╡╨╣╤ü╤é╨▓╨╕╤Å ╨╕╤ü╤é╤æ╨║, ╤à╨╛╤é╨╕╤é╨╡ ╤â╨┤╨░╨╗╨╕╤é╤î ╨╡╨│╨╛ ╤ü ╤ì╤é╨╛╨│╨╛ ╨║╨╛╨╝╨┐╤î╤Ä╤é╨╡╤Ç╨░?
+
+╨æ╤â╨┤╨╡╤é ╤â╨┤╨░╨╗╤æ╨╜ ╤é╨╛╨╗╤î╨║╨╛ ╨║╨╗╤Ä╤ç, ╤ü╨╛╤à╤Ç╨░╨╜╤æ╨╜╨╜╤ï╨╣ ╨╜╨░ ╤ì╤é╨╛╨╝ ╨ƒ╨Ü. ╨¡╤é╨╛ ╨╜╨╡ ╨╛╤ü╨▓╨╛╨▒╨╛╨┤╨╕╤é ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Ä ╨╜╨░ ╤ü╨╡╤Ç╨▓╨╡╤Ç╨╡ ╨╕ ╨╜╨╡ ╤ü╨▒╤Ç╨╛╤ü╨╕╤é 30-╨┤╨╜╨╡╨▓╨╜╤ï╨╣ ╨┐╨╡╤Ç╨╕╨╛╨┤ ╨╛╨╢╨╕╨┤╨░╨╜╨╕╤Å.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>╨¢╨╛╨║╨░╨╗╤î╨╜╤ï╨╣ ╨║╨╗╤Ä╤ç ╨┐╨╛╨┤╨┐╨╕╤ü╨║╨╕ ╤â╨┤╨░╨╗╤æ╨╜. ╨Æ╤ï╨▒╨╡╤Ç╨╕╤é╨╡ ╨╕╨╗╨╕ ╨▓╨▓╨╡╨┤╨╕╤é╨╡ ╤ü╨╛╨▒╤ü╤é╨▓╨╡╨╜╨╜╤ï╨╣ ╨┤╨╡╨╣╤ü╤é╨▓╤â╤Ä╤ë╨╕╨╣ ╨║╨╗╤Ä╤ç ╨╕ ╨┐╨╛╨▓╤é╨╛╤Ç╨╕╤é╨╡ ╤Ç╨╡╨│╨╕╤ü╤é╤Ç╨░╤å╨╕╤Ä.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>╨í╨╛╤à╤Ç╨░╨╜╤æ╨╜╨╜╤ï╨╣ ╨║╨╗╤Ä╤ç ╨┐╨╛╨┤╨┐╨╕╤ü╨║╨╕ ╨╕╨╖╨╝╨╡╨╜╨╕╨╗╤ü╤Å ╨▓╨╛ ╨▓╤Ç╨╡╨╝╤Å ╤ì╤é╨╛╨╣ ╨╛╨┐╨╡╤Ç╨░╤å╨╕╨╕. ╨¥╨╕╤ç╨╡╨│╨╛ ╨╜╨╡ ╤â╨┤╨░╨╗╨╡╨╜╨╛. ╨ƒ╨╛╨▓╤é╨╛╤Ç╨╕╤é╨╡ ╨┐╨╛╨┐╤ï╤é╨║╤â.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>╨¥╨╡ ╤â╨┤╨░╨╗╨╛╤ü╤î ╤â╨┤╨░╨╗╨╕╤é╤î ╨╗╨╛╨║╨░╨╗╤î╨╜╤ï╨╣ ╨║╨╗╤Ä╤ç ╨┐╨╛╨┤╨┐╨╕╤ü╨║╨╕. ╨ƒ╤Ç╨╛╨▓╨╡╤Ç╤î╤é╨╡ ╨┐╤Ç╨░╨▓╨░ ╨┤╨╛╤ü╤é╤â╨┐╨░ ╨╕ ╨┐╨╛╨▓╤é╨╛╤Ç╨╕╤é╨╡ ╨┐╨╛╨┐╤ï╤é╨║╤â.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader ╨╖╨░╨▓╨╡╤Ç╤ê╨╕╨╗╤ü╤Å ╤ü ╨║╨╛╨┤╨╛╨╝ ╨╛╤ê╨╕╨▒╨║╨╕ {0}. ╨¢╨╛╨║╨░╨╗╤î╨╜╨░╤Å ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Å ╤ü╨╛╤à╤Ç╨░╨╜╨╡╨╜╨░.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader ╨╜╨╡ ╨▓╨╡╤Ç╨╜╤â╨╗ ╨║╨╛╤Ç╤Ç╨╡╨║╤é╨╜╤ï╨╣ ╤Ç╨╡╨╖╤â╨╗╤î╤é╨░╤é ╨┤╨╡╨░╨║╤é╨╕╨▓╨░╤å╨╕╨╕. ╨¢╨╛╨║╨░╨╗╤î╨╜╨░╤Å ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Å ╤ü╨╛╤à╤Ç╨░╨╜╨╡╨╜╨░.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>╨¥╨╡ ╤â╨┤╨░╨╗╨╛╤ü╤î ╤ü╨▓╤Å╨╖╨░╤é╤î╤ü╤Å ╤ü ╤ü╨╡╤Ç╨▓╨╡╤Ç╨╛╨╝ ╨░╨║╤é╨╕╨▓╨░╤å╨╕╨╕. ╨¢╨╛╨║╨░╨╗╤î╨╜╨░╤Å ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Å ╤ü╨╛╤à╤Ç╨░╨╜╨╡╨╜╨░.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>╨í╨╡╤Ç╨▓╨╡╤Ç ╨░╨║╤é╨╕╨▓╨░╤å╨╕╨╕ ╨▓╨╡╤Ç╨╜╤â╨╗ ╨╜╨╡╨║╨╛╤Ç╤Ç╨╡╨║╤é╨╜╤ï╨╣ ╨╛╤é╨▓╨╡╤é. ╨¢╨╛╨║╨░╨╗╤î╨╜╨░╤Å ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Å ╤ü╨╛╤à╤Ç╨░╨╜╨╡╨╜╨░.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>╨í╨╡╤Ç╨▓╨╡╤Ç ╨░╨║╤é╨╕╨▓╨░╤å╨╕╨╕ ╨╜╨╡ ╤Ç╨░╤ü╨┐╨╛╨╖╨╜╨░╨╗ ╤ì╤é╤â ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Ä. ╨¢╨╛╨║╨░╨╗╤î╨╜╨░╤Å ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Å ╤ü╨╛╤à╤Ç╨░╨╜╨╡╨╜╨░.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>╨í╨╡╤Ç╨▓╨╡╤Ç ╨░╨║╤é╨╕╨▓╨░╤å╨╕╨╕ ╨╛╤é╨║╨╗╨╛╨╜╨╕╨╗ ╨┤╨╡╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Ä. ╨Æ╨╛╨╖╨╝╨╛╨╢╨╜╨╛, ╨┤╨╗╤Å ╤ì╤é╨╛╨│╨╛ ╤ü╨╡╤Ç╨╕╨╣╨╜╨╛╨│╨╛ ╨╜╨╛╨╝╨╡╤Ç╨░ ╨╡╤ë╤æ ╨┤╨╡╨╣╤ü╤é╨▓╤â╨╡╤é 30-╨┤╨╜╨╡╨▓╨╜╤ï╨╣ ╨┐╨╡╤Ç╨╕╨╛╨┤ ╨╛╨╢╨╕╨┤╨░╨╜╨╕╤Å.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>╨í╨╡╤Ç╨▓╨╡╤Ç ╨░╨║╤é╨╕╨▓╨░╤å╨╕╨╕ ╨╛╤é╨║╨╗╨╛╨╜╨╕╨╗ ╨┤╨╡╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Ä ╤ü ╨║╨╛╨┤╨╛╨╝ {0}. ╨¢╨╛╨║╨░╨╗╤î╨╜╨░╤Å ╨░╨║╤é╨╕╨▓╨░╤å╨╕╤Å ╤ü╨╛╤à╤Ç╨░╨╜╨╡╨╜╨░.</value>
   </data>
 </root>

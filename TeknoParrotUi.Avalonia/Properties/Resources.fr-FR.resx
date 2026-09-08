@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -999,7 +999,7 @@ attract, attractreplays, configuration, enterinitials, lasvegas, newyorkshop, op
     <value>Sortie</value>
   </data>
   <data name="GameRunningExitedWithError" xml:space="preserve">
-    <value>Le jeu s&apos;est terminé avec une erreur (code de sortie {0}) — appuyez sur Retour pour revenir</value>
+    <value>Le jeu s'est terminé avec une erreur (code de sortie {0}) — appuyez sur Retour pour revenir</value>
   </data>
   <data name="GameRunningForceQuit" xml:space="preserve">
     <value>Forcer l'Arrêt du Jeu</value>
@@ -2787,5 +2787,93 @@ Fermeture en cours...</value>
   </data>
   <data name="WizardStepOf" xml:space="preserve">
     <value>Étape {0} sur {1}</value>
+  </data>
+  <data name="LibraryGenreKonamiViper" xml:space="preserve">
+    <value>Konami Viper</value>
+  </data>
+  <data name="AnnouncementTitle" xml:space="preserve">
+    <value>Actualit├⌐s TeknoParrot</value>
+  </data>
+  <data name="AnnouncementSubscribe" xml:space="preserve">
+    <value>S'abonner</value>
+  </data>
+  <data name="AnnouncementClose" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="AnnouncementLoadError" xml:space="preserve">
+    <value>Cette page n'a pas pu ├¬tre charg├⌐e ici. Ouvrez-la dans votre navigateur ou fermez ce bulletin pour continuer ├á utiliser TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementOpenError" xml:space="preserve">
+    <value>Impossible d'ouvrir votre navigateur : {0}</value>
+  </data>
+  <data name="AnnouncementNetwork" xml:space="preserve">
+    <value>TEKNOPARROT / ACTUALIT├ëS</value>
+  </data>
+  <data name="AnnouncementOpenBrowser" xml:space="preserve">
+    <value>Ouvrir dans le navigateur</value>
+  </data>
+  <data name="AnnouncementLoading" xml:space="preserve">
+    <value>Chargement du dernier bulletin</value>
+  </data>
+  <data name="AnnouncementLoadingHint" xml:space="preserve">
+    <value>Connexion au fil d'actualit├⌐s...</value>
+  </data>
+  <data name="AnnouncementLoadErrorTitle" xml:space="preserve">
+    <value>Ouvrez cet article dans votre navigateur.</value>
+  </data>
+  <data name="AnnouncementRetry" xml:space="preserve">
+    <value>R├⌐essayer</value>
+  </data>
+  <data name="AnnouncementSupportTitle" xml:space="preserve">
+    <value>FAITES VIVRE L'ARCADE.</value>
+  </data>
+  <data name="AnnouncementSupportDescription" xml:space="preserve">
+    <value>Votre abonnement permet d'ajouter davantage de jeux ├á TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementCloseHint" xml:space="preserve">
+    <value>Fermez ce bulletin pour continuer ├á utiliser TeknoParrot.</value>
+  </data>
+  <data name="AnnouncementMaximize" xml:space="preserve">
+    <value>Agrandir / restaurer</value>
+  </data>
+  <data name="LocalActivationRemovalTitle" xml:space="preserve">
+    <value>Supprimer la cl├⌐ d'abonnement locale ?</value>
+  </data>
+  <data name="LocalActivationRemovalPrompt" xml:space="preserve">
+    <value>{0}
+
+Si cette cl├⌐ ne vous appartient pas ou a expir├⌐, souhaitez-vous la supprimer de cet ordinateur ?
+
+Seule la cl├⌐ enregistr├⌐e sur ce PC sera supprim├⌐e. Cela ne lib├⌐rera aucune activation sur le serveur et ne r├⌐initialisera pas le d├⌐lai d'attente de 30 jours.</value>
+  </data>
+  <data name="LocalActivationRemoved" xml:space="preserve">
+    <value>La cl├⌐ d'abonnement locale a ├⌐t├⌐ supprim├⌐e. S├⌐lectionnez ou saisissez votre propre cl├⌐ valide, puis r├⌐essayez de l'enregistrer.</value>
+  </data>
+  <data name="LocalActivationChanged" xml:space="preserve">
+    <value>La cl├⌐ d'abonnement enregistr├⌐e a chang├⌐ pendant cette op├⌐ration. Rien n'a ├⌐t├⌐ supprim├⌐. Veuillez r├⌐essayer.</value>
+  </data>
+  <data name="LocalActivationRemovalFailed" xml:space="preserve">
+    <value>Impossible de supprimer la cl├⌐ d'abonnement locale. V├⌐rifiez vos autorisations et r├⌐essayez.</value>
+  </data>
+  <data name="DeactivationProcessFailed" xml:space="preserve">
+    <value>BudgieLoader a ├⌐chou├⌐ avec le code de sortie {0}. L'activation locale a ├⌐t├⌐ conserv├⌐e.</value>
+  </data>
+  <data name="DeactivationNoResult" xml:space="preserve">
+    <value>BudgieLoader n'a pas renvoy├⌐ de r├⌐sultat de d├⌐sactivation valide. L'activation locale a ├⌐t├⌐ conserv├⌐e.</value>
+  </data>
+  <data name="DeactivationNoConnection" xml:space="preserve">
+    <value>Impossible de joindre le serveur d'activation. L'activation locale a ├⌐t├⌐ conserv├⌐e.</value>
+  </data>
+  <data name="DeactivationBadReply" xml:space="preserve">
+    <value>Le serveur d'activation a renvoy├⌐ une r├⌐ponse non valide. L'activation locale a ├⌐t├⌐ conserv├⌐e.</value>
+  </data>
+  <data name="DeactivationUnknownSerial" xml:space="preserve">
+    <value>Le serveur d'activation n'a pas reconnu cette activation. L'activation locale a ├⌐t├⌐ conserv├⌐e.</value>
+  </data>
+  <data name="DeactivationCooldown" xml:space="preserve">
+    <value>Le serveur d'activation a refus├⌐ la d├⌐sactivation. Le d├⌐lai d'attente de 30 jours de ce num├⌐ro de s├⌐rie est peut-├¬tre toujours en cours.</value>
+  </data>
+  <data name="DeactivationRejected" xml:space="preserve">
+    <value>Le serveur d'activation a refus├⌐ la d├⌐sactivation avec le code {0}. L'activation locale a ├⌐t├⌐ conserv├⌐e.</value>
   </data>
 </root>

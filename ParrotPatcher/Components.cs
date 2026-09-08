@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,9 +19,7 @@ namespace ParrotPatcher
                 new UpdaterComponent
                 {
                     name = "TeknoParrotUI",
-                    location = Path.Combine(
-                        AppContext.BaseDirectory,
-                        OperatingSystem.IsWindows() ? "TeknoParrotUi.exe" : "TeknoParrotUi")
+                    location = Assembly.GetExecutingAssembly().Location
                 },
                 new UpdaterComponent
                 {
@@ -175,6 +174,15 @@ namespace ParrotPatcher
                     opensource = false,
                     manualVersion = false,
                     folderOverride = "TeknoVegas"
+                },
+                new UpdaterComponent
+                {
+                    name = "TeknoModel1",
+                    location = Path.Combine("TeknoModel1", "TeknoModel1.exe"),
+                    reponame = "TeknoParrot",
+                    opensource = false,
+                    manualVersion = false,
+                    folderOverride = "TeknoModel1"
                 },
             };
         }

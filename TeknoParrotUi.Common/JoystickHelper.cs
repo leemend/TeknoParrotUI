@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,6 +21,8 @@ namespace TeknoParrotUi.Common
         /// <summary>Asks the user whether a corrupt profile should be deleted. Params: file name, extra detail.</summary>
         public static Func<string, string, bool> ConfirmCorruptProfileDeletion = (_, _) => false;
 
+        private const string ShowDevOnlyProfilesEnvironmentVariable = "TPUI_SHOW_DEVONLY_PROFILES";
+        private static readonly bool showDevOnlyProfiles = IsEnvironmentFlagEnabled(ShowDevOnlyProfilesEnvironmentVariable);
         private static readonly XmlSerializer gameProfileSerializer = new XmlSerializer(typeof(GameProfile));
         private static readonly XmlSerializer gameSetupSerializer = new XmlSerializer(typeof(GameSetup));
         private static readonly XmlReaderSettings readerSettings = new XmlReaderSettings
@@ -31,16 +33,19 @@ namespace TeknoParrotUi.Common
             ValidationType = ValidationType.None
         };
         private static readonly JsonSerializer jsonSerializer = new JsonSerializer();
+
+        private static bool IsEnvironmentFlagEnabled(string variableName)
+        {
+            var value = Environment.GetEnvironmentVariable(variableName);
+            return value == "1" || bool.TryParse(value, out var enabled) && enabled;
+        }
+
         /// <summary>
         /// Serializes Lazydata.ParrotData to a ParrotData.xml file.
         /// </summary>
         public static void Serialize()
         {
-            var serializer = new XmlSerializer(typeof(ParrotData));
-            using (var writer = XmlWriter.Create("ParrotData.xml"))
-            {
-                serializer.Serialize(writer, Lazydata.ParrotData);
-            }
+            ParrotDataSerializer.Save(Lazydata.ParrotData, "ParrotData.xml");
         }
 
         /// <summary>
@@ -110,7 +115,7 @@ namespace TeknoParrotUi.Common
                     profile = (GameSetup)gameSetupSerializer.Deserialize(reader);
                 }
 #if !DEBUG
-                if (profile.DevOnly)
+                if (profile.DevOnly && !showDevOnlyProfiles)
                 {
                     Debug.WriteLine($"Skipping loading dev profile {fileName}");
                     return null;
@@ -140,7 +145,7 @@ namespace TeknoParrotUi.Common
                     profile = (GameProfile)gameProfileSerializer.Deserialize(reader);
                 }
 #if !DEBUG
-                if (profile.DevOnly)
+                if (profile.DevOnly && !showDevOnlyProfiles)
                 {
                     Debug.WriteLine($"Skipping loading dev profile {fileName}");
                     return null;
