@@ -1,67 +1,88 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TeknoParrotUi.Avalonia.Views.LibraryView">
-    <Grid Name="LayoutGrid" ColumnDefinitions="*,240" RowDefinitions="Auto,Auto,*" Margin="10">
-        <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,Auto,Auto">
-            <TextBox Name="SearchBox"
+	<Grid Name="LayoutGrid" ColumnDefinitions="*,240" RowDefinitions="Auto,Auto,*" Margin="10">
+		<Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,Auto,Auto">
+			<TextBox Name="SearchBox"
                      Grid.Column="0"
                      PlaceholderText="Search games..."
                      TextChanged="SearchBox_TextChanged" />
-            <Button Name="BtnAddGame" Grid.Column="1" Content="Add Game"
+			<Button Name="BtnAddGame" Grid.Column="1" Content="Add Game"
                     Margin="6,0,0,0" Click="BtnAddGame_Click" />
-            <Button Name="BtnScanner" Grid.Column="2" Content="Game Scanner"
+			<Button Name="BtnScanner" Grid.Column="2" Content="Game Scanner"
                     Margin="6,0,0,0" Click="BtnScanner_Click" />
-        </Grid>
-        <!-- Unified filter list: All / status / platforms / genres as one
+		</Grid>
+
+		<!-- Unified filter list: All / status / platforms / genres as one
              checkbox system — check several to combine (multiple within a
              section broadens, sections combine to narrow). Collapsed by
              default so the game list keeps its space at 640x480. -->
-        <Expander Name="FilterExpander"
+		<Expander Name="FilterExpander"
                   Grid.Row="1" Grid.Column="0"
                   Margin="0,6,0,0"
                   HorizontalAlignment="Stretch"
                   Header="Filters">
-            <ListBox Name="FilterList" Classes="compact" MaxHeight="220" />
-        </Expander>
-        <ListBox Name="GameList" Classes="compact"
+			<ListBox Name="FilterList" Classes="compact" MaxHeight="220" />
+		</Expander>
+
+		<ListBox Name="GameList" Classes="compact"
                  Grid.Row="2" Grid.Column="0"
                  Margin="0,6,0,0"
                  SelectionChanged="GameList_SelectionChanged"
                  DoubleTapped="GameList_DoubleTapped" />
 
-        <!-- Keep launch/configuration actions outside the metadata scroller so
+		<!-- Keep launch/configuration actions outside the metadata scroller so
              short Android landscape screens never hide them below long text. -->
-        <Grid Name="DetailsPanel" Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
+		<Grid Name="DetailsPanel" Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
               RowDefinitions="*,Auto" Margin="10,0,0,0">
-            <ScrollViewer Name="DetailsScroll" Grid.Row="0" ClipToBounds="True">
-                <StackPanel Spacing="6">
-                    <Border Classes="card">
-                        <StackPanel Spacing="4">
-                            <Image Name="GameIcon" Height="120" Stretch="Uniform" />
-                            <TextBlock Name="GameTitle" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
-                            <TextBlock Name="GameGenre" Opacity="0.7" FontSize="12" />
-                            <Button Name="EmulatorLink" Padding="0" Background="Transparent" BorderThickness="0"
+
+			<ScrollViewer Name="DetailsScroll" Grid.Row="0" ClipToBounds="True">
+				<StackPanel Spacing="6">
+					<Border Classes="card">
+						<StackPanel Spacing="4">
+							<Image Name="GameIcon" Height="120" Stretch="Uniform" />
+							<TextBlock Name="GameTitle" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
+							<TextBlock Name="GameGenre" Opacity="0.7" FontSize="12" />
+							<Button Name="EmulatorLink" Padding="0" Background="Transparent" BorderThickness="0"
                                     Cursor="Hand" Click="EmulatorLink_Click" HorizontalAlignment="Left">
-                                <TextBlock Name="EmulatorText" FontSize="12" Foreground="{DynamicResource SystemAccentColor}" />
-                            </Button>
-                            <TextBlock Name="GameInfoText" Opacity="0.85" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock Name="GpuStatusText" FontSize="11" TextWrapping="Wrap" />
-                            <TextBlock Name="GamePathText" Opacity="0.6" FontSize="10" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Border>
-                    <Button Name="BtnHighScores" Content="High Scores" HorizontalAlignment="Stretch"
-                            IsVisible="False" Click="BtnHighScores_Click" />
-                    <Button Name="BtnVerify" Content="Verify Files" HorizontalAlignment="Stretch" Click="BtnVerify_Click" />
-                    <Button Name="BtnRemoveGame" Content="Remove Game" HorizontalAlignment="Stretch" Click="BtnRemoveGame_Click" />
-                    <TextBlock Name="StatusText" Opacity="0.7" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
-                </StackPanel>
-            </ScrollViewer>
-            <StackPanel Name="PrimaryActions" Grid.Row="1" Spacing="6" Margin="0,8,0,0">
-                <Button Name="BtnLaunch" Classes="primary" Content="▶  Launch Game" HorizontalAlignment="Stretch" Click="BtnLaunch_Click" />
-                <Button Name="BtnTestMode" Content="Test Menu" HorizontalAlignment="Stretch" Click="BtnTestMode_Click" />
-                <Button Name="BtnGameSettings" Content="Game Settings" HorizontalAlignment="Stretch" Click="BtnGameSettings_Click" />
-                <Button Name="BtnControls" Content="Set Up Controls" HorizontalAlignment="Stretch" Click="BtnControls_Click" />
-            </StackPanel>
-        </Grid>
-    </Grid>
+								<TextBlock Name="EmulatorText" FontSize="12" Foreground="{DynamicResource SystemAccentColor}" />
+							</Button>
+							<TextBlock Name="GameInfoText" Opacity="0.85" FontSize="11" TextWrapping="Wrap" />
+							<TextBlock Name="GpuStatusText" FontSize="11" TextWrapping="Wrap" />
+							<TextBlock Name="GamePathText" Opacity="0.6" FontSize="10" TextWrapping="Wrap" />
+						</StackPanel>
+					</Border>
+
+					<TextBlock Name="StatusText" Opacity="0.7" FontSize="11"
+                               TextWrapping="Wrap" Margin="0,4,0,0" />
+				</StackPanel>
+			</ScrollViewer>
+
+			<StackPanel Name="PrimaryActions" Grid.Row="1" Spacing="6" Margin="0,8,0,0">
+				<Button Name="BtnLaunch" Classes="primary" Content="▶  Launch Game"
+                        HorizontalAlignment="Stretch" Click="BtnLaunch_Click" />
+				<Button Name="BtnTestMode" Content="Test Menu"
+                        HorizontalAlignment="Stretch" Click="BtnTestMode_Click" />
+				<Button Name="BtnGameSettings" Content="Game Settings"
+                        HorizontalAlignment="Stretch" Click="BtnGameSettings_Click" />
+				<Button Name="BtnControls" Content="Set Up Controls"
+                        HorizontalAlignment="Stretch" Click="BtnControls_Click" />
+
+				<Border Height="1"
+                        Margin="0,4"
+                        Background="{DynamicResource ThemeBorderLowBrush}" />
+
+				<Button Name="BtnHighScores" Content="High Scores"
+                        HorizontalAlignment="Stretch"
+                        IsVisible="False"
+                        Click="BtnHighScores_Click" />
+				<Button Name="BtnVerify" Content="Verify Files"
+                        HorizontalAlignment="Stretch"
+                        Click="BtnVerify_Click" />
+				<Button Name="BtnRemoveGame" Content="Remove Game"
+                        HorizontalAlignment="Stretch"
+                        Click="BtnRemoveGame_Click" />
+			</StackPanel>
+		</Grid>
+	</Grid>
 </UserControl>
