@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -246,23 +246,79 @@ namespace TeknoParrotUi.Common
                     }
                     else
                     {
-                        other.FileName = isThereOther;
+                        // Revision changed. Re-map the user's saved values onto the
+                        // current stock profile shape so new mappings/settings are retained.
+                        for (int i = 0; i < other.JoystickButtons.Count; i++)
+                        {
+                            var button = gameProfile.JoystickButtons.FirstOrDefault(
+                                x => x.ButtonName == other.JoystickButtons[i].ButtonName);
+
+                            if (button != null)
+                            {
+                                other.JoystickButtons[i].DirectInputButton = button.DirectInputButton;
+                                other.JoystickButtons[i].XInputButton = button.XInputButton;
+                                other.JoystickButtons[i].RawInputButton = button.RawInputButton;
+                                other.JoystickButtons[i].BindNameDi = button.BindNameDi;
+                                other.JoystickButtons[i].BindNameXi = button.BindNameXi;
+                                other.JoystickButtons[i].BindNameRi = button.BindNameRi;
+                                other.JoystickButtons[i].BindName = button.BindName;
+
+                                if (other.JoystickButtons[i].BindNameRi != null &&
+                                    other.JoystickButtons[i].BindNameRi.Contains("DolphinBar") &&
+                                    string.IsNullOrWhiteSpace(
+                                        other.JoystickButtons[i].RawInputButton?.DevicePath))
+                                {
+                                    other.JoystickButtons[i].RawInputButton = new RawInputButton
+                                    {
+                                        DevicePath = "",
+                                        DeviceType = RawDeviceType.None,
+                                        MouseButton = RawMouseButton.None,
+                                        KeyboardKey = Keys.None
+                                    };
+                                    other.JoystickButtons[i].BindNameRi = "";
+                                }
+                            }
+                        }
+
+                        for (int i = 0; i < other.ConfigValues.Count; i++)
+                        {
+                            for (int j = 0; j < gameProfile.ConfigValues.Count; j++)
+                            {
+                                if (other.ConfigValues[i].FieldName ==
+                                    gameProfile.ConfigValues[j].FieldName)
+                                {
+                                    other.ConfigValues[i].FieldValue =
+                                        gameProfile.ConfigValues[j].FieldValue;
+                                    other.ConfigValues[i].RodPreferredSetupSaved =
+                                        gameProfile.ConfigValues[j].RodPreferredSetupSaved;
+                                }
+                            }
+                        }
+
+                        other.GamePath = gameProfile.GamePath;
+                        other.GamePath2 = gameProfile.GamePath2;
+
+                        other.FileName = file;
                         other.ProfileName = Path.GetFileNameWithoutExtension(file);
                         other.IconName = "Icons/" + Path.GetFileNameWithoutExtension(file) + ".png";
                         other.GameInfo = JoystickHelper.DeSerializeMetadata(file);
+
                         if (other.GameInfo != null)
                         {
                             if (other.GameInfo.icon_name != "")
-                            {
                                 other.IconName = "Icons/" + other.GameInfo.icon_name;
-                            }
+
                             other.GameNameInternal = other.GameInfo.game_name;
                             other.GameGenreInternal = other.GameInfo.game_genre;
                         }
                         else
                         {
-                            other.GameNameInternal = Path.GetFileNameWithoutExtension(file) + " (Metadata Missing)";
+                            other.GameNameInternal =
+                                Path.GetFileNameWithoutExtension(file) + " (Metadata Missing)";
                         }
+
+                        JoystickHelper.SerializeGameProfile(other);
+
                         lock (userprofileList)
                         {
                             userprofileList.Add(other);
