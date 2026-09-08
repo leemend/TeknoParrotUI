@@ -313,8 +313,7 @@ public partial class JoystickSetupView : UserControl
     {
         var name = binding.ButtonName ?? string.Empty;
 
-        return name.StartsWith("Host ", StringComparison.OrdinalIgnoreCase) ||
-               binding.InputMapping == InputMapping.HostTrackball;
+        return name.StartsWith("Host ", StringComparison.OrdinalIgnoreCase);
     }
 
     private static int GoldenTeeRemoteControlGroup(JoystickButtons binding)
