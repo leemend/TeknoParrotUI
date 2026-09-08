@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TeknoParrotUi.Avalonia.Views.MainView">
     <!-- The whole application shell (header, sidebar, status bar, page host).
@@ -84,6 +84,12 @@
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" />
                         <TextBlock Name="NavSettingsText" Text="Settings" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Name="NavRemotePlay" Classes="nav" Click="NavRemotePlay_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <PathIcon Data="M2,3 H22 V17 H14 V19 H18 V21 H6 V19 H10 V17 H2 Z" Width="16" Height="16" />
+                        <TextBlock Name="NavRemotePlayText" Text="Remote Play" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
                 <Button Name="NavUiOptions" Classes="nav" Click="NavUiOptions_Click">

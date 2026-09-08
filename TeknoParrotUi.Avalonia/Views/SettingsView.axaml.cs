@@ -50,13 +50,6 @@ public partial class SettingsView : UserControl
             .ToList();
         NetworkAdapterBox.ItemsSource = adapters;
 
-        if (!OperatingSystem.IsWindows())
-        {
-            HdrRemotePlay.IsVisible = false;
-            RemotePlayDescription.IsVisible = false;
-            BtnRemotePlay.IsVisible = false;
-        }
-
         Loaded += (_, _) => LoadFromParrotData();
     }
 
@@ -70,9 +63,6 @@ public partial class SettingsView : UserControl
         // Android controls are edited through the companion's tested per-game
         // touch/gamepad layouts, not the desktop multi-profile binding tool.
         BtnMultiButton.IsVisible = false;
-        HdrRemotePlay.IsVisible = false;
-        RemotePlayDescription.IsVisible = false;
-        BtnRemotePlay.IsVisible = false;
         foreach (var grid in SettingsContent.Children.OfType<Grid>())
         {
             // Desktop settings use label/editor columns as wide as 460 DIPs.
@@ -191,31 +181,6 @@ public partial class SettingsView : UserControl
         await Services.ExternalUrlLauncher.OpenAsync(
             this,
             "https://github.com/Boomslangnz/FFBArcadePlugin/releases");
-
-    private void BtnRemotePlay_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if (!OperatingSystem.IsWindows())
-            return;
-
-        var view = new RemotePlayManagementView();
-        var window = new Window
-        {
-            Title = "TeknoParrot — Remote Play Management",
-            Width = 900,
-            Height = 720,
-            MinWidth = 680,
-            MinHeight = 520,
-            Content = view,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
-
-        view.CloseRequested += window.Close;
-
-        if (TopLevel.GetTopLevel(this) is Window owner)
-            window.Show(owner);
-        else
-            window.Show();
-    }
 
     private void BtnMultiButton_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e) =>
         MultiButtonConfigRequested?.Invoke();

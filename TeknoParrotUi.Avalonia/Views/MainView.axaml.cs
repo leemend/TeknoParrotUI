@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
@@ -30,6 +30,7 @@ public partial class MainView : UserControl
 {
     private readonly LibraryView _library = new();
     private readonly SettingsView _settings = new();
+    private readonly RemotePlayManagementView _remotePlay = new();
     private readonly AboutView _about = new();
     private readonly GameSettingsView _gameSettings = new();
     private readonly JoystickSetupView _joystickSetup = new();
@@ -67,6 +68,7 @@ public partial class MainView : UserControl
         NavLinuxSetup.IsVisible = OperatingSystem.IsLinux();
         NavUpdates.IsVisible = PlatformCapabilities.CanSelfUpdate;
         NavMods.IsVisible = PlatformCapabilities.CanManageDesktopComponents;
+        NavRemotePlay.IsVisible = OperatingSystem.IsWindows();
         // A 170-DIP navigation rail leaves too little room for the desktop-style
         // library/settings panes on a portrait phone. Keep it one tap away via
         // the menu button, but start Android with the content pane unobstructed.
@@ -1017,6 +1019,7 @@ public partial class MainView : UserControl
             ? Loc.T("MainAccountDisabledAndroid", "Login (Disabled)")
             : Loc.T("MainAccount", "Account");
         NavSettingsText.Text = Loc.T("MainSettings", "Settings");
+        NavRemotePlayText.Text = "Remote Play";
         NavAboutText.Text = Loc.T("MainAbout", "About");
         NavLinuxSetupText.Text = Loc.T("MainLinuxSetup", "Linux Setup");
         NavTroubleshootingText.Text = Loc.T("MainTroubleshooting", "Troubleshooting");
@@ -1083,7 +1086,7 @@ public partial class MainView : UserControl
 
     private void SetActiveNav(Button active)
     {
-        foreach (var button in new[] { NavLibrary, NavOnline, NavUpdates, NavMods, NavSubscription, NavAccount, NavSettings, NavUiOptions, NavAbout, NavLinuxSetup, NavTroubleshooting })
+        foreach (var button in new[] { NavLibrary, NavOnline, NavUpdates, NavMods, NavSubscription, NavAccount, NavSettings, NavRemotePlay, NavUiOptions, NavAbout, NavLinuxSetup, NavTroubleshooting })
             button.Classes.Remove("active");
         active.Classes.Add("active");
     }
@@ -1142,6 +1145,15 @@ public partial class MainView : UserControl
     {
         Show(_settings, "MainSettings");
         SetActiveNav(NavSettings);
+    }
+
+    private void NavRemotePlay_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        Show(_remotePlay, "Remote Play");
+        SetActiveNav(NavRemotePlay);
     }
 
     private void NavUiOptions_Click(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)

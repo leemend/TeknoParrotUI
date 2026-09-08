@@ -18,8 +18,6 @@ public partial class RemotePlayManagementView : UserControl
     private bool _moonlightReady;
     private DateTime _lastMoonlightCheck = DateTime.MinValue;
 
-    public event Action? CloseRequested;
-
     public RemotePlayManagementView()
     {
         InitializeComponent();
@@ -113,7 +111,7 @@ public partial class RemotePlayManagementView : UserControl
     private void ShowSunshineRunning(SunshineStatus status)
     {
         SunshineStatusText.Text = "Running";
-        SunshineStatusDetail.Text = $"Sunshine {status.Version} is running in TeknoParrot managed mode.";
+        SunshineStatusDetail.Text = "Sunshine is running in TeknoParrot managed mode.";
         ManagedApiDetailText.Text = string.IsNullOrWhiteSpace(status.Platform)
             ? "Managed API connected"
             : $"Managed API connected • {status.Platform}";
@@ -480,8 +478,6 @@ public partial class RemotePlayManagementView : UserControl
         catch (Exception ex) { await Error(ex, "Moonlight"); }
         finally { SetMoonlightBusy(false); }
     }
-
-    private void BtnClose_Click(object? s, global::Avalonia.Interactivity.RoutedEventArgs e) => CloseRequested?.Invoke();
 
     private async Task Error(Exception ex, string title)
     {
