@@ -237,7 +237,18 @@ namespace TeknoParrotUi.Common.GameLaunch
             StartControlHandlerThreads();
 
             if (!_isTest && !_emuOnly)
-                TeknoParrotIniWriter.WriteConfigIni(_profile, _gameLocation, _gameLocation2, _twoExes);
+            {
+                // Golden Tee remote appearance is launch-only. The normal local cabinet
+                // P2/P3/P4 values stay untouched in UserProfiles.
+                using var goldenTeeRemoteAppearance =
+                    TeknoParrotUi.Common.GoldenTeeRemotePlayerProfiles.ApplyLaunchOverlay(_profile);
+
+                TeknoParrotIniWriter.WriteConfigIni(
+                    _profile,
+                    _gameLocation,
+                    _gameLocation2,
+                    _twoExes);
+            }
 
             if (JvsSetup.UsesJvsPipe(_profile))
             {
