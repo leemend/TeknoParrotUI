@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using TeknoParrotUi.Common;
+using TeknoParrotUi.Common.InputListening;
 using TeknoParrotUi.Common.InputListening.Gamepad;
 
 namespace TeknoParrotUi.Avalonia.Services;
@@ -29,7 +30,7 @@ public sealed class InputCaptureService : IDisposable
     {
         Stop();
         _stop = false;
-        // Every gamepad API selection captures via SDL2 — legacy DirectInput/
+        // Every gamepad API selection captures via SDL2 ΓÇö legacy DirectInput/
         // XInput selections produce the same XInput-shaped bindings.
         SpawnSdl2Capture();
     }
@@ -81,7 +82,14 @@ public sealed class InputCaptureService : IDisposable
 
     private void DetectXInput(State ns, State os, int index)
     {
-        var prefix = $"Input Device {index} ";
+        int sunshinePlayer = SunshinePlayerInput.PlayerForXInputIndex(index);
+        int captureSource = sunshinePlayer > 0 ? sunshinePlayer : ActiveCaptureSource.Host;
+        if (!ActiveCaptureSource.IsAllowed(captureSource))
+            return;
+
+        var prefix = sunshinePlayer > 0
+            ? $"{SunshinePlayerInput.DisplayNameForPlayer(sunshinePlayer)} "
+            : $"Input Device {index} ";
 
         if (ns.Gamepad.Buttons != os.Gamepad.Buttons && ns.Gamepad.Buttons != GamepadButtonFlags.None)
         {
