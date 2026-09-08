@@ -50,6 +50,8 @@ public partial class MainView : UserControl
     private readonly TroubleshootingView _troubleshooting = new();
     private readonly UiNavigationService _uiNav = new();
     private bool _androidLaunchPreflightBusy;
+    private bool _gameSettingsReturnToRemotePlay;
+    private bool _joystickSetupReturnToRemotePlay;
 
     private static bool WizardActive => !Lazydata.ParrotData.FirstTimeSetupComplete;
 
@@ -101,6 +103,7 @@ public partial class MainView : UserControl
 
         _library.GameSettingsRequested += profile =>
         {
+            _gameSettingsReturnToRemotePlay = false;
             _gameSettings.LoadProfile(profile);
             Show(_gameSettings, "Game Settings");
         };
@@ -131,8 +134,81 @@ public partial class MainView : UserControl
                 return;
             }
 
+            _joystickSetupReturnToRemotePlay = false;
             _joystickSetup.LoadProfile(profile);
             Show(_joystickSetup, "Controls");
+        };
+        _remotePlay.EditProfileRequested += (client, player) =>
+        {
+            var profile =
+                ResolveGoldenTeeRemotePlayProfile();
+
+            if (profile == null)
+            {
+                StatusBar.Text =
+                    "Golden Tee Live 2019 is not available in the loaded game profiles.";
+                return;
+            }
+
+            _gameSettingsReturnToRemotePlay = true;
+
+            if (!_gameSettings.LoadRemotePlayerProfile(
+                    profile,
+                    player,
+                    client.Uuid))
+            {
+                _gameSettingsReturnToRemotePlay = false;
+                StatusBar.Text =
+                    "The selected Moonlight client is no longer connected to that player slot.";
+                return;
+            }
+
+            Show(
+                _gameSettings,
+                "Remote Profile");
+
+            SetActiveNav(NavRemotePlay);
+
+            var clientName =
+                string.IsNullOrWhiteSpace(client.Name)
+                    ? "Moonlight Client"
+                    : client.Name;
+
+            StatusBar.Text =
+                $"Editing {clientName} profile for Player {player}.";
+        };
+        _remotePlay.MapControlsRequested += (client, player) =>
+        {
+            var profile =
+                ResolveGoldenTeeRemotePlayProfile();
+
+            if (profile == null)
+            {
+                StatusBar.Text =
+                    "Golden Tee Live 2019 is not available in the loaded game profiles.";
+                return;
+            }
+
+            _joystickSetupReturnToRemotePlay = true;
+
+            _joystickSetup.LoadProfile(
+                profile,
+                player,
+                client.Uuid);
+
+            Show(
+                _joystickSetup,
+                "Remote Controls");
+
+            SetActiveNav(NavRemotePlay);
+
+            var clientName =
+                string.IsNullOrWhiteSpace(client.Name)
+                    ? "Moonlight Client"
+                    : client.Name;
+
+            StatusBar.Text =
+                $"Editing {clientName} controls for Player {player}.";
         };
         _library.VerifyRequested += profile =>
         {
@@ -168,9 +244,31 @@ public partial class MainView : UserControl
             _gameRunning.StartGame(profile, testMode);
         };
 
-        _gameSettings.BackRequested += ShowLibrary;
+        _gameSettings.BackRequested += () =>
+        {
+            if (_gameSettingsReturnToRemotePlay)
+            {
+                _gameSettingsReturnToRemotePlay = false;
+                Show(_remotePlay, "Remote Play");
+                SetActiveNav(NavRemotePlay);
+                return;
+            }
+
+            ShowLibrary();
+        };
         _gameSettings.Saved += name => StatusBar.Text = $"Saved settings for {name}";
-        _joystickSetup.BackRequested += ShowLibrary;
+        _joystickSetup.BackRequested += () =>
+        {
+            if (_joystickSetupReturnToRemotePlay)
+            {
+                _joystickSetupReturnToRemotePlay = false;
+                Show(_remotePlay, "Remote Play");
+                SetActiveNav(NavRemotePlay);
+                return;
+            }
+
+            ShowLibrary();
+        };
         _joystickSetup.Saved += name => StatusBar.Text = $"Saved controls for {name}";
         _addGame.BackRequested += ShowLibrary;
         _addGame.GameAdded += profile =>
@@ -1077,6 +1175,24 @@ public partial class MainView : UserControl
         SetActiveNav(NavOnline);
     }
 
+    private static GameProfile? ResolveGoldenTeeRemotePlayProfile()
+    {
+        const string profileName =
+            "GoldenTeeLive2019";
+
+        return GameProfileLoader.UserProfiles
+                   .FirstOrDefault(profile =>
+                       string.Equals(
+                           profile.ProfileName,
+                           profileName,
+                           StringComparison.OrdinalIgnoreCase)) ??
+               GameProfileLoader.GameProfiles
+                   .FirstOrDefault(profile =>
+                       string.Equals(
+                           profile.ProfileName,
+                           profileName,
+                           StringComparison.OrdinalIgnoreCase));
+    }
     private void ShowLibrary()
     {
         Show(_library, "MainLibrary");

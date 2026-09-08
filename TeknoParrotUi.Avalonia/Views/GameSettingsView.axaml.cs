@@ -677,6 +677,60 @@ public partial class GameSettingsView : UserControl
         };
     }
 
+    public bool LoadRemotePlayerProfile(
+        GameProfile profile,
+        int player,
+        string clientUuid)
+    {
+        if (!GoldenTeeRemotePlayerProfiles.IsGoldenTee(profile) ||
+            player < SunshinePlayerInput.MinPlayer ||
+            player > SunshinePlayerInput.MaxPlayer ||
+            string.IsNullOrWhiteSpace(clientUuid))
+        {
+            return false;
+        }
+
+        var activeClientUuid =
+            SunshinePlayerInput.GetClientUuid(player);
+
+        if (!string.Equals(
+                activeClientUuid,
+                clientUuid,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        LoadProfile(profile);
+
+        foreach (var expander in
+                 FieldsPanel.Children.OfType<Expander>())
+        {
+            var target =
+                string.Equals(
+                    expander.Header?.ToString(),
+                    $"Player {player} Customization",
+                    StringComparison.OrdinalIgnoreCase);
+
+            expander.IsExpanded = target;
+        }
+
+        var remote =
+            GoldenTeeRemotePlayerProfiles.LoadOrCreate(
+                profile,
+                player,
+                clientUuid);
+
+        var profileName =
+            string.IsNullOrWhiteSpace(remote.ProfileName)
+                ? "Moonlight Client"
+                : remote.ProfileName;
+
+        Header.Text =
+            $"{profile.GameNameInternal ?? profile.ProfileName} - {profileName} Profile";
+
+        return true;
+    }
     private void AddExpandablePlayerAppearanceCategory(
         string header,
         IReadOnlyList<FieldInformation> fields,
@@ -702,15 +756,14 @@ public partial class GameSettingsView : UserControl
             }
 
             // All local players use the same simple profile workflow:
-            // Default -> no raw values shown; saved profile -> values applied but hidden;
-            // Edit Profile/Create New Profile -> expose the complete profile-backed editor.
+            // Default -> no profile editor; saved profile -> immediately editable;
+            // Create New Profile -> expose the same editor in create mode.
             var profileEditorPanel = new StackPanel
             {
                 Spacing = 4,
                 IsVisible = false
             };
 
-            AddGoldenTeeLocalProfileControls(playerNumber, panel, profileEditorPanel);
 
             foreach (var field in fields)
             {
@@ -722,6 +775,11 @@ public partial class GameSettingsView : UserControl
 
                 AddFieldEditor(field, profileEditorPanel, includeRodPreferredSetupRow: false);
             }
+
+            AddGoldenTeeLocalProfileControls(
+                playerNumber,
+                panel,
+                profileEditorPanel);
 
             panel.Children.Add(profileEditorPanel);
         }
@@ -871,13 +929,6 @@ public partial class GameSettingsView : UserControl
             MinWidth = 220
         };
 
-        var editProfile = new CheckBox
-        {
-            Content = "Edit Profile",
-            IsChecked = false,
-            IsVisible = hasAssignedProfile,
-            VerticalAlignment = VerticalAlignment.Center
-        };
 
         var deleteProfile = new Button
         {
@@ -913,17 +964,10 @@ public partial class GameSettingsView : UserControl
         };
 
         var profileNameRow = Row("Profile Name", profileName);
-        var initialsRow = Row(
-            "Initials",
-            new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8,
-                Children = { initials, saveProfile }
-            });
+        var initialsRow = Row("Initials", initials);
 
-        profileNameRow.IsVisible = false;
-        initialsRow.IsVisible = false;
+        profileNameRow.IsVisible = hasAssignedProfile;
+        initialsRow.IsVisible = hasAssignedProfile;
 
         _goldenTeeLocalProfileComboByPlayer[player] = combo;
         _goldenTeeLocalProfileInitialsByPlayer[player] = initials;
@@ -945,25 +989,6 @@ public partial class GameSettingsView : UserControl
             saveProfile.Content = creating ? "Create Profile" : "Save Profile";
         }
 
-        editProfile.IsCheckedChanged += (_, _) =>
-        {
-            var selected = combo.SelectedItem as string ?? GoldenTeeCustomLocalProfileLabel;
-            var editingExisting =
-                !string.Equals(selected, GoldenTeeCustomLocalProfileLabel, StringComparison.Ordinal) &&
-                !string.Equals(selected, GoldenTeeCreateLocalProfileLabel, StringComparison.Ordinal);
-
-            var isEditing = editProfile.IsChecked == true && editingExisting;
-
-            if (isEditing)
-                _goldenTeeLocalProfileEditingPlayers.Add(player);
-            else
-                _goldenTeeLocalProfileEditingPlayers.Remove(player);
-
-            SetEditorVisible(isEditing, creating: false);
-
-            if (!isEditing)
-                ShowStatus(string.Empty);
-        };
 
         combo.SelectionChanged += (_, _) =>
         {
@@ -972,9 +997,7 @@ public partial class GameSettingsView : UserControl
 
             var selected = combo.SelectedItem as string ?? GoldenTeeCustomLocalProfileLabel;
 
-            editProfile.IsChecked = false;
             _goldenTeeLocalProfileEditingPlayers.Remove(player);
-            editProfile.IsVisible = false;
             deleteProfile.IsVisible = false;
             SetEditorVisible(false, creating: false);
             ShowStatus(string.Empty);
@@ -1030,7 +1053,9 @@ public partial class GameSettingsView : UserControl
 
             ApplyGoldenTeeLocalProfileToPlayer(player, localProfile);
             SetGoldenTeePlayerDefaultsEnabled(player, true);
-            editProfile.IsVisible = true;
+
+            _goldenTeeLocalProfileEditingPlayers.Add(player);
+            SetEditorVisible(true, creating: false);
             deleteProfile.IsVisible = true;
         };
 
@@ -1140,11 +1165,10 @@ public partial class GameSettingsView : UserControl
             }
 
             ApplyGoldenTeeInitialsToGameFields(player, localProfile.Initials);
-            editProfile.IsVisible = true;
+
             deleteProfile.IsVisible = true;
-            editProfile.IsChecked = false;
-            _goldenTeeLocalProfileEditingPlayers.Remove(player);
-            SetEditorVisible(false, creating: false);
+            _goldenTeeLocalProfileEditingPlayers.Add(player);
+            SetEditorVisible(true, creating: false);
             ShowStatus(string.Empty);
         };
 
@@ -1194,9 +1218,7 @@ public partial class GameSettingsView : UserControl
                 _applyingGoldenTeeLocalProfile = false;
             }
 
-            editProfile.IsChecked = false;
             _goldenTeeLocalProfileEditingPlayers.Remove(player);
-            editProfile.IsVisible = false;
             deleteProfile.IsVisible = false;
             SetEditorVisible(false, creating: false);
             profileName.Text = string.Empty;
@@ -1204,17 +1226,39 @@ public partial class GameSettingsView : UserControl
             ShowStatus(string.Empty);
         };
 
-        targetPanel.Children.Add(Row("Local Profile", combo));
-        targetPanel.Children.Add(new StackPanel
+        targetPanel.Children.Add(Row("Profile", combo));
+        targetPanel.Children.Add(profileNameRow);
+        targetPanel.Children.Add(initialsRow);
+
+        var profileActions = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 8,
-            Children = { editProfile, deleteProfile }
-        });
-        targetPanel.Children.Add(profileNameRow);
-        targetPanel.Children.Add(initialsRow);
-        targetPanel.Children.Add(status);
+            Margin = new global::Avalonia.Thickness(0, 8, 0, 0),
+            Children = { saveProfile, deleteProfile }
+        };
 
+        if (profileEditorPanel != null)
+        {
+            profileEditorPanel.Children.Add(profileActions);
+            profileEditorPanel.Children.Add(status);
+        }
+        else
+        {
+            targetPanel.Children.Add(profileActions);
+            targetPanel.Children.Add(status);
+        }
+
+        if (hasAssignedProfile)
+        {
+            _goldenTeeLocalProfileEditingPlayers.Add(player);
+            SetEditorVisible(true, creating: false);
+        }
+        else
+        {
+            _goldenTeeLocalProfileEditingPlayers.Remove(player);
+            SetEditorVisible(false, creating: false);
+        }
         if (!hasAssignedProfile)
         {
             SetGoldenTeePlayerDefaultsEnabled(player, false);
@@ -1294,7 +1338,7 @@ public partial class GameSettingsView : UserControl
 
         // These fields use VisibleWhenField in the Golden Tee XML. Re-evaluate
         // immediately when a profile enables/disables its backing override so
-        // checking Edit Profile reveals the full editor instead of initials only.
+        // selecting or creating a profile reveals the full editor immediately.
         UpdateConditionalVisibilityModel();
         ApplyConditionalVisibilityToControls();
     }

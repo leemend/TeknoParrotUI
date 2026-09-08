@@ -47,6 +47,7 @@ namespace TeknoParrotUi.Common.GameLaunch
         // prefix preparation) and preserved for the whole session - see
         // GameLaunchSessionIdentity.
         private GameLaunchSessionIdentity _sessionIdentity;
+        private IDisposable _goldenTeeRemoteControls;
         private int _cleanupStarted;
 
         public event Action<string> OutputReceived;
@@ -263,7 +264,14 @@ namespace TeknoParrotUi.Common.GameLaunch
             // Platform-aware: legacy Windows listeners for DirectInput/XInput/RawInput,
             // SDL2 gamepad everywhere else (and when SDL2 is selected explicitly).
             // Gun games get a mouse listener alongside SDL2 (RawInput on Windows, evdev on Linux).
-            _inputListeners.Start(_profile, _profile.JoystickButtons, _inputApi);
+            _goldenTeeRemoteControls =
+                GoldenTeeRemotePlayerProfiles.ApplyActiveControlBindingOverlay(
+                    _profile);
+
+            _inputListeners.Start(
+                _profile,
+                _profile.JoystickButtons,
+                _inputApi);
 
             LogInputSetup();
 
@@ -990,6 +998,20 @@ namespace TeknoParrotUi.Common.GameLaunch
             _rawInputWindow?.Stop();
             // 4. stop and release input listeners
             _inputListeners?.Stop();
+
+            // Remote Golden Tee controls are a session-only overlay. Restore the
+            // normal local/game bindings only after the listeners that consumed
+            // the remote bindings have completely stopped.
+            try
+            {
+                _goldenTeeRemoteControls?.Dispose();
+            }
+            catch
+            {
+            }
+
+            _goldenTeeRemoteControls = null;
+
             // No session owns a window after its input routes are stopped.
             // Clear the static PID/name set now instead of retaining stale
             // executable identities until the next launch happens to reset it.

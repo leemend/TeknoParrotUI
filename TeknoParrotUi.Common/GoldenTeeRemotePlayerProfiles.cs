@@ -14,18 +14,44 @@ public static class GoldenTeeRemotePlayerProfiles
     private const string GoldenTeeProfileName = "GoldenTeeLive2019";
     private const string StorageDirectory = "GoldenTeeRemotePlayers";
 
-    private static readonly string[] AppearanceNames =
+    private static readonly Dictionary<string, string> CoreDefaultValues =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Override Default Outfit"] = "1",
+            ["Default Gender"] = "Male",
+            ["Default Face"] = "1",
+            ["Default Shirt"] = "1",
+            ["Default Bottoms"] = "1",
+            ["Default Shoes"] = "1",
+            ["Default Hat"] = "0",
+            ["Default Bodysuit"] = "0",
+            ["Default Outfit"] = "0",
+            ["Default Clubs"] = "0",
+            ["Default Balls"] = "0"
+        };
+
+    private static readonly Dictionary<string, string> LegacyValueNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Gender"] = "Default Gender",
+            ["Face"] = "Default Face",
+            ["Shirt"] = "Default Shirt",
+            ["Bottoms"] = "Default Bottoms",
+            ["Shoes"] = "Default Shoes",
+            ["Hat"] = "Default Hat",
+            ["Bodysuit"] = "Default Bodysuit",
+            ["Clubs"] = "Default Clubs",
+            ["Balls"] = "Default Balls"
+        };
+
+    public sealed class RemoteControlBinding
     {
-        "Gender",
-        "Face",
-        "Shirt",
-        "Bottoms",
-        "Shoes",
-        "Hat",
-        "Bodysuit",
-        "Clubs",
-        "Balls"
-    };
+        public XInputButton? XInputButton { get; set; }
+        public RawDeviceType RawDeviceType { get; set; }
+        public RawMouseButton MouseButton { get; set; }
+        public Keys KeyboardKey { get; set; }
+        public string BindNameXi { get; set; } = string.Empty;
+    }
 
     public sealed class RemoteAppearance
     {
@@ -33,6 +59,8 @@ public static class GoldenTeeRemotePlayerProfiles
         public string ProfileName { get; set; } = string.Empty;
         public string Initials { get; set; } = string.Empty;
         public Dictionary<string, string> Values { get; set; } =
+            new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, RemoteControlBinding> Bindings { get; set; } =
             new(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -182,26 +210,23 @@ public static class GoldenTeeRemotePlayerProfiles
         player = 0;
         appearanceName = string.Empty;
 
-        if (field == null || string.IsNullOrWhiteSpace(field.FieldName))
-            return false;
-
-        for (var candidate = 2; candidate <= 4; candidate++)
+        if (!GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                field,
+                out var profilePlayer,
+                out var valueName))
         {
-            var prefix = $"P{candidate} Default ";
-            if (!field.FieldName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            var suffix = field.FieldName.Substring(prefix.Length);
-            if (!AppearanceNames.Contains(suffix, StringComparer.OrdinalIgnoreCase))
-                return false;
-
-            player = candidate;
-            appearanceName = AppearanceNames.First(x =>
-                string.Equals(x, suffix, StringComparison.OrdinalIgnoreCase));
-            return true;
+            return false;
         }
 
-        return false;
+        if (profilePlayer < SunshinePlayerInput.MinPlayer ||
+            profilePlayer > SunshinePlayerInput.MaxPlayer)
+        {
+            return false;
+        }
+
+        player = profilePlayer;
+        appearanceName = valueName;
+        return true;
     }
 
     public static bool TryGetActiveRemoteClient(
@@ -262,9 +287,14 @@ public static class GoldenTeeRemotePlayerProfiles
         appearance.Initials =
             GoldenTeeLocalPlayerProfiles.NormalizeInitials(appearance.Initials) ?? string.Empty;
 
-        appearance.Values ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        appearance.Values =
-            new Dictionary<string, string>(appearance.Values, StringComparer.OrdinalIgnoreCase);
+        NormalizeStoredValues(appearance);
+
+        appearance.Bindings ??=
+            new Dictionary<string, RemoteControlBinding>(StringComparer.OrdinalIgnoreCase);
+        appearance.Bindings =
+            new Dictionary<string, RemoteControlBinding>(
+                appearance.Bindings,
+                StringComparer.OrdinalIgnoreCase);
 
         Directory.CreateDirectory(GetStorageRoot());
 
@@ -275,6 +305,160 @@ public static class GoldenTeeRemotePlayerProfiles
                 new JsonSerializerOptions { WriteIndented = true }));
     }
 
+    public static IDisposable ApplyActiveControlBindingOverlay(
+        GameProfile profile)
+    {
+        if (!IsGoldenTee(profile) ||
+            !IsRemoteLocalPlayOn(profile))
+        {
+            return NoopDisposable.Instance;
+        }
+
+        var overlays = new List<IDisposable>();
+
+        for (var player = SunshinePlayerInput.MinPlayer;
+             player <= SunshinePlayerInput.MaxPlayer;
+             player++)
+        {
+            if (!TryGetActiveRemoteClient(
+                    profile,
+                    player,
+                    out var clientUuid))
+            {
+                continue;
+            }
+
+            overlays.Add(
+                ApplyControlBindingOverlay(
+                    profile,
+                    player,
+                    clientUuid));
+        }
+
+        return overlays.Count == 0
+            ? NoopDisposable.Instance
+            : new CompositeDisposable(overlays);
+    }
+
+    public static IDisposable ApplyControlBindingOverlay(
+        GameProfile profile,
+        int player,
+        string clientUuid)
+    {
+        if (!IsGoldenTee(profile) ||
+            string.IsNullOrWhiteSpace(clientUuid) ||
+            player < SunshinePlayerInput.MinPlayer ||
+            player > SunshinePlayerInput.MaxPlayer)
+        {
+            return NoopDisposable.Instance;
+        }
+
+        var originalValues =
+            new Dictionary<JoystickButtons, RemoteControlState>();
+
+        foreach (var binding in profile.JoystickButtons)
+        {
+            if (!TryGetRemoteControlName(
+                    binding,
+                    player,
+                    out _))
+            {
+                continue;
+            }
+
+            originalValues[binding] =
+                CaptureControlState(binding);
+        }
+
+        ApplyControlBindings(
+            profile,
+            player,
+            clientUuid);
+
+        return new ControlRestoreDisposable(originalValues);
+    }
+    public static void CaptureControlBindings(
+        GameProfile profile,
+        int player,
+        string clientUuid)
+    {
+        if (!IsGoldenTee(profile) ||
+            string.IsNullOrWhiteSpace(clientUuid) ||
+            player < SunshinePlayerInput.MinPlayer ||
+            player > SunshinePlayerInput.MaxPlayer)
+        {
+            return;
+        }
+
+        var remote = LoadOrCreate(profile, player, clientUuid);
+        remote.Bindings.Clear();
+
+        foreach (var binding in profile.JoystickButtons)
+        {
+            if (!TryGetRemoteControlName(binding, player, out var controlName))
+                continue;
+
+            var captured = CaptureControlBinding(binding);
+            if (captured != null)
+                remote.Bindings[controlName] = captured;
+        }
+
+        Save(remote);
+    }
+
+    public static void ApplyControlBindings(
+        GameProfile profile,
+        int player,
+        string clientUuid)
+    {
+        if (!IsGoldenTee(profile) ||
+            string.IsNullOrWhiteSpace(clientUuid) ||
+            player < SunshinePlayerInput.MinPlayer ||
+            player > SunshinePlayerInput.MaxPlayer)
+        {
+            return;
+        }
+
+        var remote = Load(clientUuid);
+        if (remote == null)
+            return;
+
+        foreach (var binding in profile.JoystickButtons)
+        {
+            if (!TryGetRemoteControlName(binding, player, out var controlName))
+                continue;
+
+            ClearControlBinding(binding);
+
+            if (!remote.Bindings.TryGetValue(controlName, out var saved))
+                continue;
+
+            if (saved.XInputButton != null)
+            {
+                binding.XInputButton = CloneXInputButton(saved.XInputButton);
+                binding.BindNameXi = saved.BindNameXi ?? string.Empty;
+            }
+
+            if (saved.RawDeviceType != RawDeviceType.None)
+            {
+                binding.RawInputButton = new RawInputButton
+                {
+                    DevicePath = SunshinePlayerInput.DevicePathForPlayer(player),
+                    DeviceType = saved.RawDeviceType,
+                    MouseButton = saved.MouseButton,
+                    KeyboardKey = saved.KeyboardKey
+                };
+
+                binding.BindNameRi =
+                    BuildRemoteRawBindingName(player, saved);
+            }
+
+            binding.BindName =
+                !string.IsNullOrWhiteSpace(binding.BindNameXi)
+                    ? binding.BindNameXi
+                    : binding.BindNameRi;
+        }
+    }
     public static IDisposable ApplyLaunchOverlay(GameProfile profile)
     {
         if (!IsGoldenTee(profile) || !IsRemoteLocalPlayOn(profile))
@@ -325,41 +509,257 @@ public static class GoldenTeeRemotePlayerProfiles
         return new RestoreDisposable(originalValues);
     }
 
+    private static void NormalizeStoredValues(
+        RemoteAppearance appearance)
+    {
+        appearance.Values ??=
+            new Dictionary<string, string>(
+                StringComparer.OrdinalIgnoreCase);
+
+        var normalized =
+            new Dictionary<string, string>(
+                StringComparer.OrdinalIgnoreCase);
+
+        // Canonical values win if both a new key and its legacy alias exist.
+        foreach (var pair in appearance.Values)
+        {
+            if (LegacyValueNames.ContainsKey(pair.Key))
+                continue;
+
+            normalized[pair.Key] =
+                pair.Value ?? string.Empty;
+        }
+
+        foreach (var pair in appearance.Values)
+        {
+            if (!LegacyValueNames.TryGetValue(
+                    pair.Key,
+                    out var canonicalName))
+            {
+                continue;
+            }
+
+            if (!normalized.ContainsKey(canonicalName))
+            {
+                normalized[canonicalName] =
+                    pair.Value ?? string.Empty;
+            }
+        }
+
+        appearance.Values = normalized;
+    }
+
+    private static string GetDefaultProfileValue(
+        FieldInformation field,
+        string valueName)
+    {
+        if (CoreDefaultValues.TryGetValue(
+                valueName,
+                out var knownDefault))
+        {
+            return knownDefault;
+        }
+
+        if (field.FieldOptions != null &&
+            field.FieldOptions.Count > 0)
+        {
+            return field.FieldOptions[0] ??
+                   string.Empty;
+        }
+
+        return "0";
+    }
     private static void SeedMissingValues(
         RemoteAppearance appearance,
         GameProfile profile,
         int player)
     {
-        appearance.Values ??=
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        NormalizeStoredValues(appearance);
 
-        // A brand-new remote player must not inherit whichever local profile
-        // happens to be assigned to P2/P3/P4 on the host. Seed the normal
-        // Golden Tee defaults instead. Existing remote values are preserved.
-        var defaults = new Dictionary<string, string>(
-            StringComparer.OrdinalIgnoreCase)
-        {
-            ["Gender"] = "Male",
-            ["Face"] = "1",
-            ["Shirt"] = "1",
-            ["Bottoms"] = "1",
-            ["Shoes"] = "1",
-            ["Hat"] = "0",
-            ["Bodysuit"] = "0",
-            ["Clubs"] = "0",
-            ["Balls"] = "0"
-        };
+        if (profile?.ConfigValues == null)
+            return;
 
-        foreach (var appearanceName in AppearanceNames)
+        // Remote profiles use the same customization-field definition as local
+        // profiles, but never seed a brand-new remote player from the local
+        // P2/P3/P4 values currently selected on the host.
+        foreach (var field in profile.ConfigValues)
         {
-            if (!appearance.Values.ContainsKey(appearanceName) &&
-                defaults.TryGetValue(appearanceName, out var defaultValue))
+            if (!GoldenTeeLocalPlayerProfiles.TryGetProfileField(
+                    field,
+                    out var fieldPlayer,
+                    out var valueName) ||
+                fieldPlayer != player)
             {
-                appearance.Values[appearanceName] = defaultValue;
+                continue;
             }
+
+            if (appearance.Values.ContainsKey(valueName))
+                continue;
+
+            appearance.Values[valueName] =
+                GetDefaultProfileValue(
+                    field,
+                    valueName);
         }
     }
 
+    private sealed class RemoteControlState
+    {
+        public XInputButton? XInputButton { get; init; }
+        public RawInputButton? RawInputButton { get; init; }
+        public string? BindName { get; init; }
+        public string? BindNameXi { get; init; }
+        public string? BindNameRi { get; init; }
+    }
+
+    private static RemoteControlState CaptureControlState(
+        JoystickButtons binding)
+    {
+        return new RemoteControlState
+        {
+            XInputButton = binding.XInputButton == null
+                ? null
+                : CloneXInputButton(binding.XInputButton),
+            RawInputButton = binding.RawInputButton == null
+                ? null
+                : CloneRawInputButton(binding.RawInputButton),
+            BindName = binding.BindName,
+            BindNameXi = binding.BindNameXi,
+            BindNameRi = binding.BindNameRi
+        };
+    }
+
+    private static void RestoreControlState(
+        JoystickButtons binding,
+        RemoteControlState state)
+    {
+        binding.XInputButton = state.XInputButton == null
+            ? null
+            : CloneXInputButton(state.XInputButton);
+
+        binding.RawInputButton = state.RawInputButton == null
+            ? null
+            : CloneRawInputButton(state.RawInputButton);
+
+        binding.BindName = state.BindName;
+        binding.BindNameXi = state.BindNameXi;
+        binding.BindNameRi = state.BindNameRi;
+    }
+
+    private static RawInputButton CloneRawInputButton(
+        RawInputButton source)
+    {
+        return new RawInputButton
+        {
+            DevicePath = source.DevicePath,
+            DeviceType = source.DeviceType,
+            MouseButton = source.MouseButton,
+            KeyboardKey = source.KeyboardKey
+        };
+    }
+    private static bool TryGetRemoteControlName(
+        JoystickButtons binding,
+        int player,
+        out string controlName)
+    {
+        controlName = string.Empty;
+
+        if (binding == null ||
+            string.IsNullOrWhiteSpace(binding.ButtonName))
+        {
+            return false;
+        }
+
+        var prefix = $"P{player} ";
+        if (!binding.ButtonName.StartsWith(
+                prefix,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        controlName = binding.ButtonName.Substring(prefix.Length).Trim();
+        return !string.IsNullOrWhiteSpace(controlName);
+    }
+
+    private static RemoteControlBinding? CaptureControlBinding(
+        JoystickButtons binding)
+    {
+        var hasRawInput =
+            binding.RawInputButton != null &&
+            binding.RawInputButton.DeviceType != RawDeviceType.None;
+
+        var hasXInput = binding.XInputButton != null;
+
+        if (!hasRawInput && !hasXInput)
+            return null;
+
+        return new RemoteControlBinding
+        {
+            XInputButton = hasXInput
+                ? CloneXInputButton(binding.XInputButton!)
+                : null,
+            RawDeviceType = hasRawInput
+                ? binding.RawInputButton!.DeviceType
+                : RawDeviceType.None,
+            MouseButton = hasRawInput
+                ? binding.RawInputButton!.MouseButton
+                : RawMouseButton.None,
+            KeyboardKey = hasRawInput
+                ? binding.RawInputButton!.KeyboardKey
+                : Keys.None,
+            BindNameXi = binding.BindNameXi ?? string.Empty
+        };
+    }
+
+    private static XInputButton CloneXInputButton(XInputButton source)
+    {
+        return new XInputButton
+        {
+            IsLeftThumbX = source.IsLeftThumbX,
+            IsRightThumbX = source.IsRightThumbX,
+            IsLeftThumbY = source.IsLeftThumbY,
+            IsRightThumbY = source.IsRightThumbY,
+            IsAxisMinus = source.IsAxisMinus,
+            IsLeftTrigger = source.IsLeftTrigger,
+            IsRightTrigger = source.IsRightTrigger,
+            ButtonCode = source.ButtonCode,
+            IsButton = source.IsButton,
+            ButtonIndex = source.ButtonIndex,
+
+            // Sunshine's live GamepadSlot mapping is authoritative.
+            // InputListenerXInput replaces this with the current slot at runtime.
+            XInputIndex = 0
+        };
+    }
+
+    private static void ClearControlBinding(JoystickButtons binding)
+    {
+        binding.XInputButton = null;
+        binding.RawInputButton = null;
+        binding.BindName = null;
+        binding.BindNameXi = null;
+        binding.BindNameRi = null;
+    }
+
+    private static string BuildRemoteRawBindingName(
+        int player,
+        RemoteControlBinding binding)
+    {
+        var deviceName =
+            SunshinePlayerInput.DisplayNameForPlayer(player);
+
+        if (binding.RawDeviceType == RawDeviceType.Keyboard)
+            return $"{deviceName} Key {binding.KeyboardKey}";
+
+        if (binding.RawDeviceType == RawDeviceType.Mouse &&
+            binding.MouseButton != RawMouseButton.None)
+        {
+            return $"{deviceName} {binding.MouseButton}";
+        }
+
+        return deviceName;
+    }
     private static string MakeUniqueProfileName(string seed, string clientUuid)
     {
         var baseName = string.IsNullOrWhiteSpace(seed) ? "Moonlight Client" : seed.Trim();
@@ -399,9 +799,15 @@ public static class GoldenTeeRemotePlayerProfiles
             profile.Initials =
                 GoldenTeeLocalPlayerProfiles.NormalizeInitials(profile.Initials) ?? string.Empty;
 
-            profile.Values ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            profile.Values =
-                new Dictionary<string, string>(profile.Values, StringComparer.OrdinalIgnoreCase);
+            NormalizeStoredValues(profile);
+
+            profile.Bindings ??=
+                new Dictionary<string, RemoteControlBinding>(StringComparer.OrdinalIgnoreCase);
+            profile.Bindings =
+                new Dictionary<string, RemoteControlBinding>(
+                    profile.Bindings,
+                    StringComparer.OrdinalIgnoreCase);
+
             return profile;
         }
         catch
@@ -431,6 +837,67 @@ public static class GoldenTeeRemotePlayerProfiles
             : normalized.ToUpperInvariant();
     }
 
+    private sealed class CompositeDisposable : IDisposable
+    {
+        private List<IDisposable>? _items;
+
+        public CompositeDisposable(
+            List<IDisposable> items)
+        {
+            _items = items;
+        }
+
+        public void Dispose()
+        {
+            var items = _items;
+            _items = null;
+
+            if (items == null)
+                return;
+
+            for (var i = items.Count - 1;
+                 i >= 0;
+                 i--)
+            {
+                try
+                {
+                    items[i].Dispose();
+                }
+                catch
+                {
+                }
+            }
+        }
+    }
+
+    private sealed class ControlRestoreDisposable : IDisposable
+    {
+        private Dictionary<JoystickButtons, RemoteControlState>?
+            _originalValues;
+
+        public ControlRestoreDisposable(
+            Dictionary<JoystickButtons, RemoteControlState>
+                originalValues)
+        {
+            _originalValues = originalValues;
+        }
+
+        public void Dispose()
+        {
+            var values = _originalValues;
+            _originalValues = null;
+
+            if (values == null)
+                return;
+
+            foreach (var pair in values)
+            {
+                RestoreControlState(
+                    pair.Key,
+                    pair.Value);
+            }
+        }
+    }
     private sealed class RestoreDisposable : IDisposable
     {
         private Dictionary<FieldInformation, string>? _originalValues;

@@ -34,6 +34,9 @@ public partial class JoystickSetupView : UserControl
     private readonly RawInputCaptureService _rawCapture = new();
     private Button? _armedButton;
     private JoystickButtons? _armedBinding;
+    private int _remoteProfilePlayer;
+    private string? _remoteProfileClientUuid;
+    private IDisposable? _remoteProfileControlOverlay;
 
     public event Action? BackRequested;
     public event Action<string>? Saved;
@@ -74,8 +77,31 @@ public partial class JoystickSetupView : UserControl
         BtnSave.Content = Services.Loc.T("SettingsSaveSettings", "Save Bindings");
     }
 
-    public void LoadProfile(GameProfile profile)
+    public void LoadProfile(
+        GameProfile profile,
+        int remoteProfilePlayer = 0,
+        string? remoteProfileClientUuid = null)
     {
+        _remoteProfileControlOverlay?.Dispose();
+        _remoteProfileControlOverlay = null;
+
+        _remoteProfilePlayer = remoteProfilePlayer;
+        _remoteProfileClientUuid =
+            string.IsNullOrWhiteSpace(remoteProfileClientUuid)
+                ? null
+                : remoteProfileClientUuid.Trim();
+
+        if (_remoteProfilePlayer >= SunshinePlayerInput.MinPlayer &&
+            _remoteProfilePlayer <= SunshinePlayerInput.MaxPlayer &&
+            !string.IsNullOrWhiteSpace(_remoteProfileClientUuid))
+        {
+            _remoteProfileControlOverlay =
+                GoldenTeeRemotePlayerProfiles.ApplyControlBindingOverlay(
+                    profile,
+                    _remoteProfilePlayer,
+                    _remoteProfileClientUuid);
+        }
+
         _profile = profile;
         _armedButton = null;
         _armedBinding = null;
@@ -131,6 +157,8 @@ public partial class JoystickSetupView : UserControl
                 c.FieldName == "GUN2AimingInputStyle")?.FieldValue == "UseAnalogAxisToAim";
 
         _isRemoteLocalPlayMode =
+            (_remoteProfilePlayer >= SunshinePlayerInput.MinPlayer &&
+             _remoteProfilePlayer <= SunshinePlayerInput.MaxPlayer) ||
             profile.ConfigValues.Any(c =>
                 c.FieldName == "Remote Local Play" &&
                 c.FieldValue != "Off");
@@ -139,10 +167,18 @@ public partial class JoystickSetupView : UserControl
         // There is no player/source selection locally: whoever is taking the turn
         // uses the same P1/cabinet controls. The source selector exists only when
         // Remote Local Play is active and MergedInput is being used.
-        ActiveCaptureSourceRow.IsVisible = _isRemoteLocalPlayMode;
+        ActiveCaptureSourceRow.IsVisible =
+            _isRemoteLocalPlayMode &&
+            _remoteProfilePlayer == 0;
 
         if (_isRemoteLocalPlayMode)
         {
+            if (_remoteProfilePlayer >= SunshinePlayerInput.MinPlayer &&
+                _remoteProfilePlayer <= SunshinePlayerInput.MaxPlayer)
+            {
+                ActiveCaptureSource.AllowedPlayer = _remoteProfilePlayer;
+            }
+
             PopulateActiveCaptureSourceSelector();
         }
         else
@@ -159,7 +195,12 @@ public partial class JoystickSetupView : UserControl
             PopulateActiveCaptureSourceSelector();
         }
 
-        Header.Text = $"{profile.GameNameInternal ?? profile.ProfileName} - Controls";
+        Header.Text =
+            _remoteProfilePlayer >= SunshinePlayerInput.MinPlayer &&
+            _remoteProfilePlayer <= SunshinePlayerInput.MaxPlayer &&
+            !string.IsNullOrWhiteSpace(_remoteProfileClientUuid)
+                ? $"{profile.GameNameInternal ?? profile.ProfileName} - Remote Player {_remoteProfilePlayer} Controls"
+                : $"{profile.GameNameInternal ?? profile.ProfileName} - Controls";
         ApiText.Text =
             "Click a binding, then press a controller button/axis, keyboard key or mouse button. Escape cancels." +
             (_mergedIncludesRawInput || _mergedIncludesRawInputTrackball
@@ -804,6 +845,9 @@ public partial class JoystickSetupView : UserControl
         object? sender,
         global::Avalonia.Interactivity.RoutedEventArgs e)
     {
+        _remoteProfileControlOverlay?.Dispose();
+        _remoteProfileControlOverlay = null;
+
         StopCapture();
         BackRequested?.Invoke();
     }
@@ -814,6 +858,28 @@ public partial class JoystickSetupView : UserControl
     {
         if (_profile == null)
             return;
+
+        if (_remoteProfilePlayer >= SunshinePlayerInput.MinPlayer &&
+            _remoteProfilePlayer <= SunshinePlayerInput.MaxPlayer &&
+            !string.IsNullOrWhiteSpace(_remoteProfileClientUuid))
+        {
+            GoldenTeeRemotePlayerProfiles.CaptureControlBindings(
+                _profile,
+                _remoteProfilePlayer,
+                _remoteProfileClientUuid);
+
+            _remoteProfileControlOverlay?.Dispose();
+            _remoteProfileControlOverlay = null;
+
+            Saved?.Invoke(
+                _profile.GameNameInternal ??
+                _profile.ProfileName ??
+                "profile");
+
+            StopCapture();
+            BackRequested?.Invoke();
+            return;
+        }
 
         TeknoParrotUi.Common.InputListening.ProfileStorage.BindingsStore.Save(_profile);
 

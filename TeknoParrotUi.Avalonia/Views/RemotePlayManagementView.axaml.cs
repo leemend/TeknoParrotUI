@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using TeknoParrotUi.Avalonia.Services;
+using TeknoParrotUi.Common.InputListening;
 
 namespace TeknoParrotUi.Avalonia.Views;
 
@@ -17,6 +18,9 @@ public partial class RemotePlayManagementView : UserControl
     private bool _moonlightChecking;
     private bool _moonlightReady;
     private DateTime _lastMoonlightCheck = DateTime.MinValue;
+
+    public event Action<SunshineClientInfo, int>? EditProfileRequested;
+    public event Action<SunshineClientInfo, int>? MapControlsRequested;
 
     public RemotePlayManagementView()
     {
@@ -165,6 +169,12 @@ public partial class RemotePlayManagementView : UserControl
         PairingPinTextBox.IsEnabled = PairingNameTextBox.IsEnabled = BtnPairClient.IsEnabled = enabled;
         ClientsListBox.IsEnabled = BtnRefreshClients.IsEnabled = BtnDisconnectAll.IsEnabled = enabled;
         BtnUnpairClient.IsEnabled = enabled && ClientsListBox.SelectedItem != null;
+        var hasActiveClient =
+            enabled &&
+            TryGetSelectedClientPlayer(out _, out _);
+
+        BtnEditClientProfile.IsEnabled = hasActiveClient;
+        BtnMapClientControls.IsEnabled = hasActiveClient;
     }
 
     private async Task RefreshClientsAsync()
@@ -180,7 +190,16 @@ public partial class RemotePlayManagementView : UserControl
             ClientListStatusText.Text = clients.Count == 0
                 ? "No paired Moonlight clients."
                 : $"{clients.Count} paired client(s) • {clients.Count(c => c.Connected)} connected";
-            BtnUnpairClient.IsEnabled = !_sunshineBusy && ClientsListBox.SelectedItem != null;
+            BtnUnpairClient.IsEnabled =
+                !_sunshineBusy &&
+                ClientsListBox.SelectedItem != null;
+
+            var hasActiveClient =
+                !_sunshineBusy &&
+                TryGetSelectedClientPlayer(out _, out _);
+
+            BtnEditClientProfile.IsEnabled = hasActiveClient;
+            BtnMapClientControls.IsEnabled = hasActiveClient;
         }
         catch (Exception ex) { ClientListStatusText.Text = "Unable to load clients: " + ex.Message; }
     }
@@ -287,8 +306,98 @@ public partial class RemotePlayManagementView : UserControl
         finally { _sunshineBusy = false; await RefreshSunshineAsync(); }
     }
 
-    private void ClientsListBox_SelectionChanged(object? s, SelectionChangedEventArgs e) =>
-        BtnUnpairClient.IsEnabled = !_sunshineBusy && ClientsListBox.SelectedItem != null;
+    private void ClientsListBox_SelectionChanged(
+        object? s,
+        SelectionChangedEventArgs e)
+    {
+        BtnUnpairClient.IsEnabled =
+            !_sunshineBusy &&
+            ClientsListBox.SelectedItem != null;
+
+        var hasActiveClient =
+            !_sunshineBusy &&
+            TryGetSelectedClientPlayer(out _, out _);
+
+        BtnEditClientProfile.IsEnabled = hasActiveClient;
+        BtnMapClientControls.IsEnabled = hasActiveClient;
+    }
+
+    private bool TryGetSelectedClientPlayer(
+        out SunshineClientInfo? client,
+        out int player)
+    {
+        client =
+            ClientsListBox.SelectedItem as SunshineClientInfo;
+
+        player = 0;
+
+        if (client == null ||
+            !client.Connected ||
+            string.IsNullOrWhiteSpace(client.Uuid))
+        {
+            return false;
+        }
+
+        foreach (var identity in
+                 SunshinePlayerInput.GetClientIdentities())
+        {
+            if (!string.Equals(
+                    identity.Value,
+                    client.Uuid,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (identity.Key < SunshinePlayerInput.MinPlayer ||
+                identity.Key > SunshinePlayerInput.MaxPlayer)
+            {
+                continue;
+            }
+
+            player = identity.Key;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void BtnEditClientProfile_Click(
+        object? s,
+        global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (!TryGetSelectedClientPlayer(
+                out var client,
+                out var player) ||
+            client == null)
+        {
+            ClientListStatusText.Text =
+                "The selected client does not have an active player assignment yet.";
+            return;
+        }
+
+        EditProfileRequested?.Invoke(
+            client,
+            player);
+    }
+    private void BtnMapClientControls_Click(
+        object? s,
+        global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (!TryGetSelectedClientPlayer(
+                out var client,
+                out var player) ||
+            client == null)
+        {
+            ClientListStatusText.Text =
+                "The selected client does not have an active player assignment yet.";
+            return;
+        }
+
+        MapControlsRequested?.Invoke(
+            client,
+            player);
+    }
 
     private async void BtnOpenSunshineWebUi_Click(object? s, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
