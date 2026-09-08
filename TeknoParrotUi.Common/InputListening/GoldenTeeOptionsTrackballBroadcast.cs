@@ -92,6 +92,34 @@ namespace TeknoParrotUi.Common.InputListening
             }
         }
 
+        public static void EndSession(int ownerPlayer)
+        {
+            if (ownerPlayer < 1 || ownerPlayer > 4)
+                return;
+
+            lock (Sync)
+            {
+                if (_ownerPlayer != ownerPlayer)
+                    return;
+
+                _probeTimer?.Dispose();
+                _probeTimer = null;
+                _probeAttempts = 0;
+
+                // BroadcastToOtherPlayers never writes to the owner's normal
+                // trackball buffer. Clear only the temporary duplicated buffers
+                // so no Options movement can survive into normal shot play.
+                for (int player = 1; player <= 4; player++)
+                {
+                    if (player != ownerPlayer)
+                        ClearBuffer(player);
+                }
+
+                _ownerPlayer = 0;
+                _consumerPlayer = 0;
+            }
+        }
+
         private static void ResetSession(int ownerPlayer)
         {
             _ownerPlayer = ownerPlayer;

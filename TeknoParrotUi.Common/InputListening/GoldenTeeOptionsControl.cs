@@ -9,8 +9,9 @@ namespace TeknoParrotUi.Common.InputListening
     ///
     /// Option itself is broadcast to all four Golden Tee player control words so the
     /// game sees it regardless of whose turn is currently active. The player who
-    /// physically pressed Option owns menu navigation until Option is pressed again,
-    /// another player presses Option, that remote player disconnects, or input resets.
+    /// physically pressed Option owns menu navigation until that owner completes a menu
+    /// action with Start, presses Option again, another player presses Option, that remote
+    /// player disconnects, or input resets.
     ///
     /// Normal P1/P2/P3/P4 Start and trackball paths remain isolated. Only the current
     /// Options owner's Start + trackball are additionally mirrored through the dedicated
@@ -66,7 +67,13 @@ namespace TeknoParrotUi.Common.InputListening
                 }
 
                 if (IsStartMapping(player, mapping))
+                {
+                    bool wasPressed = RemoteStartDown[player];
                     RemoteStartDown[player] = pressed;
+
+                    if (_ownerPlayer == player && wasPressed && !pressed)
+                        ReleaseOwner(player);
+                }
             }
         }
 
@@ -87,11 +94,16 @@ namespace TeknoParrotUi.Common.InputListening
             {
                 PruneDisconnectedPlayers();
 
-                bool wasPressed = RemoteOptionDown[player];
+                bool wasOptionPressed = RemoteOptionDown[player];
+                bool wasStartPressed = RemoteStartDown[player];
+
                 RemoteOptionDown[player] = optionPressed;
                 RemoteStartDown[player] = startPressed;
 
-                if (optionPressed && !wasPressed)
+                if (_ownerPlayer == player && wasStartPressed && !startPressed)
+                    ReleaseOwner(player);
+
+                if (optionPressed && !wasOptionPressed)
                     ToggleOrAssignOwner(player);
             }
         }
@@ -117,11 +129,16 @@ namespace TeknoParrotUi.Common.InputListening
 
             lock (Sync)
             {
-                bool wasPressed = _localOptionDown;
+                bool wasOptionPressed = _localOptionDown;
+                bool wasStartPressed = _localStartDown;
+
                 _localOptionDown = optionPressed;
                 _localStartDown = startPressed;
 
-                if (optionPressed && !wasPressed)
+                if (_ownerPlayer == 1 && wasStartPressed && !startPressed)
+                    ReleaseOwner(1);
+
+                if (optionPressed && !wasOptionPressed)
                     ToggleOrAssignOwner(1);
             }
         }
@@ -137,7 +154,7 @@ namespace TeknoParrotUi.Common.InputListening
                 RemoteStartDown[player] = false;
 
                 if (_ownerPlayer == player)
-                    _ownerPlayer = 0;
+                    ReleaseOwner(player);
             }
         }
 
@@ -225,11 +242,31 @@ namespace TeknoParrotUi.Common.InputListening
         private static void ToggleOrAssignOwner(int player)
         {
             if (_ownerPlayer == player)
-                _ownerPlayer = 0;
-            else
-                _ownerPlayer = player;
+            {
+                ReleaseOwner(player);
+                return;
+            }
+
+            if (_ownerPlayer != 0)
+                ReleaseOwner(_ownerPlayer);
+
+            _ownerPlayer = player;
+            Array.Clear(RemoteStartDown, 0, RemoteStartDown.Length);
+        }
+
+        private static void ReleaseOwner(int player)
+        {
+            if (_ownerPlayer != player)
+                return;
+
+            _ownerPlayer = 0;
+
+            if (player == 1)
+                _localStartDown = false;
 
             Array.Clear(RemoteStartDown, 0, RemoteStartDown.Length);
+
+            GoldenTeeOptionsTrackballBroadcast.EndSession(player);
         }
 
         private static void PruneDisconnectedPlayers()
@@ -245,7 +282,7 @@ namespace TeknoParrotUi.Common.InputListening
                 RemoteStartDown[player] = false;
 
                 if (_ownerPlayer == player)
-                    _ownerPlayer = 0;
+                    ReleaseOwner(player);
             }
         }
 
