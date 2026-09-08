@@ -251,14 +251,32 @@ public partial class RemotePlayManagementView : UserControl
     private async void ConnectionMode_Checked(object? s, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (_updatingMode || _sunshineBusy || !IsLoaded) return;
+
+        string? mode = null;
+
+        if (ReferenceEquals(s, RadioConnectionOpen) && RadioConnectionOpen.IsChecked == true)
+            mode = "open";
+        else if (ReferenceEquals(s, RadioConnectionClosed) && RadioConnectionClosed.IsChecked == true)
+            mode = "closed";
+
+        // IsCheckedChanged fires for both sides of a radio-group transition.
+        // Ignore the radio becoming unchecked and act only on the newly checked radio.
+        if (mode == null) return;
+
         try
         {
             _sunshineBusy = true;
             SetManagedControls(false);
-            await SunshineManager.SetConnectionModeAsync(RadioConnectionOpen.IsChecked == true ? "open" : "closed");
+
+            // Close the admission gate before terminating existing sessions so
+            // a client cannot reconnect between the two operations.
+            await SunshineManager.SetConnectionModeAsync(mode);
+
+            if (mode == "closed")
+                await SunshineManager.DisconnectAllAsync();
         }
         catch (Exception ex) { await Error(ex, "Sunshine"); }
-        finally { _sunshineBusy = false; await RefreshSunshineAsync(false); }
+        finally { _sunshineBusy = false; await RefreshSunshineAsync(); }
     }
 
     private async void BtnPairClient_Click(object? s, global::Avalonia.Interactivity.RoutedEventArgs e)
