@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,11 +9,12 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using TeknoParrotUi.Avalonia.Services;
 using TeknoParrotUi.Common;
+using TeknoParrotUi.Common.InputListening;
 
 namespace TeknoParrotUi.Avalonia.Views;
 
 /// <summary>
-/// Configure buttons once, apply to many games — full port of the classic
+/// Configure buttons once, apply to many games ΓÇö full port of the classic
 /// MultiGameButtonConfig: input mode selection (MergedInput default), category
 /// and search filters, named profile save/load/delete, copy-from-game, reset,
 /// per-API binding copies restricted to APIs each game can actually read, and
@@ -35,6 +36,8 @@ public partial class MultiButtonConfigView : UserControl
     private readonly Dictionary<InputMapping, Button> _bindButtons = new();
     private readonly InputCaptureService _capture = new();
     private readonly RawInputCaptureService _rawCapture = new();
+    private readonly List<(ComboBox Combo, JoystickButtons Binding)> _deviceCombos = new();
+    private bool _refreshingDeviceLists;
     private InputApi _currentInputApi = InputApi.MergedInput;
     private InputMapping? _armedMapping;
     private bool _isLoading = true;
@@ -55,7 +58,16 @@ public partial class MultiButtonConfigView : UserControl
         _capture.BindingCaptured += captured => Dispatcher.UIThread.Post(() => OnCaptured(captured));
         _rawCapture.BindingCaptured += (name, button, isEscape) =>
             Dispatcher.UIThread.Post(() => OnRawCaptured(name, button, isEscape));
-        Unloaded += (_, _) => StopListening();
+
+        SunshinePlayerInput.InputReceived += OnSunshineInputReceived;
+        SunshinePlayerInput.Start();
+
+        Unloaded += (_, _) =>
+        {
+            SunshinePlayerInput.InputReceived -= OnSunshineInputReceived;
+            SunshinePlayerInput.Stop();
+            StopListening();
+        };
     }
 
     private Window? OwnerWindow => TopLevel.GetTopLevel(this) as Window;
@@ -206,7 +218,8 @@ public partial class MultiButtonConfigView : UserControl
 
     private static bool IsDeviceMapping(InputMapping mapping) =>
         mapping is InputMapping.P1LightGun or InputMapping.P2LightGun or InputMapping.P3LightGun
-            or InputMapping.P4LightGun or InputMapping.P1Trackball or InputMapping.P2Trackball;
+            or InputMapping.P4LightGun or InputMapping.HostTrackball or InputMapping.P1Trackball
+            or InputMapping.P2Trackball or InputMapping.P3Trackball or InputMapping.P4Trackball;
 
     private static string BuildMergedBindName(string? xiName, string? riName)
     {
@@ -260,12 +273,13 @@ public partial class MultiButtonConfigView : UserControl
     {
         ButtonsPanel.Children.Clear();
         _bindButtons.Clear();
+        _deviceCombos.Clear();
         _armedMapping = null;
 
         var selected = SelectedGames;
         if (selected.Count == 0)
         {
-            ButtonsHeader.Text = "Buttons — select target games first";
+            ButtonsHeader.Text = "Buttons ΓÇö select target games first";
             StopListening();
             return;
         }
@@ -319,7 +333,7 @@ public partial class MultiButtonConfigView : UserControl
             {
                 ToolTip.SetTip(label, string.Join("\n", usage
                     .GroupBy(u => u.ButtonName)
-                    .Select(g => $"{g.Key} — {string.Join(", ", g.Select(u => u.GameName))}")));
+                    .Select(g => $"{g.Key} ΓÇö {string.Join(", ", g.Select(u => u.GameName))}")));
             }
 
             Control editor;
@@ -349,7 +363,7 @@ public partial class MultiButtonConfigView : UserControl
                 Margin = new global::Avalonia.Thickness(6, 0, 0, 0)
             };
 
-            var clear = new Button { Content = "✕", FontSize = 12, Margin = new global::Avalonia.Thickness(4, 0, 0, 0) };
+            var clear = new Button { Content = "Γ£ò", FontSize = 12, Margin = new global::Avalonia.Thickness(4, 0, 0, 0) };
             ToolTip.SetTip(clear, "Clear this binding (all APIs)");
             clear.Click += (_, _) =>
             {
@@ -382,28 +396,23 @@ public partial class MultiButtonConfigView : UserControl
 
     private ComboBox BuildDeviceCombo(JoystickButtons master)
     {
-        // Keep these strings hardcoded — they get saved to configuration
-        var deviceList = new List<string> { "None", "Windows Mouse Cursor", "Unknown Device" };
-        if (OperatingSystem.IsWindows())
-            deviceList.AddRange(_rawCapture.GetMouseDeviceList());
-        if (!string.IsNullOrEmpty(master.BindNameRi) && !deviceList.Contains(master.BindNameRi))
-            deviceList.Add(master.BindNameRi);
-
         var combo = new ComboBox
         {
-            ItemsSource = deviceList,
-            SelectedItem = string.IsNullOrEmpty(master.BindNameRi) ? "None" : master.BindNameRi,
             FontSize = 12,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
+        _deviceCombos.Add((combo, master));
+        PopulateDeviceCombo(combo, master);
+
         combo.SelectionChanged += (_, _) =>
         {
-            if (combo.SelectedItem is not string selectedDeviceName)
+            if (_refreshingDeviceLists || combo.SelectedItem is not string selectedDeviceName)
                 return;
 
             string path;
             var type = RawDeviceType.Mouse;
+
             if (selectedDeviceName == "Windows Mouse Cursor")
             {
                 path = "Windows Mouse Cursor";
@@ -417,9 +426,15 @@ public partial class MultiButtonConfigView : UserControl
             {
                 path = "null";
             }
+            else if (SunshinePlayerInput.TryParsePlayerFromDisplayName(selectedDeviceName, out int sunshinePlayer))
+            {
+                path = SunshinePlayerInput.DevicePathForPlayer(sunshinePlayer);
+            }
             else
             {
-                var devicePath = OperatingSystem.IsWindows() ? _rawCapture.GetMouseDevicePathByName(selectedDeviceName) : null;
+                var devicePath = OperatingSystem.IsWindows()
+                    ? _rawCapture.GetMouseDevicePathByName(selectedDeviceName)
+                    : null;
                 if (devicePath == null)
                 {
                     StatusText.Text = $"Device \"{selectedDeviceName}\" is not currently available.";
@@ -441,6 +456,79 @@ public partial class MultiButtonConfigView : UserControl
         };
 
         return combo;
+    }
+
+    private void PopulateDeviceCombo(ComboBox combo, JoystickButtons binding)
+    {
+        var deviceList = new List<string> { "None", "Windows Mouse Cursor", "Unknown Device" };
+
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var player in SunshinePlayerInput.GetConnectedPlayers())
+                deviceList.Add(SunshinePlayerInput.DisplayNameForPlayer(player));
+
+            deviceList.AddRange(_rawCapture.GetMouseDeviceList());
+        }
+
+        if (!string.IsNullOrEmpty(binding.BindNameRi) && !deviceList.Contains(binding.BindNameRi))
+            deviceList.Add(binding.BindNameRi);
+
+        _refreshingDeviceLists = true;
+        combo.ItemsSource = deviceList;
+        combo.SelectedItem = string.IsNullOrEmpty(binding.BindNameRi) ? "None" : binding.BindNameRi;
+        _refreshingDeviceLists = false;
+    }
+
+    private void OnSunshineInputReceived(object? sender, SunshineInputEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (e.EventType == SunshineInputEventType.Roster)
+            {
+                foreach (var (combo, binding) in _deviceCombos.ToList())
+                    PopulateDeviceCombo(combo, binding);
+                return;
+            }
+
+            if (_armedMapping is not { } mapping || !_master.TryGetValue(mapping, out _))
+                return;
+
+            if (_currentInputApi is not (InputApi.RawInput or InputApi.RawInputTrackball or InputApi.MergedInput))
+                return;
+
+            RawInputButton? button = null;
+            string? name = null;
+
+            if (e.EventType == SunshineInputEventType.KeyDown)
+            {
+                button = new RawInputButton
+                {
+                    DevicePath = SunshinePlayerInput.DevicePathForPlayer(e.Player),
+                    DeviceType = RawDeviceType.Keyboard,
+                    KeyboardKey = (Keys)e.KeyCode,
+                    MouseButton = RawMouseButton.None
+                };
+                name = $"{SunshinePlayerInput.DisplayNameForPlayer(e.Player)} Key {(Keys)e.KeyCode}";
+            }
+            else if (e.EventType == SunshineInputEventType.MouseButtonDown)
+            {
+                var mouseButton = SunshinePlayerInput.MapMouseButton(e.MouseButton);
+                if (mouseButton == RawMouseButton.None)
+                    return;
+
+                button = new RawInputButton
+                {
+                    DevicePath = SunshinePlayerInput.DevicePathForPlayer(e.Player),
+                    DeviceType = RawDeviceType.Mouse,
+                    KeyboardKey = Keys.None,
+                    MouseButton = mouseButton
+                };
+                name = $"{SunshinePlayerInput.DisplayNameForPlayer(e.Player)} {mouseButton}";
+            }
+
+            if (button != null && name != null)
+                OnRawCaptured(name, button, false);
+        });
     }
 
     // ---------- input capture ----------
@@ -497,7 +585,7 @@ public partial class MultiButtonConfigView : UserControl
             case InputApi.SDL2 when captured.XInput != null:
             case InputApi.MergedInput when captured.XInput != null:
                 // SDL2 capture produces XInput-shaped bindings; one binding per
-                // row — replaces any keyboard/mouse binding
+                // row ΓÇö replaces any keyboard/mouse binding
                 master.XInputButton = captured.XInput;
                 master.BindNameXi = captured.DisplayName;
                 master.RawInputButton = null;
@@ -721,7 +809,7 @@ public partial class MultiButtonConfigView : UserControl
     // ---------- apply / save ----------
 
     /// <summary>
-    /// Applies the master bindings to the given games — only for APIs each game can
+    /// Applies the master bindings to the given games ΓÇö only for APIs each game can
     /// read, further restricted to the APIs the current UI mode edits (WPF rules).
     /// </summary>
     private (int changes, int applied, int skipped) ApplyMasterToGames(List<GameProfile> games, bool quiet = false)
@@ -749,7 +837,7 @@ public partial class MultiButtonConfigView : UserControl
                     gameChanges++;
             }
 
-            // Input is always merged at runtime (SDL2 + RawInput) — no need to
+            // Input is always merged at runtime (SDL2 + RawInput) ΓÇö no need to
             // rewrite the game's Input API, which now only stores gun flavour.
             totalChanges += gameChanges;
         }
@@ -864,7 +952,7 @@ public partial class MultiButtonConfigView : UserControl
         if (sourceProfile == null)
             return;
 
-        // Copy matching buttons — only APIs the target game can actually read
+        // Copy matching buttons ΓÇö only APIs the target game can actually read
         var targetApis = GetSupportedApis(targetProfile);
         foreach (var sourceButton in sourceProfile.JoystickButtons)
         {
@@ -984,7 +1072,7 @@ public partial class MultiButtonConfigView : UserControl
             var result = await Dialogs.ConfirmCancelAsync(OwnerWindow, "Unsaved Changes",
                 "You have unsaved changes. Save them before leaving?");
             if (result == null)
-                return; // cancel — stay
+                return; // cancel ΓÇö stay
             if (result == true)
             {
                 var selectedGames = SelectedGames;

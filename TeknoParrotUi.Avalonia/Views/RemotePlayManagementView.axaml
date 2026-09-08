@@ -1,0 +1,129 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TeknoParrotUi.Avalonia.Views.RemotePlayManagementView">
+  <DockPanel Margin="14">
+    <TextBlock DockPanel.Dock="Top" Text="Remote Play Management" FontSize="20" FontWeight="Bold" Margin="0,0,0,5"/>
+    <TextBlock DockPanel.Dock="Top" Text="Manage the separately-downloaded Sunshine host and Moonlight client portables." Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,10"/>
+    <Button Name="BtnClose" DockPanel.Dock="Bottom" Content="Close" Width="120" HorizontalAlignment="Center" Margin="0,10,0,0" Click="BtnClose_Click"/>
+    <TabControl>
+      <TabItem Header="Sunshine Host">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="4,10,4,4">
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Sunshine" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Name="SunshineStatusText" Text="Checking..." FontWeight="SemiBold"/>
+                <TextBlock Name="SunshineStatusDetail" TextWrapping="Wrap" Opacity="0.75"/>
+                <TextBlock Name="ManagedApiDetailText" Text="Managed API disconnected" TextWrapping="Wrap" Opacity="0.7"/>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Name="BtnStartSunshine" Content="Start" Click="BtnStartSunshine_Click"/>
+                  <Button Name="BtnStopSunshine" Content="Stop" Click="BtnStopSunshine_Click"/>
+                  <Button Name="BtnRestartSunshine" Content="Restart" Click="BtnRestartSunshine_Click"/>
+                  <Button Name="BtnOpenSunshineWebUi" Content="Open Web UI" Click="BtnOpenSunshineWebUi_Click"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Managed Connection" FontSize="17" FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <RadioButton Name="RadioConnectionOpen" GroupName="ConnectionMode" Content="Open" IsCheckedChanged="ConnectionMode_Checked"/>
+                  <RadioButton Name="RadioConnectionClosed" GroupName="ConnectionMode" Content="Closed" IsCheckedChanged="ConnectionMode_Checked"/>
+                </StackPanel>
+                <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto">
+                  <TextBlock Text="Connection state"/><TextBlock Name="ConnectionStateText" Grid.Column="1" Text="—"/>
+                  <TextBlock Grid.Row="1" Text="Active sessions"/><TextBlock Name="ActiveSessionsText" Grid.Row="1" Grid.Column="1" Text="—"/>
+                  <TextBlock Grid.Row="2" Text="Paired clients"/><TextBlock Name="PairedClientsText" Grid.Row="2" Grid.Column="1" Text="—"/>
+                </Grid>
+                <TextBlock Name="ConnectionModeDetailText" Text="Waiting for Sunshine..." Opacity="0.7"/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Pair Moonlight Client" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Name="PairingStatusText" Text="Waiting on pairing requests" TextWrapping="Wrap" Opacity="0.75"/>
+                <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto">
+                  <TextBlock Text="4-digit PIN" VerticalAlignment="Center"/>
+                  <TextBox Name="PairingPinTextBox" Grid.Column="1" MaxLength="4" PlaceholderText="0000"/>
+                  <TextBlock Grid.Row="1" Text="Client name" VerticalAlignment="Center"/>
+                  <TextBox Name="PairingNameTextBox" Grid.Row="1" Grid.Column="1" PlaceholderText="Optional"/>
+                </Grid>
+                <Button Name="BtnPairClient" Content="Approve Pairing" HorizontalAlignment="Left" Click="BtnPairClient_Click"/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Moonlight Clients" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Name="ClientListStatusText" Text="Waiting for Sunshine..." Opacity="0.75"/>
+                <ListBox Name="ClientsListBox" MinHeight="90" MaxHeight="180" SelectionChanged="ClientsListBox_SelectionChanged"/>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Name="BtnRefreshClients" Content="Refresh" Click="BtnRefreshClients_Click"/>
+                  <Button Name="BtnDisconnectAll" Content="Disconnect All" Click="BtnDisconnectAll_Click"/>
+                  <Button Name="BtnUnpairClient" Content="Unpair Selected" Click="BtnUnpairClient_Click"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="Moonlight Client">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="4,10,4,4">
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Moonlight Portable" FontSize="17" FontWeight="SemiBold"/>
+                <TextBlock Name="MoonlightInstallStatusText" Text="Checking..." FontWeight="SemiBold"/>
+                <TextBlock Name="MoonlightStatusDetailText" TextWrapping="Wrap" Opacity="0.75"/>
+                <TextBlock Name="MoonlightPathText" TextWrapping="Wrap" FontFamily="monospace" FontSize="11"/>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Name="BtnStartMoonlight" Content="Enable" Click="BtnStartMoonlight_Click"/>
+                  <Button Name="BtnStopMoonlight" Content="Stop" Click="BtnStopMoonlight_Click"/>
+                  <Button Name="BtnOpenMoonlight" Content="Open Moonlight" Click="BtnOpenMoonlight_Click"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Host" FontSize="17" FontWeight="SemiBold"/>
+                <Grid ColumnDefinitions="120,*">
+                  <TextBlock Text="Host address" VerticalAlignment="Center"/>
+                  <TextBox Name="MoonlightHostTextBox" Grid.Column="1" PlaceholderText="IP address or hostname" TextChanged="MoonlightHostTextBox_TextChanged"/>
+                </Grid>
+                <TextBlock Name="MoonlightConnectionStatusText" Text="Enter a host address to begin." TextWrapping="Wrap" Opacity="0.75"/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Pairing" FontSize="17" FontWeight="SemiBold"/>
+                <Grid ColumnDefinitions="120,*">
+                  <TextBlock Text="Generated PIN" VerticalAlignment="Center"/>
+                  <TextBlock Name="MoonlightGeneratedPinText" Grid.Column="1" Text="----" FontSize="24" FontWeight="Bold"/>
+                </Grid>
+                <TextBlock Name="MoonlightPairStatusText" Text="Start pairing to generate a PIN, then enter that PIN on the Sunshine host." TextWrapping="Wrap" Opacity="0.75"/>
+                <Button Name="BtnMoonlightPair" Content="Generate PIN &amp; Pair" HorizontalAlignment="Left" Click="BtnMoonlightPair_Click"/>
+              </StackPanel>
+            </Border>
+
+            <Border BorderThickness="1" CornerRadius="6" Padding="12">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Applications" FontSize="17" FontWeight="SemiBold"/>
+                <ListBox Name="MoonlightAppsListBox" MinHeight="110" MaxHeight="220" SelectionChanged="MoonlightAppsListBox_SelectionChanged"/>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Name="BtnMoonlightRefreshApps" Content="Refresh Apps" Click="BtnMoonlightRefreshApps_Click"/>
+                  <Button Name="BtnMoonlightStartStream" Content="Start Stream" Click="BtnMoonlightStartStream_Click"/>
+                  <Button Name="BtnMoonlightQuitStream" Content="Quit Remote App" Click="BtnMoonlightQuitStream_Click"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</UserControl>
